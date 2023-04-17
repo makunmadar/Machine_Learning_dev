@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import os
 import re
-import random
 from sklearn.model_selection import train_test_split
 from numpy import genfromtxt
 import matplotlib.pyplot as plt
@@ -174,14 +173,14 @@ np.savetxt(training_path + 'feature', X_train)
 np.savetxt(testing_path + 'feature', X_test)
 np.savetxt(bin_path + 'bin_sub6_dndz', dndzbins)
 
-for i in range(len(empty_Hadndz)):
-
-    #plt.plot(dndzbins, y_test[i])
-    plt.plot(dndzbins, empty_Hadndz[i])
-
-plt.title("Spread of test redshift distribution data")
-plt.xlabel("Redshift, z", fontsize=15)
-plt.ylabel("Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
-plt.show()
+# for i in range(len(empty_Hadndz)):
+#
+#     #plt.plot(dndzbins, y_test[i])
+#     plt.plot(dndzbins, empty_Hadndz[i])
+#
+# plt.title("Spread of test redshift distribution data")
+# plt.xlabel("Redshift, z", fontsize=15)
+# plt.ylabel("Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
+# plt.show()
 
 

@@ -3,6 +3,7 @@ Machine learning training process.
 At the moment developing a neural network for a multi output regression task.
 """
 
+import numpy as np
 from numpy import genfromtxt
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
@@ -43,32 +44,9 @@ def get_model(input_shape):
     model.compile(
         loss=rmse,
         optimizer=Adam(),
-        metrics=[rmse, 'accuracy']
+        metrics=[rmse]
     )
     return model
-
-
-# Evaluate a model using repeated k-fold cross-validation
-def evaluate_model(X, y):
-    results = list()
-    n_inputs, n_outputs = X.shape[1], y.shape[1]
-    # Define evaluation procedure
-    cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
-    # Enumerate folds
-    for train_ix, test_ix in cv.split(X):
-        # Prepare data
-        X_train, X_test = X[train_ix], X[test_ix]
-        y_train, y_test = y[train_ix], y[test_ix]
-        # Define model
-        model = get_model(n_inputs, n_outputs)
-        # Fit model
-        model.fit(X_train, y_train, verbose=0, epochs=100)
-        # Evaluate model on test set
-        mae = model.evaluate(X_test, y_test, verbose=0)
-        # Store result
-        print('>%.3f' % mae)
-        results.append(mae)
-    return results
 
 
 def plot_loss(history):
@@ -117,7 +95,3 @@ plot_loss(history)
 
 model.save('Models/my_model')
 
-# Evaluate model
-# results = evaluate_model(X, y)
-# Summarize performance
-# print('MAE: %.3f (%.3f)' % (mean(results), std(results)))
