@@ -42,21 +42,36 @@ def get_model(input_shape):
 
     model.compile(
         loss=rmse,
-        optimizer=Adam(),
+        optimizer=Adam(learning_rate = 0.01),
         metrics=[rmse]
     )
     return model
 
 
-def plot_loss(history, lr):
+def plot_loss(history, label):
     #plt.plot(history.history['loss'], label='loss')
-    plt.plot(history.history['val_loss'], label=f'val_loss lr:{lr}')
+    plt.plot(history.history['val_loss'], label=label)
     plt.ylim([0.5, 1.25])
     plt.xlabel('Epoch')
     plt.ylabel('Error [Redshift Distribution]')
     plt.legend()
     plt.grid(True)
     #plt.show()
+
+initial_learning_rate = 0.01
+epochs = 150
+decay = initial_learning_rate/ epochs
+def lr_time_based_decay(epoch, lr):
+    return lr * 1 / (1 + decay * epoch)
+
+def lr_step_decay(epoch, lr):
+    drop_rate = 0.5
+    epochs_drop = 10.0
+    return initial_learning_rate*math.pow(drop_rate, math.floor(epoch/epochs_drop))
+
+def lr_exp_decay(epoch, lr):
+    k = 0.1
+    return initial_learning_rate * math.exp(-k*epoch)
 
 
 # Import the training datasets
@@ -85,16 +100,30 @@ print('Label data shape: ', y.shape)
 
 input_shape = X.shape
 
-for lr in lrs:
+# Get model
+model = get_model(input_shape)
 
-    # Get model
-    model = get_model(input_shape)
+# Fit the model on all data
+history = model.fit(X, y,
+                    verbose=0, epochs=epochs,
+                    validation_split=0.2)
+plot_loss(history, 'Fixed LR: 0.01')
+history = model.fit(X, y,
+                    verbose=0, epochs=epochs,
+                    validation_split=0.2,
+                    callbacks=[LearningRateScheduler(lr_time_based_decay, verbose=0)])
+plot_loss(history, 'Time based lr')
+history = model.fit(X, y,
+                    verbose=0, epochs=epochs,
+                    validation_split=0.2,
+                    callbacks=[LearningRateScheduler(lr_step_decay, verbose=0)])
+plot_loss(history, 'Step based lr')
+history = model.fit(X, y,
+                    verbose=0, epochs=epochs,
+                    validation_split=0.2,
+                    callbacks=[LearningRateScheduler(lr_exp_decay, verbose=0)])
+plot_loss(history, 'Exp based lr')
 
-    # Fit the model on all data
-    history = model.fit(X, y,
-                        verbose=0, epochs=150,
-                        validation_split=0.2)
-    plot_loss(history)
 plt.show()
 #model.save('Models/my_model')
 
