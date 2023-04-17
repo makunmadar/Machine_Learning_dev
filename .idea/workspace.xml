@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a7acc9b9-fa9e-44a1-badd-1ebbdfbf4728" name="Changes" comment="" />
+    <list default="true" id="a7acc9b9-fa9e-44a1-badd-1ebbdfbf4728" name="Changes" comment="Initial Commit">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/Data_generation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MultiOut_ML.py" beforeDir="false" afterPath="$PROJECT_DIR$/MultiOut_ML.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_eval.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -17,10 +22,14 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="2L6MSncCt9CSO1zPKJrcJ5PFw04" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -248,12 +257,36 @@
       <workItem from="1681310919334" duration="2863000" />
       <workItem from="1681375268148" duration="1873000" />
       <workItem from="1681470020447" duration="3648000" />
-      <workItem from="1681720620645" duration="2035000" />
+      <workItem from="1681720620645" duration="2749000" />
+      <workItem from="1681723919303" duration="1332000" />
     </task>
+    <task id="LOCAL-00001" summary="Initial Commit">
+      <created>1681723311518</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1681723311518</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Initial Commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Initial Commit" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/ML$ML_training.coverage" NAME="ML_training Coverage Results" MODIFIED="1675945401450" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

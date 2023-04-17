@@ -1,3 +1,10 @@
+"""
+Taking in the raw number counts and redshift distribution outputs and formatting them appropriately for
+machine learning training and evaluation.
+
+For now only saving the redshift distribution outputs for training.
+"""
+
 import numpy as np
 import pandas as pd
 import os

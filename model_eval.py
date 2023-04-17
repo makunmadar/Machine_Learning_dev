@@ -1,3 +1,8 @@
+"""
+Evaluation of a tensorflow model, applying it to an unseen test dataset seperately saved.
+Using a variety of metrics to assess the precision of predictions.
+"""
+
 ## This script takes the model created from MultiOut_ML.py and applies it to an unseen test dataset
 # Load in the test data
 import numpy as np

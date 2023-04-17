@@ -1,3 +1,8 @@
+"""
+Machine learning training process.
+At the moment developing a neural network for a multi output regression task.
+"""
+
 from numpy import genfromtxt
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
