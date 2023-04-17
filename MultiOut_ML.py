@@ -3,17 +3,16 @@ Machine learning training process.
 At the moment developing a neural network for a multi output regression task.
 """
 
-import numpy as np
 from numpy import genfromtxt
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn.model_selection import train_test_split, RepeatedKFold
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import backend as K
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import LearningRateScheduler
+import math
 
 def rmse(y_true, y_pred):
     return K.sqrt(K.mean(K.square(y_pred - y_true)))
@@ -49,15 +48,15 @@ def get_model(input_shape):
     return model
 
 
-def plot_loss(history):
-    plt.plot(history.history['loss'], label='loss')
-    plt.plot(history.history['val_loss'], label='val_loss')
-    plt.ylim([0, 1.25])
+def plot_loss(history, lr):
+    #plt.plot(history.history['loss'], label='loss')
+    plt.plot(history.history['val_loss'], label=f'val_loss lr:{lr}')
+    plt.ylim([0.5, 1.25])
     plt.xlabel('Epoch')
     plt.ylabel('Error [Redshift Distribution]')
     plt.legend()
     plt.grid(True)
-    plt.show()
+    #plt.show()
 
 
 # Import the training datasets
@@ -85,13 +84,17 @@ print('Feature data shape:', X.shape)
 print('Label data shape: ', y.shape)
 
 input_shape = X.shape
-# Get model
-model = get_model(input_shape)
 
-# Fit the model on all data
-history = model.fit(X, y, verbose=0, epochs=150,
-                    validation_split=0.2)
-plot_loss(history)
+for lr in lrs:
 
-model.save('Models/my_model')
+    # Get model
+    model = get_model(input_shape)
+
+    # Fit the model on all data
+    history = model.fit(X, y,
+                        verbose=0, epochs=150,
+                        validation_split=0.2)
+    plot_loss(history)
+plt.show()
+#model.save('Models/my_model')
 
