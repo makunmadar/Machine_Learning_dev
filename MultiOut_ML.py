@@ -42,7 +42,7 @@ def get_model(input_shape):
 
     model.compile(
         loss=rmse,
-        optimizer=Adam(learning_rate = 0.01),
+        optimizer=Adam(learning_rate = 0.001),
         metrics=[rmse]
     )
     return model
@@ -58,7 +58,7 @@ def plot_loss(history, label):
     plt.grid(True)
     #plt.show()
 
-initial_learning_rate = 0.01
+initial_learning_rate = 0.05
 epochs = 150
 decay = initial_learning_rate/ epochs
 def lr_time_based_decay(epoch, lr):
@@ -102,27 +102,29 @@ input_shape = X.shape
 
 # Get model
 model = get_model(input_shape)
-
+model1 = get_model(input_shape)
+model2 = get_model(input_shape)
+model3 = get_model(input_shape)
 # Fit the model on all data
 history = model.fit(X, y,
                     verbose=0, epochs=epochs,
                     validation_split=0.2)
-plot_loss(history, 'Fixed LR: 0.01')
-history = model.fit(X, y,
+plot_loss(history, 'Fixed LR: 0.001')
+history1 = model1.fit(X, y,
                     verbose=0, epochs=epochs,
                     validation_split=0.2,
                     callbacks=[LearningRateScheduler(lr_time_based_decay, verbose=0)])
-plot_loss(history, 'Time based lr')
-history = model.fit(X, y,
+plot_loss(history1, 'Time based lr')
+history2 = model2.fit(X, y,
                     verbose=0, epochs=epochs,
                     validation_split=0.2,
                     callbacks=[LearningRateScheduler(lr_step_decay, verbose=0)])
-plot_loss(history, 'Step based lr')
-history = model.fit(X, y,
+plot_loss(history2, 'Step based lr')
+history3 = model3.fit(X, y,
                     verbose=0, epochs=epochs,
                     validation_split=0.2,
                     callbacks=[LearningRateScheduler(lr_exp_decay, verbose=0)])
-plot_loss(history, 'Exp based lr')
+plot_loss(history3, 'Exp based lr')
 
 plt.show()
 #model.save('Models/my_model')
