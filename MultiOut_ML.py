@@ -13,10 +13,11 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import LearningRateScheduler
 import math
+import time
+import datetime
 
 def rmse(y_true, y_pred):
     return K.sqrt(K.mean(K.square(y_pred - y_true)))
-
 
 # get the model
 def get_model(input_shape):
@@ -42,23 +43,22 @@ def get_model(input_shape):
 
     model.compile(
         loss=rmse,
-        optimizer=Adam(learning_rate = 0.001),
+        optimizer=Adam(learning_rate = 0.005),
         metrics=[rmse]
     )
     return model
 
-
 def plot_loss(history, label):
-    #plt.plot(history.history['loss'], label='loss')
+    plt.plot(history.history['loss'], label='loss')
     plt.plot(history.history['val_loss'], label=label)
     plt.ylim([0.5, 1.25])
     plt.xlabel('Epoch')
     plt.ylabel('Error [Redshift Distribution]')
     plt.legend()
     plt.grid(True)
-    #plt.show()
+    plt.show()
 
-initial_learning_rate = 0.05
+initial_learning_rate = 0.005
 epochs = 150
 decay = initial_learning_rate/ epochs
 def lr_time_based_decay(epoch, lr):
@@ -102,30 +102,22 @@ input_shape = X.shape
 
 # Get model
 model = get_model(input_shape)
-model1 = get_model(input_shape)
-model2 = get_model(input_shape)
-model3 = get_model(input_shape)
+#model1 = get_model(input_shape)
+# model2 = get_model(input_shape)
+#model3 = get_model(input_shape)
+
+log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
 # Fit the model on all data
+start = time.perf_counter()
 history = model.fit(X, y,
                     verbose=0, epochs=epochs,
-                    validation_split=0.2)
-plot_loss(history, 'Fixed LR: 0.001')
-history1 = model1.fit(X, y,
-                    verbose=0, epochs=epochs,
                     validation_split=0.2,
-                    callbacks=[LearningRateScheduler(lr_time_based_decay, verbose=0)])
-plot_loss(history1, 'Time based lr')
-history2 = model2.fit(X, y,
-                    verbose=0, epochs=epochs,
-                    validation_split=0.2,
-                    callbacks=[LearningRateScheduler(lr_step_decay, verbose=0)])
-plot_loss(history2, 'Step based lr')
-history3 = model3.fit(X, y,
-                    verbose=0, epochs=epochs,
-                    validation_split=0.2,
-                    callbacks=[LearningRateScheduler(lr_exp_decay, verbose=0)])
-plot_loss(history3, 'Exp based lr')
+                    callbacks=[tensorboard_callback])
+elapsed = time.perf_counter() - start
+print('Elapsed %.3f seconds.' % elapsed)
 
-plt.show()
+start = time.perf_counter()
 #model.save('Models/my_model')
 
