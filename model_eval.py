@@ -44,11 +44,14 @@ X_test = genfromtxt(feature_file)
 y_test = genfromtxt(label_file)
 
 # Load a model from the Model directory
-model = tf.keras.models.load_model('Models/my_model', custom_objects={'rmse': rmse}, compile=False)
-model.summary()
+model_1 = tf.keras.models.load_model('Models/model_512_512_epoch150_T400', custom_objects={'rmse': rmse}, compile=False)
+model_1.summary()
 
-# Load the lesser model
-#model_half = tf.keras.models.load_model('Models/my_model_halftrain', custom_objects={'rmse': rmse}, compile=False)
+# Load the other models
+model_2 = tf.keras.models.load_model('Models/model_512_512_epoch200_T400', custom_objects={'rmse': rmse}, compile=False)
+#model_3 = tf.keras.models.load_model('Models/model_64_64_sigmoid', custom_objects={'rmse': rmse}, compile=False)
+#model_4 = tf.keras.models.load_model('Models/model_124_124_sigmoid_LRexp', custom_objects={'rmse': rmse}, compile=False)
+
 
 # Load scalar fits
 scaler_feat = MinMaxScaler(feature_range=(0, 1))
@@ -60,11 +63,17 @@ scaler_label.fit(y_test)
 y_test = scaler_label.transform(y_test)
 
 # Make a prediction for test data
-yhat = model.predict(X_test)
-#yhat_half = model_half.predict(X_test)
+yhat_1 = model_1.predict(X_test)
+yhat_2 = model_2.predict(X_test)
+#yhat_3 = model_3.predict(X_test)
+#yhat_4 = model_4.predict(X_test)
+
 # De-normalize the predictions and truth data
-yhat = scaler_label.inverse_transform(yhat)
-#yhat_half = scaler_label.inverse_transform(yhat_half)
+yhat_1 = scaler_label.inverse_transform(yhat_1)
+yhat_2 = scaler_label.inverse_transform(yhat_2)
+#yhat_64 = scaler_label.inverse_transform(yhat_64)
+#yhat_exp = scaler_label.inverse_transform(yhat_exp)
+
 y_test = scaler_label.inverse_transform(y_test)
 # print('Predicted: %s' % yhat[1])
 # print('True: %s' % y_test[1])
@@ -81,14 +90,11 @@ axs = axs.ravel()
 
 for i in range(9):
 
-    # axs[iax].plot(bins[0:6], yhat[i][0:6], 'rx--', label="Prediction")
-    # axs[iax].plot(bins[0:6], y_test[i][0:6], 'gx-', label="True")
-    # axs[iax].set_xlabel("Log$_{10}$(Flux) [10$^{-16}$erg s$^{-1}$ cm$^{-2}$]", fontsize=15)
-    # axs[iax].set_ylabel("Log$_{10}$(N(>S)) [deg$^{-2}$]", fontsize=15)
-    # axs[iax].legend()
+    axs[i].plot(bins, yhat_1[i], 'x--', label="512 400 training epoch 150")
+    axs[i].plot(bins, yhat_2[i], 'x--', label="512 400 training epoch 200", alpha=0.5)
+    #axs[i].plot(bins, yhat_3[i], 'x--', label="64 64", alpha=0.5)
+    #axs[i].plot(bins, yhat_4[i], 'x--', label="LR: exp decay", alpha=0.5)
 
-    axs[i].plot(bins, yhat[i], 'rx--', label="Prediction")
-    #axs[i].plot(bins, yhat_half[i], 'rx--', label="Half prediction", alpha=0.5)
     axs[i].plot(bins, y_test[i], 'gx-', label="True")
     axs[i].legend()
 
