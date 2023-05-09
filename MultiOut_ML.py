@@ -32,8 +32,8 @@ def get_model(input_shape):
     model = Sequential([
 
         # Currently using Ed's emulator architecture
-        Dense(512, input_shape=(6,), activation='sigmoid'),
-        Dense(512, activation='sigmoid'),
+        Dense(124, input_shape=(6,), activation='sigmoid'),
+        Dense(124, activation='sigmoid'),
         Dense(6)
     ])
 
@@ -42,7 +42,7 @@ def get_model(input_shape):
 
     model.compile(
         loss=rmse,
-        optimizer=Adam(amsgrad=True),
+        optimizer=Adam(amsgrad=True, learning_rate=0.005),
         metrics=[rmse]
     )
     return model
@@ -57,29 +57,17 @@ def plot_loss(history, label):
     plt.grid(True)
     plt.show()
 
-initial_learning_rate = 0.01
-epochs = 250
-decay = initial_learning_rate/ epochs
-def lr_time_based_decay(epoch, lr):
-    return lr * 1 / (1 + decay * epoch)
-
-def lr_step_decay(epoch, lr):
-    drop_rate = 0.5
-    epochs_drop = 10.0
-    return initial_learning_rate*math.pow(drop_rate, math.floor(epoch/epochs_drop))
-
-def lr_exp_decay(epoch, lr):
-    k = 0.1
-    return initial_learning_rate * math.exp(-k*epoch)
-
 early_stopping = EarlyStopping(
     monitor='val_loss',
-    min_delta=0.001, # minimum amount of change to count as an improvement
-    patience=10, # how many epochs to wait before stopping
-    restore_best_weights=True
+    mode='min',
+    patience=30, # how many epochs to wait before stopping
+    restore_best_weights=True,
+    verbose=1
 )
 checkpoint = ModelCheckpoint(
     'best_model',
+    monitor='val_accuracy',
+    mode='max',
     save_best_only=True
 )
 
@@ -109,23 +97,30 @@ print('Label data shape: ', y.shape)
 
 input_shape = X.shape
 
-# Get model
-model = get_model(input_shape)
+#TODO Add comments
 
-# Log for tensorboard analysis
-model_name = "512_512_epoch200_T400"
-log_dir = "logs/fit/" + model_name
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+# Fit and save models
+n_members=5
+for i in range(n_members):
+    # Fit model
+    model = get_model(input_shape)
 
-# Fit the model on all data
-start = time.perf_counter()
-history = model.fit(X, y,
-                    verbose=0, epochs=epochs,
-                    validation_split=0.2,
-                    callbacks=[tensorboard_callback, checkpoint])
-elapsed = time.perf_counter() - start
-print('Elapsed %.3f seconds.' % elapsed)
+    # Log for tensorboard analysis
+    model_name = "Ensemble_model_"+ str(i+1)
+    #log_dir = "logs/fit/" + model_name
+    #tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-start = time.perf_counter()
-model.save('Models/model_'+model_name)
+    # Fit the model on all data
+    start = time.perf_counter()
+    history = model.fit(X, y,
+                        verbose=0,
+                        validation_split=0.2,
+                        callbacks=[early_stopping],
+                        epochs=700)
+    elapsed = time.perf_counter() - start
+    print('Elapsed %.3f seconds' % elapsed, ' for model %d' % i)
+
+    start = time.perf_counter()
+    model.save('Models/'+model_name)
+    print('>Saved %s' % model_name)
 

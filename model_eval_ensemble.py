@@ -1,5 +1,5 @@
 """
-Evaluation of a tensorflow model, applying it to an unseen test dataset seperately saved.
+Evaluation of multiple tensorflow models ensembled, applying it to an unseen test dataset seperately saved.
 Using a variety of metrics to assess the precision of predictions.
 """
 
@@ -20,6 +20,25 @@ print(tf.version.VERSION)
 def rmse(y_true, y_pred):
     return K.sqrt(K.mean(K.square(y_pred - y_true)))
 
+def load_all_models(n_models):
+    """
+    Load all the models from file
+
+    :param n_models: number of models in the ensemble
+    :return: list of ensemble models
+    """
+
+    all_models = list()
+    for i in range(n_models):
+        # Define filename for this ensemble
+        filename = 'Models/model_Ensemble_model_'+str(i+1)
+        # Load model from file
+        model = tf.keras.models.load_model(filename, custom_objects={'rmse': rmse}, compile=False)
+        # add to list of members
+        all_models.append(model)
+        print('>loaded %s' % filename)
+
+    return all_models
 
 def chi_test(y_true, y_pred):
     '''
@@ -35,6 +54,20 @@ def chi_test(y_true, y_pred):
 
     return chi_sum
 
+def predict_stacked_model(model, inputX):
+    """
+    Make a prediction with the stacked model
+    
+    :param model: Stacked model
+    :param inputX: Test feature data
+    :return: Prediction results
+    """""
+
+    # Prepare input data
+    X = [inputX for _ in range(len(model.input))]
+    # Make prediction
+    return model.predict(X, verbose=0)
+
 
 # Import the test data
 feature_file = 'Data/Data_for_ML/testing_data/feature'
@@ -44,14 +77,12 @@ X_test = genfromtxt(feature_file)
 y_test = genfromtxt(label_file)
 
 # Load a model from the Model directory
-model_1 = tf.keras.models.load_model('Models/model_512_512_ES_T400_LR0.005', custom_objects={'rmse': rmse}, compile=False)
-model_1.summary()
+model_1 = tf.keras.models.load_model('Models/model_124_124_124_ES_T400_LR0.005', custom_objects={'rmse': rmse}, compile=False)
+stacked_model = tf.keras.models.load_model('Models/stacked_model', custom_objects={'rmse': rmse}, compile=False)
 
-# Load the other models
-model_2 = tf.keras.models.load_model('Models/model_124_124_ES_T400_LR0.005', custom_objects={'rmse': rmse}, compile=False)
-model_3 = tf.keras.models.load_model('Models/model_64_64_ES_T400_LR0.005', custom_objects={'rmse': rmse}, compile=False)
-#model_4 = tf.keras.models.load_model('Models/model_124_124_sigmoid_LRexp', custom_objects={'rmse': rmse}, compile=False)
-
+n_members = 5
+members = load_all_models(n_members)
+print('Loaded %d models' % len(members))
 
 # Load scalar fits
 scaler_feat = MinMaxScaler(feature_range=(0, 1))
@@ -64,15 +95,20 @@ y_test = scaler_label.transform(y_test)
 
 # Make a prediction for test data
 yhat_1 = model_1.predict(X_test)
-yhat_2 = model_2.predict(X_test)
-yhat_3 = model_3.predict(X_test)
-#yhat_4 = model_4.predict(X_test)
+
+ensamble_pred = list()
+for model in members:
+    yhat = model.predict(X_test)
+    yhat = scaler_label.inverse_transform(yhat)
+    ensamble_pred.append(yhat)
+
+yhatavg = np.mean(ensamble_pred, axis=0)
+
+yhat_stacked = predict_stacked_model(stacked_model, X_test)
 
 # De-normalize the predictions and truth data
 yhat_1 = scaler_label.inverse_transform(yhat_1)
-yhat_2 = scaler_label.inverse_transform(yhat_2)
-yhat_3 = scaler_label.inverse_transform(yhat_3)
-#yhat_4 = scaler_label.inverse_transform(yhat_4)
+yhat_stacked = scaler_label.inverse_transform(yhat_stacked)
 
 y_test = scaler_label.inverse_transform(y_test)
 # print('Predicted: %s' % yhat[1])
@@ -90,9 +126,9 @@ axs = axs.ravel()
 
 for i in range(9):
 
-    axs[i].plot(bins, yhat_1[i], 'x--', label="512 400 train ES LR0.005")
-    axs[i].plot(bins, yhat_2[i], 'x--', label="124 400 train ES LR0.005", alpha=0.5)
-    axs[i].plot(bins, yhat_3[i], 'x--', label="64 400 train ES LR0.005", alpha=0.5)
+    axs[i].plot(bins, yhat_1[i], 'x--', label="124 400 train ES LR0.005")
+    axs[i].plot(bins, yhatavg[i], 'x--', label="Avg ensemble", alpha=0.5)
+    axs[i].plot(bins, yhat_stacked[i], 'x--', label="Integrated stacked model", alpha=0.5)
     #axs[i].plot(bins, yhat_4[i], 'x--', label="LR: exp decay", alpha=0.5)
 
     axs[i].plot(bins, y_test[i], 'gx-', label="True")
@@ -105,8 +141,8 @@ plt.show()
 # Model evaluation
 # Using RMSE from tensorflow
 predictions_1 = np.ravel(yhat_1)
-predictions_2 = np.ravel(yhat_2)
-predictions_3 = np.ravel(yhat_3)
+predictions_2 = np.ravel(yhatavg)
+predictions_3 = np.ravel(yhat_stacked)
 truth = np.ravel(y_test)
 print('\n')
 print('RMSE of predictions_1: ', rmse(truth, predictions_1).numpy())
@@ -123,8 +159,8 @@ fig, axs = plt.subplots(1, 1, figsize=(10, 5), sharey=True)
 fig.subplots_adjust(wspace=0)
 #sns.residplot(x=yhat_counts, y=y_test_counts, ax=axs[0])
 sns.residplot(x=predictions_1, y=truth, ax=axs, label="512 400 train ES LR0.005")
-sns.residplot(x=predictions_2, y=truth, ax=axs, label="124 400 train ES LR0.005")
-sns.residplot(x=predictions_3, y=truth, ax=axs, label="64 400 train ES LR0.005")
+sns.residplot(x=predictions_2, y=truth, ax=axs, label="Avg ensemble")
+sns.residplot(x=predictions_3, y=truth, ax=axs, label="Integrated stacked model")
 axs.set_ylabel("Residuals (y-y$_p$)", fontsize=15)
 #axs.set_xlabel("Log$_{10}$(Flux) [10$^{-16}$erg s$^{-1}$ cm$^{-2}$]", fontsize=15)
 axs.set_xlabel("Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
@@ -139,4 +175,3 @@ plt.show()
 #
 #     print(f'Test model {i+1} chi square score: ', chi)
 #     print(f'Test half model {i+1} chi square score: ', chi_half)
-
