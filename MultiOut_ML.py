@@ -32,18 +32,18 @@ def get_model(input_shape):
     model = Sequential([
 
         # Currently using Ed's emulator architecture
-        Dense(124, input_shape=(6,), activation='sigmoid'),
-        Dense(124, activation='sigmoid'),
-        Dense(6)
+        Dense(512, input_shape=(6,), activation='sigmoid'),
+        Dense(512, activation='sigmoid'),
+        Dense(12)
     ])
 
     model.build(input_shape)
     model.summary()
 
     model.compile(
-        loss=rmse,
+        loss=tf.keras.losses.MeanAbsoluteError(),
         optimizer=Adam(amsgrad=True, learning_rate=0.005),
-        metrics=[rmse]
+        metrics=[tf.keras.metrics.MeanAbsoluteError()]
     )
     return model
 
@@ -73,7 +73,7 @@ checkpoint = ModelCheckpoint(
 
 # Import the training datasets
 feature_file = 'Data/Data_for_ML/training_data/feature'
-label_file = 'Data/Data_for_ML/training_data/label_sub6_dndz'
+label_file = 'Data/Data_for_ML/training_data/label_sub12_dndz'
 
 X = genfromtxt(feature_file)
 y = genfromtxt(label_file)
@@ -107,8 +107,8 @@ for i in range(n_members):
 
     # Log for tensorboard analysis
     model_name = "Ensemble_model_"+ str(i+1)
-    #log_dir = "logs/fit/" + model_name
-    #tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+    log_dir = "logs/fit/" + model_name
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     # Fit the model on all data
     start = time.perf_counter()

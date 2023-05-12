@@ -132,7 +132,7 @@ base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_trai
 base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
-training_Hadndz = np.empty((0, 6))
+training_Hadndz = np.empty((0, 12))
 for file in base_filenames:
     model_number = find_number(file, '.')
     df = dndz_df(base_path_dndz + file, columns_Z)
@@ -144,7 +144,7 @@ for file in base_filenames:
     upper = min(df['z'], key=lambda x: abs(x - 2.00))
 
     df = df[df["z"].between(lower, upper)]
-    idx = np.round(np.linspace(0, len(df) - 1, 6)).astype(int)
+    idx = np.round(np.linspace(0, len(df) - 1, 12)).astype(int)
     dndz_vector = df['dN(>S)/dz'].values
     dndz_vector = dndz_vector[idx]
     training_Hadndz = np.vstack([training_Hadndz, dndz_vector])
@@ -178,29 +178,16 @@ training_Hadndz = np.round(training_Hadndz, decimals=2)
 
 # Shuffle the data properly
 training_features, training_Hadndz = shuffle(training_features, training_Hadndz)
-# Add shuffle check
-# fch = training_features[:4, :]
-# lch = training_Hadndz[:4, :]
-# print("\n")
-# print("First 4 lines before shuffling:")
-# print("Feature data: ", "\n", fch)
-# print("Label data: ", "\n", lch)
-# fch, lch = shuffle(fch, lch)
-# print("\n")
-# print("After shuffling")
-# print("Feature data: ", "\n", fch)
-# print("Label data: ", "\n", lch)
-
 
 # Save the arrays aas a text file
 training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
 testing_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/testing_data/"
 bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
-np.savetxt(training_path + 'label_sub6_dndz', training_Hadndz, fmt='%.2f') # Only saving the redshift distribution so far
-#np.savetxt(testing_path + 'label_sub6_dndz', training_Hadndz, fmt='%.2f')
+np.savetxt(training_path + 'label_sub12_dndz', training_Hadndz, fmt='%.2f') # Only saving the redshift distribution so far
+#np.savetxt(testing_path + 'label_sub12_dndz', training_Hadndz, fmt='%.2f')
 np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
 #np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
-#np.savetxt(bin_path + 'bin_sub6_dndz', dndzbins)
+np.savetxt(bin_path + 'bin_sub12_dndz', dndzbins)
 
 # for i in range(len(training_Hadndz)):
 #

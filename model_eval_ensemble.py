@@ -31,9 +31,9 @@ def load_all_models(n_models):
     all_models = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/model_Ensemble_model_'+str(i+1)
+        filename = 'Models/Ensemble_model_'+str(i+1)
         # Load model from file
-        model = tf.keras.models.load_model(filename, custom_objects={'rmse': rmse}, compile=False)
+        model = tf.keras.models.load_model(filename, custom_objects={'mae': tf.keras.metrics.MeanAbsoluteError()}, compile=False)
         # add to list of members
         all_models.append(model)
         print('>loaded %s' % filename)
@@ -54,31 +54,21 @@ def chi_test(y_true, y_pred):
 
     return chi_sum
 
-def predict_stacked_model(model, inputX):
-    """
-    Make a prediction with the stacked model
-    
-    :param model: Stacked model
-    :param inputX: Test feature data
-    :return: Prediction results
-    """""
-
-    # Prepare input data
-    X = [inputX for _ in range(len(model.input))]
-    # Make prediction
-    return model.predict(X, verbose=0)
-
 
 # Import the test data
 feature_file = 'Data/Data_for_ML/testing_data/feature'
-label_file = 'Data/Data_for_ML/testing_data/label_sub6_dndz'
+label_file = 'Data/Data_for_ML/testing_data/label_sub12_dndz'
 
 X_test = genfromtxt(feature_file)
 y_test = genfromtxt(label_file)
 
+# Other half test sample
+# X_test = X_test[0::2]
+# y_test = y_test[0::2]
+
 # Load a model from the Model directory
-model_1 = tf.keras.models.load_model('Models/model_124_124_124_ES_T400_LR0.005', custom_objects={'rmse': rmse}, compile=False)
-stacked_model = tf.keras.models.load_model('Models/stacked_model', custom_objects={'rmse': rmse}, compile=False)
+#model_1 = tf.keras.models.load_model('Models/model_124_124_124_ES_T400_LR0.005', custom_objects={'rmse': rmse}, compile=False)
+stacked_model = tf.keras.models.load_model('Models/stacked_model', compile=False)
 
 n_members = 5
 members = load_all_models(n_members)
@@ -94,7 +84,7 @@ scaler_label.fit(y_test)
 y_test = scaler_label.transform(y_test)
 
 # Make a prediction for test data
-yhat_1 = model_1.predict(X_test)
+#yhat_1 = model_1.predict(X_test)
 
 ensamble_pred = list()
 for model in members:
@@ -104,10 +94,10 @@ for model in members:
 
 yhatavg = np.mean(ensamble_pred, axis=0)
 
-yhat_stacked = predict_stacked_model(stacked_model, X_test)
+yhat_stacked = stacked_model.predict(X_test)
 
 # De-normalize the predictions and truth data
-yhat_1 = scaler_label.inverse_transform(yhat_1)
+#yhat_1 = scaler_label.inverse_transform(yhat_1)
 yhat_stacked = scaler_label.inverse_transform(yhat_stacked)
 
 y_test = scaler_label.inverse_transform(y_test)
@@ -115,7 +105,7 @@ y_test = scaler_label.inverse_transform(y_test)
 # print('True: %s' % y_test[1])
 
 # Import the counts bins x axis
-bin_file = 'Data/Data_for_ML/bin_data/bin_sub6_dndz'
+bin_file = 'Data/Data_for_ML/bin_data/bin_sub12_dndz'
 bins = genfromtxt(bin_file)
 
 # Plot the results
@@ -126,12 +116,50 @@ axs = axs.ravel()
 
 for i in range(9):
 
-    axs[i].plot(bins, yhat_1[i], 'x--', label="124 400 train ES LR0.005")
+    #axs[i].plot(bins, yhat_1[i], 'x--', label="124 400 train ES LR0.005")
     axs[i].plot(bins, yhatavg[i], 'x--', label="Avg ensemble", alpha=0.5)
     axs[i].plot(bins, yhat_stacked[i], 'x--', label="Integrated stacked model", alpha=0.5)
     #axs[i].plot(bins, yhat_4[i], 'x--', label="LR: exp decay", alpha=0.5)
 
-    axs[i].plot(bins, y_test[i], 'gx-', label="True")
+    axs[i].plot(bins, y_test[i], 'gx-', label="True model "+str(i+1))
+    axs[i].legend()
+
+fig.supylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
+fig.supxlabel("Redshift, z", fontsize=16)
+plt.show()
+
+fig, axs = plt.subplots(3, 3, figsize=(13, 15),
+                        facecolor='w', edgecolor='k', sharey=True, sharex=True)
+fig.subplots_adjust(wspace=0, hspace=0)
+axs = axs.ravel()
+
+for i in range(9):
+
+    #axs[i].plot(bins, yhat_1[i], 'x--', label="124 400 train ES LR0.005")
+    axs[i].plot(bins, yhatavg[i+95], 'x--', label="Avg ensemble", alpha=0.5)
+    axs[i].plot(bins, yhat_stacked[i], 'x--', label="Integrated stacked model", alpha=0.5)
+    #axs[i].plot(bins, yhat_4[i], 'x--', label="LR: exp decay", alpha=0.5)
+
+    axs[i].plot(bins, y_test[i+95], 'gx-', label="True model "+str(i+95+1))
+    axs[i].legend()
+
+fig.supylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
+fig.supxlabel("Redshift, z", fontsize=16)
+plt.show()
+
+fig, axs = plt.subplots(3, 3, figsize=(13, 15),
+                        facecolor='w', edgecolor='k', sharey=True, sharex=True)
+fig.subplots_adjust(wspace=0, hspace=0)
+axs = axs.ravel()
+
+for i in range(9):
+
+    #axs[i].plot(bins, yhat_1[i], 'x--', label="124 400 train ES LR0.005")
+    axs[i].plot(bins, yhatavg[i+191], 'x--', label="Avg ensemble", alpha=0.5)
+    #axs[i].plot(bins, yhat_stacked[i], 'x--', label="Integrated stacked model", alpha=0.5)
+    #axs[i].plot(bins, yhat_4[i], 'x--', label="LR: exp decay", alpha=0.5)
+
+    axs[i].plot(bins, y_test[i+191], 'gx-', label="True model "+str(i+191+1))
     axs[i].legend()
 
 fig.supylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
@@ -140,25 +168,25 @@ plt.show()
 
 # Model evaluation
 # Using RMSE from tensorflow
-predictions_1 = np.ravel(yhat_1)
+#predictions_1 = np.ravel(yhat_1)
 predictions_2 = np.ravel(yhatavg)
 predictions_3 = np.ravel(yhat_stacked)
 truth = np.ravel(y_test)
 print('\n')
-print('RMSE of predictions_1: ', rmse(truth, predictions_1).numpy())
-print('RMSE of predictions_2: ', rmse(truth, predictions_2).numpy())
-print('RMSE of predictions_3: ', rmse(truth, predictions_3).numpy())
+#print('RMSE of predictions_1: ', rmse(truth, predictions_1).numpy())
+print('RMSE of predictions avg ensemble: ', rmse(truth, predictions_2).numpy())
+print('RMSE of predictions stacked: ', rmse(truth, predictions_3).numpy())
 # Using MAE from sklearn
 print('\n')
-print('MAE of predictions_1: ', mean_absolute_error(truth, predictions_1))
-print('MAE of predictions_2: ', mean_absolute_error(truth, predictions_2))
-print('MAE of predictions_3: ', mean_absolute_error(truth, predictions_3))
+#print('MAE of predictions_1: ', mean_absolute_error(truth, predictions_1))
+print('MAE of predictions avg ensemble: ', mean_absolute_error(truth, predictions_2))
+print('MAE of predictions stacked: ', mean_absolute_error(truth, predictions_3))
 
 # Plot the residuals
 fig, axs = plt.subplots(1, 1, figsize=(10, 5), sharey=True)
 fig.subplots_adjust(wspace=0)
 #sns.residplot(x=yhat_counts, y=y_test_counts, ax=axs[0])
-sns.residplot(x=predictions_1, y=truth, ax=axs, label="512 400 train ES LR0.005")
+#sns.residplot(x=predictions_1, y=truth, ax=axs, label="512 400 train ES LR0.005")
 sns.residplot(x=predictions_2, y=truth, ax=axs, label="Avg ensemble")
 sns.residplot(x=predictions_3, y=truth, ax=axs, label="Integrated stacked model")
 axs.set_ylabel("Residuals (y-y$_p$)", fontsize=15)
