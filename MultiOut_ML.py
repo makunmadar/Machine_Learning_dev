@@ -97,8 +97,6 @@ print('Label data shape: ', y.shape)
 
 input_shape = X.shape
 
-#TODO Add comments
-
 # Fit and save models
 n_members=5
 for i in range(n_members):
@@ -115,10 +113,24 @@ for i in range(n_members):
     history = model.fit(X, y,
                         verbose=0,
                         validation_split=0.2,
-                        callbacks=[early_stopping],
+                        callbacks=[early_stopping, tensorboard_callback],
                         epochs=700)
+
+    model.trainable = True
+
+    model.compile(
+        optimizer=Adam(amsgrad=True, learning_rate=0.00001),
+        loss=tf.keras.losses.MeanAbsoluteError(),
+        metrics=[tf.keras.metrics.MeanAbsoluteError()]
+    )
+
+    model.fit(X, y,
+              verbose=0,
+              validation_split=0.2,
+              callbacks=[early_stopping],
+              epochs=700)
     elapsed = time.perf_counter() - start
-    print('Elapsed %.3f seconds' % elapsed, ' for model %d' % i)
+    print('Elapsed %.3f seconds' % elapsed, ' for model %d' % i+str(1))
 
     start = time.perf_counter()
     model.save('Models/'+model_name)
