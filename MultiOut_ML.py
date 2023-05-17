@@ -4,7 +4,6 @@ At the moment developing a neural network for a multi output regression task.
 """
 
 from numpy import genfromtxt
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import tensorflow as tf
 from tensorflow.keras import Sequential
@@ -12,7 +11,6 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping, ModelCheckpoint
-import math
 import time
 
 def rmse(y_true, y_pred):
@@ -34,7 +32,7 @@ def get_model(input_shape):
         # Currently using Ed's emulator architecture
         Dense(512, input_shape=(6,), activation='sigmoid'),
         Dense(512, activation='sigmoid'),
-        Dense(12)
+        Dense(24)
     ])
 
     model.build(input_shape)
@@ -47,15 +45,6 @@ def get_model(input_shape):
     )
     return model
 
-def plot_loss(history, label):
-    plt.plot(history.history['loss'], label='loss')
-    plt.plot(history.history['val_loss'], label=label)
-    plt.ylim([0.5, 1.25])
-    plt.xlabel('Epoch')
-    plt.ylabel('Error [Redshift Distribution]')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
 
 early_stopping = EarlyStopping(
     monitor='val_loss',
@@ -127,7 +116,7 @@ for i in range(n_members):
     model.fit(X, y,
               verbose=0,
               validation_split=0.2,
-              callbacks=[early_stopping],
+              callbacks=[early_stopping, tensorboard_callback],
               epochs=700)
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model %d' % i+str(1))

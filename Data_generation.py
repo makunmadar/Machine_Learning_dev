@@ -14,12 +14,12 @@ from numpy import genfromtxt
 import matplotlib.pyplot as plt
 
 
-def counts_df(path, columns):
+def kband_df(path, columns):
     '''
-    This function extracts just the counts data and saves it in a dataframe.
+    This function extracts just the k_band LF data and saves it in a dataframe.
 
-    :param path: path to the counts file
-    :param columns: what are the names of the emission line columns?
+    :param path: path to the LF file
+    :param columns: what are the names of the magnitude columns?
     :return: dataframe
     '''
     data = []
@@ -35,6 +35,7 @@ def counts_df(path, columns):
     df = pd.DataFrame(data=data)
     df = df.apply(pd.to_numeric)
     df.columns = columns
+    df['Krdust'] = np.log10(df['Krdust'].replace(0, 1e-20))
 
     return df
 
@@ -90,44 +91,9 @@ def round_sigfigs(x):
     return np.around(x, -int(np.floor(np.log10(abs(x))))+2)
 
 
-# # Number counts
-# base_path_counts = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_counts/"
-#
-# # The following columns are for the number counts
-# columns_N = ['S_nu', 'dN/dln(S_nu)', 'N(>S)']
-#
-# base_filenames = os.listdir(base_path_counts)
-# base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
-#
-# empty_Hacounts = np.empty((0, 6))
-# for file in base_filenames:
-#     model_number = find_number(file, '.')  # This is in the form of a string
-#     df = counts_df(base_path_counts + file, columns_N)
-#
-#     # Convert the flux from Jy to erg s-1 cm-2 for S_nu
-#     df['S_nu'] = df["S_nu"] * 1e-23 * 1e16  # Flux[10^-16 erg s-1 cm-2]
-#     df['S_nu'] = np.log10(df['S_nu'].replace(0, 1e-20))
-#     df['N(>S)'] = np.log10(df['N(>S)'].replace(0, 1e-20))
-#
-#     # Using previous work and Bagley 2020 data to find the counts range
-#     lower = min(df['S_nu'], key=lambda x: abs(x - 0))
-#     upper = min(df['S_nu'], key=lambda x: abs(x - 1))
-#
-#     df = df[df['S_nu'].between(lower, upper)]
-#     idx = np.round(np.linspace(0, len(df) - 1, 6)).astype(int)
-#     counts_vector = df['N(>S)'].values
-#     counts_vector = counts_vector[idx]
-#     empty_Hacounts = np.vstack([empty_Hacounts, counts_vector])
-#
-# countbins = df['S_nu'].values
-# countbins = countbins[idx]
-# print('Number count bins: ', countbins)
-# print('Example of number count values: ', empty_Hacounts[0])
-# print('\n')
-
 # Redshift distribution
 columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
-base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_training/"
+base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_testing/"
 
 base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
@@ -154,40 +120,83 @@ dndzbins = dndzbins[idx]
 print('Redshift distribution bins: ', dndzbins)
 print('Example of dn/dz values: ', training_Hadndz[0])
 
+# K-band LF
+columns_k = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
+           'Br', 'Br(error)', 'Brdust', 'Brdust(error)',
+           'Vr', 'Vr(error)', 'Vrdust', 'Vrdust(error)',
+           'Rr', 'Rr(error)', 'Rrdust', 'Rrdust(error)',
+           'Ir', 'Ir(error)', 'Irdust', 'Irdust(error)',
+           'Jr', 'Jr(error)', 'Jrdust', 'Jrdust(error)',
+           'Hr', 'Hr(error)', 'Hrdust', 'Hrdust(error)',
+           'Kr', 'Kr(error)', 'Krdust', 'Krdust(error)',
+           'Uo', 'Uo(error)', 'Uodust', 'Uodust(error)',
+           'Bo', 'Bo(error)', 'Bodust', 'Bodust(error)',
+           'Vo', 'Vo(error)', 'Vodust', 'Vodust(error)',
+           'Ro', 'Ro(error)', 'Rodust', 'Rodust(error)',
+           'Io', 'Io(error)', 'Iodust', 'Iodust(error)',
+           'Jo', 'Jo(error)', 'Jodust', 'Jodust(error)',
+           'Ho', 'Ho(error)', 'Hodust', 'Hodust(error)',
+           'Ko', 'Ko(error)', 'Kodust', 'Kodust(error)',
+           'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
+]
+
+base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_testing/k_band_ext/"
+basek_filenames = os.listdir(base_path_kband)
+basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
+
+training_kband = np.empty((0, 12))
+
+for file in basek_filenames:
+    model_number = find_number(file, '.')
+    df_k = kband_df(base_path_kband+file, columns_k)
+
+    # Keep it between the magnitude range -18<Mag_k<-26
+    lower_k = min(df_k['Mag'], key=lambda x: abs(x - (-26.0)))
+    upper_k = min(df_k['Mag'], key=lambda x: abs(x - (-18.0)))
+
+    df_k = df_k[df_k["Mag"].between(lower_k, upper_k)]
+    idx = np.round(np.linspace(0, len(df_k) - 1, 12)).astype(int)
+    k_vector = df_k['Krdust'].values
+    k_vector = k_vector[idx]
+    training_kband = np.vstack([training_kband, k_vector])
+
+kbins = df_k['Mag'].values
+kbins = kbins[idx]
+print('k-band LF distribution bins: ', kbins)
+print('Example of k-band LF values: ', training_kband[0])
+
 # Combine the two data sets with the parameter data
-#combo_bins = np.hstack([countbins, dndzbins]) # This data is not required for the machine learning
-#combo_Ha = np.hstack([empty_Hacounts, empty_Hadndz])
+combo_bins = np.hstack([dndzbins, kbins]) # This data is not required for the machine learning
+combo_labels = np.hstack([training_Hadndz, training_kband])
+print('Combo bins: ', combo_bins)
+print('Example of combo labels: ', combo_labels[0])
 
-# testing_feature_file1 = 'Data/Data_for_ML/raw_features/test_parameters.csv'
-# testing_features1 = genfromtxt(testing_feature_file1, delimiter=',', skip_header=1)
-# # Import the second feature file not including the redshift, subvolume or model information
-# testing_feature_file2 = 'Data/Data_for_ML/raw_features/test_parameters_extended_v3.csv'
-# testing_features2 = genfromtxt(testing_feature_file2, delimiter=',', skip_header=1, usecols= range(6))
-# # Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
-# #print(testing_features2)
-# testing_features2 = testing_features2[::30]
-# #print(testing_features2[::30])
-# testing_features = np.vstack([testing_features1, testing_features2])
+testing_feature_file1 = 'Data/Data_for_ML/raw_features/test_parameters.csv'
+testing_features1 = genfromtxt(testing_feature_file1, delimiter=',', skip_header=1)
+# Import the second feature file not including the redshift, subvolume or model information
+testing_feature_file2 = 'Data/Data_for_ML/raw_features/test_parameters_extended_v3.csv'
+testing_features2 = genfromtxt(testing_feature_file2, delimiter=',', skip_header=1, usecols= range(6))
+# Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
+testing_features2 = testing_features2[::30]
+testing_features = np.vstack([testing_features1, testing_features2])
 
-training_feature_file = 'Data/Data_for_ML/raw_features/test_parameters_1000v1.csv'
-training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(6))
-# As we don't have the full range of training data yet:
-training_features = training_features[:400, :]
-training_features = np.vectorize(round_sigfigs)(training_features)
-training_Hadndz = np.round(training_Hadndz, decimals=2)
+# training_feature_file = 'Data/Data_for_ML/raw_features/test_parameters_1000v1.csv'
+# training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(6))
+# training_features = np.vectorize(round_sigfigs)(training_features)
+# combo_labels = np.round(combo_labels, decimals=2)
 
 # Shuffle the data properly
-training_features, training_Hadndz = shuffle(training_features, training_Hadndz)
+#training_features, combo_labels = shuffle(training_features, combo_labels)
 
 # Save the arrays aas a text file
 training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
 testing_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/testing_data/"
 bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
-np.savetxt(training_path + 'label_sub12_dndz', training_Hadndz, fmt='%.2f') # Only saving the redshift distribution so far
-#np.savetxt(testing_path + 'label_sub12_dndz', training_Hadndz, fmt='%.2f')
-np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
-#np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
-np.savetxt(bin_path + 'bin_sub12_dndz', dndzbins)
+#np.savetxt(training_path + 'label_sub12_dndz', combo_labels, fmt='%.2f') # Only saving the redshift distribution so far
+np.savetxt(testing_path + 'label_sub12_dndz', combo_labels, fmt='%.2f')
+#np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
+np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
+#np.savetxt(bin_path + 'bin_sub12_dndz', combo_bins)
 
 # for i in range(len(training_Hadndz)):
 #
