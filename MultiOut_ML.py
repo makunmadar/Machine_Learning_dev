@@ -9,12 +9,10 @@ import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping, ModelCheckpoint
 import time
+import random
 
-def rmse(y_true, y_pred):
-    return K.sqrt(K.mean(K.square(y_pred - y_true)))
 
 # get the model
 def get_model(input_shape):
@@ -64,12 +62,16 @@ checkpoint = ModelCheckpoint(
 feature_file = 'Data/Data_for_ML/training_data/feature'
 label_file = 'Data/Data_for_ML/training_data/label_sub12_dndz'
 
-X = genfromtxt(feature_file)
-y = genfromtxt(label_file)
+# For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y.
+X_tot = genfromtxt(feature_file)
+y_tot = genfromtxt(label_file)
+c = list(zip(X_tot, y_tot))
 
-# Half sample test
-# X = X[1::2]
-# y = y[1::2]
+X=[]
+y=[]
+for a,b in random.sample(c, 200):
+    X.append(a)
+    y.append(b)
 
 # Normalize the data to reduce the dynamical range.
 # This uses a minmaxscalar where a minimum and maximum are specified.
@@ -93,7 +95,7 @@ for i in range(n_members):
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_"+ str(i+1)
+    model_name = "Ensemble_model_"+ str(i+1)+"_200"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 

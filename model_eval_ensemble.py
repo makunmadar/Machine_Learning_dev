@@ -12,9 +12,6 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 print(tf.version.VERSION)
 
 
-def rmse(y_true, y_pred):
-    return K.sqrt(K.mean(K.square(y_pred - y_true)))
-
 def load_all_models(n_models):
     """
     Load all the models from file
@@ -26,7 +23,7 @@ def load_all_models(n_models):
     all_models = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_'+str(i+1)
+        filename = 'Models/Ensemble_model_'+str(i+1)+'_200'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={'mae': tf.keras.metrics.MeanAbsoluteError()}, compile=False)
         # add to list of members
@@ -69,13 +66,13 @@ y_test = genfromtxt(label_file)
 # y_test = y_test[1::2]
 
 # Load a model from the Model directory
-model_1 = tf.keras.models.load_model('Models/Ensemble_model_1', compile=False)
-model_2 = tf.keras.models.load_model('Models/Ensemble_model_2', compile=False)
-model_3 = tf.keras.models.load_model('Models/Ensemble_model_3', compile=False)
-model_4 = tf.keras.models.load_model('Models/Ensemble_model_4', compile=False)
-model_5 = tf.keras.models.load_model('Models/Ensemble_model_5', compile=False)
+model_1 = tf.keras.models.load_model('Models/Ensemble_model_1_200', compile=False)
+model_2 = tf.keras.models.load_model('Models/Ensemble_model_2_200', compile=False)
+model_3 = tf.keras.models.load_model('Models/Ensemble_model_3_200', compile=False)
+model_4 = tf.keras.models.load_model('Models/Ensemble_model_4_200', compile=False)
+model_5 = tf.keras.models.load_model('Models/Ensemble_model_5_200', compile=False)
 
-stacked_model = tf.keras.models.load_model('Models/stacked_model', compile=False)
+stacked_model = tf.keras.models.load_model('Models/stacked_model_200', compile=False)
 
 n_members = 5
 members = load_all_models(n_members)
@@ -154,6 +151,7 @@ for i in range(3):
     axs[i+3].legend()
     axs[i+3].invert_xaxis()
     axs[i+3].set_xlabel("K-band magnitude", fontsize=16)
+    axs[i+3].set_ylim((-6, 0))
 
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
 axs[3].set_ylabel(r'Log$_{10}$(L$_{H\alpha}$) [10$^{40}$ h$^{-2}$ erg/s]', fontsize=16)
@@ -188,36 +186,61 @@ for i in range(3):
     axs[i+3].legend()
     axs[i+3].invert_xaxis()
     axs[i+3].set_xlabel("K-band magnitude", fontsize=16)
+    axs[i+3].set_ylim((-6, 0))
 
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
 axs[3].set_ylabel(r'Log$_{10}$(L$_{H\alpha}$) [10$^{40}$ h$^{-2}$ erg/s]', fontsize=16)
 plt.show()
 
+
 # Model evaluation
-# Using RMSE from tensorflow
 predictions_1 = np.ravel(yhat_1)
 predictions_2 = np.ravel(yhatavg)
 predictions_3 = np.ravel(yhat_stacked)
 truth = np.ravel(y_test)
-print('\n')
-print('RMSE of predictions single model: ', rmse(truth, predictions_1).numpy())
-print('RMSE of predictions avg ensemble: ', rmse(truth, predictions_2).numpy())
-print('RMSE of predictions stacked: ', rmse(truth, predictions_3).numpy())
+
 # Using MAE from sklearn
 print('\n')
-print('MAE of predictions single model: ', mean_absolute_error(truth, predictions_1))
-print('MAE of predictions avg ensemble: ', mean_absolute_error(truth, predictions_2))
-print('MAE of predictions stacked: ', mean_absolute_error(truth, predictions_3))
+print('MAE combo single model: ', mean_absolute_error(truth, predictions_1))
+print('MAE combo avg ensemble: ', mean_absolute_error(truth, predictions_2))
+print('MAE combo stacked: ', mean_absolute_error(truth, predictions_3))
+
+predictions_1_z = np.ravel([i[0:12] for i in yhat_1])
+predictions_2_z = np.ravel([i[0:12] for i in yhatavg])
+predictions_3_z = np.ravel([i[0:12] for i in yhat_stacked])
+truth_z = np.ravel([i[0:12] for i in y_test])
+print('\n')
+print('MAE dn/dz single model: ', mean_absolute_error(truth_z, predictions_1_z))
+print('MAE dn/dz avg ensemble: ', mean_absolute_error(truth_z, predictions_2_z))
+print('MAE dn/dz stacked: ', mean_absolute_error(truth_z, predictions_3_z))
+
+predictions_1_k = np.ravel([i[12:24] for i in yhat_1])
+predictions_2_k = np.ravel([i[12:24] for i in yhatavg])
+predictions_3_k = np.ravel([i[12:24] for i in yhat_stacked])
+truth_k = np.ravel([i[12:24] for i in y_test])
+print('\n')
+print('MAE LF single model: ', mean_absolute_error(truth_k, predictions_1_k))
+print('MAE LF avg ensemble: ', mean_absolute_error(truth_k, predictions_2_k))
+print('MAE LF stacked: ', mean_absolute_error(truth_k, predictions_3_k))
 
 # Plot the residuals
-# fig, axs = plt.subplots(1, 1, figsize=(10, 5), sharey=True)
-# fig.subplots_adjust(wspace=0)
-# sns.residplot(x=predictions_2, y=truth, ax=axs, label="Avg ensemble")
-# sns.residplot(x=predictions_3, y=truth, ax=axs, label="Stacked ensemble")
-# axs.set_ylabel("Residuals (y-y$_p$)", fontsize=15)
-# axs.set_xlabel("Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
-# plt.legend()
-# plt.show()
+fig, axs = plt.subplots(1, 1, figsize=(10, 5), sharey=True)
+fig.subplots_adjust(wspace=0)
+sns.residplot(x=predictions_2_z, y=truth_z, ax=axs, label="Avg ensemble")
+sns.residplot(x=predictions_3_z, y=truth_z, ax=axs, label="Stacked ensemble")
+axs.set_ylabel("Residuals (y-y$_p$)", fontsize=15)
+axs.set_xlabel("Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
+plt.legend()
+plt.show()
+
+fig, axs = plt.subplots(1, 1, figsize=(10, 5), sharey=True)
+fig.subplots_adjust(wspace=0)
+sns.residplot(x=predictions_2_k, y=truth_k, ax=axs, label="Avg ensemble")
+sns.residplot(x=predictions_3_k, y=truth_k, ax=axs, label="Stacked ensemble")
+axs.set_ylabel("Residuals (y-y$_p$)", fontsize=15)
+axs.set_xlabel(r"Log$_{10}$(L$_{H\alpha}$) [10$^{40}$ h$^{-2}$ erg/s]", fontsize=15)
+plt.legend()
+plt.show()
 
 # Perform a chi square test on the predictions
 # print('\n')
