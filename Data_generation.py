@@ -11,7 +11,6 @@ import os
 import re
 from sklearn.utils import shuffle
 from numpy import genfromtxt
-import matplotlib.pyplot as plt
 
 
 def kband_df(path, columns):
@@ -35,7 +34,9 @@ def kband_df(path, columns):
     df = pd.DataFrame(data=data)
     df = df.apply(pd.to_numeric)
     df.columns = columns
-    df['Krdust'] = np.log10(df['Krdust'].replace(0, 1e-20))
+
+
+    # df['Krdust'] = np.log10(df['Krdust'].replace(0, 0.0000025119))
 
     return df
 
@@ -93,7 +94,7 @@ def round_sigfigs(x):
 
 # Redshift distribution
 columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
-base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_training_1000/"
+base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_testing/"
 
 base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
@@ -103,7 +104,7 @@ for file in base_filenames:
     model_number = find_number(file, '.')
     df = dndz_df(base_path_dndz + file, columns_Z)
 
-    df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].replace(0, 1e-20))
+    df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].replace(0, 1E-20))
 
     # Keep it between the redshift range 0.69<z<2.00
     lower = min(df['z'], key=lambda x: abs(x - 0.71))
@@ -140,7 +141,7 @@ columns_k = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
            'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
 ]
 
-base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/k_band_ext/"
+base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_testing/k_band_ext/"
 basek_filenames = os.listdir(base_path_kband)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
@@ -171,30 +172,30 @@ combo_labels = np.hstack([training_Hadndz, training_kband])
 print('Combo bins: ', combo_bins)
 print('Example of combo labels: ', combo_labels[0])
 
-# testing_feature_file1 = 'Data/Data_for_ML/raw_features/test_parameters.csv'
-# testing_features1 = genfromtxt(testing_feature_file1, delimiter=',', skip_header=1)
-# # Import the second feature file not including the redshift, subvolume or model information
-# testing_feature_file2 = 'Data/Data_for_ML/raw_features/test_parameters_extended_v3.csv'
-# testing_features2 = genfromtxt(testing_feature_file2, delimiter=',', skip_header=1, usecols= range(6))
-# # Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
-# testing_features2 = testing_features2[::30]
-# testing_features = np.vstack([testing_features1, testing_features2])
+testing_feature_file1 = 'Data/Data_for_ML/raw_features/test_parameters.csv'
+testing_features1 = genfromtxt(testing_feature_file1, delimiter=',', skip_header=1)
+# Import the second feature file not including the redshift, subvolume or model information
+testing_feature_file2 = 'Data/Data_for_ML/raw_features/test_parameters_extended_v3.csv'
+testing_features2 = genfromtxt(testing_feature_file2, delimiter=',', skip_header=1, usecols= range(6))
+# Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
+testing_features2 = testing_features2[::30]
+testing_features = np.vstack([testing_features1, testing_features2])
 
-training_feature_file = 'Data/Data_for_ML/raw_features/test_parameters_1000v1.csv'
-training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(6))
-training_features = np.vectorize(round_sigfigs)(training_features)
-combo_labels = np.round(combo_labels, decimals=2)
+# training_feature_file = 'Data/Data_for_ML/raw_features/test_parameters_1000v1.csv'
+# training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(6))
+# training_features = np.vectorize(round_sigfigs)(training_features)
+# combo_labels = np.round(combo_labels, decimals=2)
 
 # Shuffle the data properly
-training_features, combo_labels = shuffle(training_features, combo_labels)
+# training_features, combo_labels = shuffle(training_features, combo_labels)
 
 # Save the arrays aas a text file
 training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
 testing_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/testing_data/"
 bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
-np.savetxt(training_path + 'label_sub12_dndz', combo_labels, fmt='%.2f') # Only saving the redshift distribution so far
+#np.savetxt(training_path + 'label_sub12_dndz', combo_labels, fmt='%.2f') # Only saving the redshift distribution so far
 #np.savetxt(testing_path + 'label_sub12_dndz', combo_labels, fmt='%.2f')
-np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
+#np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
 #np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
 #np.savetxt(bin_path + 'bin_sub12_dndz', combo_bins)
 

@@ -8,6 +8,7 @@ from tensorflow.keras import backend as K
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+import pandas as pd
 
 print(tf.version.VERSION)
 
@@ -23,7 +24,7 @@ def load_all_models(n_models):
     all_models = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_'+str(i+1)+'_200'
+        filename = 'Models/Ensemble_model_'+str(i+1)+'_1000'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={'mae': tf.keras.metrics.MeanAbsoluteError()}, compile=False)
         # add to list of members
@@ -54,6 +55,16 @@ def predict_stacked_model(model, inputX):
     return model.predict(X)
 
 
+# Import the observational data
+# Import the Bagley et al. 2020 data from .csv file
+bag_df = pd.read_csv("Data/Data_for_ML/Observational/Bagley_20/Corrected_Ha_Bagley_redshift.csv", delimiter=',')
+upper = np.log10(bag_df["+"]) - np.log10(bag_df["y"])
+lower = np.log10(bag_df["y"]) - np.log10(bag_df["-"])
+bag_df["y"] = np.log10(bag_df["y"])
+#TODO Want to plot the Ha+OIII in white with an outline.
+#TODO Calculate the error bars properly
+
+
 # Import the test data
 feature_file = 'Data/Data_for_ML/testing_data/feature'
 label_file = 'Data/Data_for_ML/testing_data/label_sub12_dndz'
@@ -61,31 +72,41 @@ label_file = 'Data/Data_for_ML/testing_data/label_sub12_dndz'
 X_test = genfromtxt(feature_file)
 y_test = genfromtxt(label_file)
 
-# Other half test sample
-# X_test = X_test[1::2]
-# y_test = y_test[1::2]
-
-# Load a model from the Model directory
-model_1 = tf.keras.models.load_model('Models/Ensemble_model_1_200', compile=False)
-model_2 = tf.keras.models.load_model('Models/Ensemble_model_2_200', compile=False)
-model_3 = tf.keras.models.load_model('Models/Ensemble_model_3_200', compile=False)
-model_4 = tf.keras.models.load_model('Models/Ensemble_model_4_200', compile=False)
-model_5 = tf.keras.models.load_model('Models/Ensemble_model_5_200', compile=False)
-
-stacked_model = tf.keras.models.load_model('Models/stacked_model_200', compile=False)
-
-n_members = 5
-members = load_all_models(n_members)
-print('Loaded %d models' % len(members))
+y_testz = [i[0:12] for i in y_test]
+y_testk = [i[12:24] for i in y_test]
 
 # Load scalar fits
 scaler_feat = MinMaxScaler(feature_range=(0, 1))
 scaler_feat.fit(X_test)
 X_test = scaler_feat.transform(X_test)
+
 # Use standard scalar for the label data
-scaler_label = StandardScaler()
-scaler_label.fit(y_test)
-y_test = scaler_label.transform(y_test)
+scaler_label_z = StandardScaler()
+scaler_label_k = StandardScaler()
+scaler_label_z.fit(y_testz)
+y_testz = scaler_label_z.transform(y_testz)
+
+scaler_label_k.fit(y_testk)
+y_testk = scaler_label_k.transform(y_testk)
+
+y_test = np.hstack([y_testz, y_testk])
+
+# Other half test sample
+# X_test = X_test[1::2]
+# y_test = y_test[1::2]
+
+# Load a model from the Model directory
+model_1 = tf.keras.models.load_model('Models/Ensemble_model_1_1000', compile=False)
+model_2 = tf.keras.models.load_model('Models/Ensemble_model_2_1000', compile=False)
+model_3 = tf.keras.models.load_model('Models/Ensemble_model_3_1000', compile=False)
+model_4 = tf.keras.models.load_model('Models/Ensemble_model_4_1000', compile=False)
+model_5 = tf.keras.models.load_model('Models/Ensemble_model_5_1000', compile=False)
+
+stacked_model = tf.keras.models.load_model('Models/stacked_model_1000', compile=False)
+
+n_members = 5
+members = load_all_models(n_members)
+print('Loaded %d models' % len(members))
 
 # Make a prediction for test data
 yhat_1 = model_1.predict(X_test)
@@ -97,23 +118,44 @@ yhat_5 = model_5.predict(X_test)
 ensamble_pred = list()
 for model in members:
     yhat = model.predict(X_test)
-    yhat = scaler_label.inverse_transform(yhat)
+    yhat_z = scaler_label_z.inverse_transform([i[0:12] for i in yhat])
+    yhat_k = scaler_label_k.inverse_transform([i[12:24] for i in yhat])
+    yhat = np.hstack([yhat_z, yhat_k])
     ensamble_pred.append(yhat)
 
 yhatavg = np.mean(ensamble_pred, axis=0)
+yhat_avg_k = [i[12:24] for i in yhatavg]
 
 yhat_stacked = predict_stacked_model(stacked_model, X_test)
 
 # De-normalize the predictions and truth data
-yhat_1 = scaler_label.inverse_transform(yhat_1)
-yhat_2 = scaler_label.inverse_transform(yhat_2)
-yhat_3 = scaler_label.inverse_transform(yhat_3)
-yhat_4 = scaler_label.inverse_transform(yhat_4)
-yhat_5 = scaler_label.inverse_transform(yhat_5)
+yhat_1_z = scaler_label_z.inverse_transform([i[0:12] for i in yhat_1])
+yhat_1_k = scaler_label_k.inverse_transform([i[12:24] for i in yhat_1])
+yhat_1 = np.hstack([yhat_1_z, yhat_1_k])
 
-yhat_stacked = scaler_label.inverse_transform(yhat_stacked)
+yhat_2_z = scaler_label_z.inverse_transform([i[0:12] for i in yhat_2])
+yhat_2_k = scaler_label_k.inverse_transform([i[12:24] for i in yhat_2])
+yhat_2 = np.hstack([yhat_2_z, yhat_2_k])
 
-y_test = scaler_label.inverse_transform(y_test)
+yhat_3_z = scaler_label_z.inverse_transform([i[0:12] for i in yhat_3])
+yhat_3_k = scaler_label_k.inverse_transform([i[12:24] for i in yhat_3])
+yhat_3 = np.hstack([yhat_3_z, yhat_3_k])
+
+yhat_4_z = scaler_label_z.inverse_transform([i[0:12] for i in yhat_4])
+yhat_4_k = scaler_label_k.inverse_transform([i[12:24] for i in yhat_4])
+yhat_4 = np.hstack([yhat_4_z, yhat_4_k])
+
+yhat_5_z = scaler_label_z.inverse_transform([i[0:12] for i in yhat_5])
+yhat_5_k = scaler_label_k.inverse_transform([i[12:24] for i in yhat_5])
+yhat_5 = np.hstack([yhat_5_z, yhat_5_k])
+
+yhat_stacked_z = scaler_label_z.inverse_transform([i[0:12] for i in yhat_stacked])
+yhat_stacked_k = scaler_label_k.inverse_transform([i[12:24] for i in yhat_stacked])
+yhat_stacked = np.hstack([yhat_stacked_z, yhat_stacked_k])
+
+y_test_z = scaler_label_z.inverse_transform([i[0:12] for i in y_test])
+y_test_k = scaler_label_k.inverse_transform([i[12:24] for i in y_test])
+y_test = np.hstack([y_test_z, y_test_k])
 # print('Predicted: %s' % yhat[1])
 # print('True: %s' % y_test[1])
 
@@ -121,37 +163,79 @@ y_test = scaler_label.inverse_transform(y_test)
 bin_file = 'Data/Data_for_ML/bin_data/bin_sub12_dndz'
 bins = genfromtxt(bin_file)
 
+# Ignore points where y_true = -20
+y_truek = list()
+yhat_1k = list()
+yhat_2k = list()
+yhat_3k = list()
+yhat_4k = list()
+yhat_5k = list()
+yhatavg_k = list()
+yhatstack_k = list()
+binsk = list()
+
+for i in range(200):
+    y_tk = y_test_k[i]
+    ytk = y_tk[y_tk > -20]
+    y_truek.append(ytk)
+
+    y1k = yhat_1_k[i][y_tk > -20]
+    yhat_1k.append(y1k)
+    y2k = yhat_2_k[i][y_tk > -20]
+    yhat_2k.append(y2k)
+    y3k = yhat_3_k[i][y_tk > -20]
+    yhat_3k.append(y3k)
+    y4k = yhat_4_k[i][y_tk > -20]
+    yhat_4k.append(y4k)
+    y5k = yhat_5_k[i][y_tk > -20]
+    yhat_5k.append(y5k)
+    yak = yhat_avg_k[i][y_tk > -20]
+    yhatavg_k.append(yak)
+    ysk = yhat_stacked_k[i][y_tk > -20]
+    yhatstack_k.append(ysk)
+
+    bins_k = bins[12:24]
+    bk = bins_k[y_tk > -20]
+    binsk.append(bk)
+
+print('Min ytrue_k: ', [min(a) for a in y_truek])
+print('Min yhatstack_k: ', [min(a) for a in yhatstack_k])
+
 # Plot the results
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k', sharey='row')
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
+m=151
 for i in range(3):
 
-    axs[i].plot(bins[0:12], yhat_1[i][0:12], '--', label="1", alpha=0.5)
-    axs[i].plot(bins[0:12], yhat_2[i][0:12], '--', label="2", alpha=0.5)
-    axs[i].plot(bins[0:12], yhat_3[i][0:12], '--', label="3", alpha=0.5)
-    axs[i].plot(bins[0:12], yhat_4[i][0:12], '--', label="4", alpha=0.5)
-    axs[i].plot(bins[0:12], yhat_5[i][0:12], '--', label="5", alpha=0.5)
-    axs[i].plot(bins[0:12], yhatavg[i][0:12], 'k--', label="Avg ensemble")
-    axs[i].plot(bins[0:12], yhat_stacked[i][0:12], 'b--', label="Stacked ensemble")
-    axs[i].plot(bins[0:12], y_test[i][0:12], 'gx-', label="True model "+str(i+1))
+    axs[i].plot(bins[0:12], yhat_1[i+m][0:12], '--', label="1", alpha=0.5)
+    axs[i].plot(bins[0:12], yhat_2[i+m][0:12], '--', label="2", alpha=0.5)
+    axs[i].plot(bins[0:12], yhat_3[i+m][0:12], '--', label="3", alpha=0.5)
+    axs[i].plot(bins[0:12], yhat_4[i+m][0:12], '--', label="4", alpha=0.5)
+    axs[i].plot(bins[0:12], yhat_5[i+m][0:12], '--', label="5", alpha=0.5)
+    axs[i].plot(bins[0:12], yhatavg[i+m][0:12], 'k--', label="Avg ensemble")
+    axs[i].plot(bins[0:12], yhat_stacked[i+m][0:12], 'b--', label="Stacked ensemble")
+    axs[i].plot(bins[0:12], y_test[i+m][0:12], 'gx-', label="True model "+str(i+1+m))
+    bag_df.plot(ax=axs[i], x="x", y="y", marker='o', kind='scatter', color='cyan', label='Bagley et al. 2020')
+
     axs[i].legend()
     axs[i].set_xlabel("Redshift, z", fontsize=16)
 
-    axs[i+3].plot(bins[12:24], yhat_1[i][12:24], '--', label="1", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhat_2[i][12:24], '--', label="2", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhat_3[i][12:24], '--', label="3", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhat_4[i][12:24], '--', label="4", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhat_5[i][12:24], '--', label="5", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhatavg[i][12:24], 'k--', label="Avg ensemble")
-    axs[i+3].plot(bins[12:24], yhat_stacked[i][12:24], 'b--', label="Stacked ensemble")
-    axs[i+3].plot(bins[12:24], y_test[i][12:24], 'gx-', label="True model "+str(i+1))
+    axs[i+3].plot(binsk[i+m], yhat_1k[i+m], '--', label="1", alpha=0.5)
+    axs[i+3].plot(binsk[i+m], yhat_2k[i+m], '--', label="2", alpha=0.5)
+    axs[i+3].plot(binsk[i+m], yhat_3k[i+m], '--', label="3", alpha=0.5)
+    axs[i+3].plot(binsk[i+m], yhat_4k[i+m], '--', label="4", alpha=0.5)
+    axs[i+3].plot(binsk[i+m], yhat_5k[i+m], '--', label="5", alpha=0.5)
+    axs[i+3].plot(binsk[i+m], yhatavg_k[i+m], 'k--', label="Avg ensemble")
+    axs[i+3].plot(binsk[i+m], yhatstack_k[i+m], 'b--', label="Stacked ensemble")
+    #axs[i+3].plot(bins[12:24], y_test[i][12:24], 'gx-', label="True model "+str(i+1))
+    axs[i+3].plot(binsk[i+m], y_truek[i+m], 'gx-', label="Trimmed true "+str(i+1+m))
     axs[i+3].legend()
     axs[i+3].invert_xaxis()
     axs[i+3].set_xlabel("K-band magnitude", fontsize=16)
-    axs[i+3].set_ylim((-6, 0))
+    #axs[i+3].set_xlim((-17.5, -26))
 
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
 axs[3].set_ylabel(r'Log$_{10}$(L$_{H\alpha}$) [10$^{40}$ h$^{-2}$ erg/s]', fontsize=16)
@@ -172,21 +256,24 @@ for i in range(3):
     axs[i].plot(bins[0:12], yhatavg[i+6][0:12], 'k--', label="Avg ensemble")
     axs[i].plot(bins[0:12], yhat_stacked[i+6][0:12], 'b--', label="Stacked ensemble")
     axs[i].plot(bins[0:12], y_test[i+6][0:12], 'gx-', label="True model "+str(i+1))
+    bag_df.plot(ax=axs[i], x="x", y="y", marker='o', kind='scatter', color='cyan', label='Bagley et al. 2020')
+
     axs[i].legend()
     axs[i].set_xlabel("Redshift, z", fontsize=16)
 
-    axs[i+3].plot(bins[12:24], yhat_1[i+6][12:24], '--', label="1", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhat_2[i+6][12:24], '--', label="2", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhat_3[i+6][12:24], '--', label="3", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhat_4[i+6][12:24], '--', label="4", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhat_5[i+6][12:24], '--', label="5", alpha=0.5)
-    axs[i+3].plot(bins[12:24], yhatavg[i+6][12:24], 'k--', label="Avg ensemble")
-    axs[i+3].plot(bins[12:24], yhat_stacked[i+6][12:24], 'b--', label="Stacked ensemble")
-    axs[i+3].plot(bins[12:24], y_test[i+6][12:24], 'gx-', label="True model "+str(i+1))
+    axs[i+3].plot(binsk[i+6], yhat_1k[i+6], '--', label="1", alpha=0.5)
+    axs[i+3].plot(binsk[i+6], yhat_2k[i+6], '--', label="2", alpha=0.5)
+    axs[i+3].plot(binsk[i+6], yhat_3k[i+6], '--', label="3", alpha=0.5)
+    axs[i+3].plot(binsk[i+6], yhat_4k[i+6], '--', label="4", alpha=0.5)
+    axs[i+3].plot(binsk[i+6], yhat_5k[i+6], '--', label="5", alpha=0.5)
+    axs[i+3].plot(binsk[i+6], yhatavg_k[i+6], 'k--', label="Avg ensemble")
+    axs[i+3].plot(binsk[i+6], yhatstack_k[i+6], 'b--', label="Stacked ensemble")
+    #axs[i+3].plot(bins[12:24], y_test[i+6][12:24], 'gx-', label="True model "+str(i+1+6))
+    axs[i+3].plot(binsk[i+6], y_truek[i+6], 'gx-', label="True model "+str(i+1+6))
     axs[i+3].legend()
     axs[i+3].invert_xaxis()
     axs[i+3].set_xlabel("K-band magnitude", fontsize=16)
-    axs[i+3].set_ylim((-6, 0))
+    #axs[i+3].set_xlim((-17.5, -26))
 
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
 axs[3].set_ylabel(r'Log$_{10}$(L$_{H\alpha}$) [10$^{40}$ h$^{-2}$ erg/s]', fontsize=16)
@@ -214,10 +301,10 @@ print('MAE dn/dz single model: ', mean_absolute_error(truth_z, predictions_1_z))
 print('MAE dn/dz avg ensemble: ', mean_absolute_error(truth_z, predictions_2_z))
 print('MAE dn/dz stacked: ', mean_absolute_error(truth_z, predictions_3_z))
 
-predictions_1_k = np.ravel([i[12:24] for i in yhat_1])
-predictions_2_k = np.ravel([i[12:24] for i in yhatavg])
-predictions_3_k = np.ravel([i[12:24] for i in yhat_stacked])
-truth_k = np.ravel([i[12:24] for i in y_test])
+predictions_1_k = np.hstack(yhat_1k)
+predictions_2_k = np.hstack(yhatavg_k)
+predictions_3_k = np.hstack(yhatstack_k)
+truth_k = np.hstack(y_truek)
 print('\n')
 print('MAE LF single model: ', mean_absolute_error(truth_k, predictions_1_k))
 print('MAE LF avg ensemble: ', mean_absolute_error(truth_k, predictions_2_k))
