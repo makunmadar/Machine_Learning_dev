@@ -31,7 +31,7 @@ def get_model(input_shape):
         # Currently using Ed's emulator architecture
         Dense(512, input_shape=(6,), activation='sigmoid'),
         Dense(512, activation='sigmoid'),
-        Dense(24)
+        Dense(22)
     ])
 
     model.build(input_shape)
@@ -61,21 +61,21 @@ checkpoint = ModelCheckpoint(
 
 # Import the training datasets
 feature_file = 'Data/Data_for_ML/training_data/feature'
-label_file = 'Data/Data_for_ML/training_data/label_sub12_dndz'
+label_file = 'Data/Data_for_ML/training_data/label_sub12_dndz_S'
 
-# For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y.
-X_tot = genfromtxt(feature_file)
-y_tot_ = genfromtxt(label_file)
-c = list(zip(X_tot, y_tot_))
+# For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
+X = genfromtxt(feature_file)
+y_tot = genfromtxt(label_file)
+# c = list(zip(X_tot, y_tot_))
+#
+# X=[]
+# y_tot=[]
+# for a,b in random.sample(c, 200):
+#     X.append(a)
+#     y_tot.append(b)
 
-X=[]
-y_tot=[]
-for a,b in random.sample(c, 200):
-    X.append(a)
-    y_tot.append(b)
-
-y_z = [i[0:12] for i in y_tot]
-y_k = [i[12:24] for i in y_tot]
+y_z = [i[0:13] for i in y_tot]
+y_k = [i[13:22] for i in y_tot]
 
 # Normalize the data to reduce the dynamical range.
 # This uses a minmaxscalar where a minimum and maximum are specified.
@@ -100,13 +100,13 @@ print('Label data shape: ', y.shape)
 input_shape = X.shape
 
 # Fit and save models
-n_members=5
+n_members=0
 for i in range(n_members):
     # Fit model
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_"+ str(i+1)+"_200"
+    model_name = "Ensemble_model_"+ str(i+1)+"_1000_S"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
