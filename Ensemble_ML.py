@@ -91,18 +91,8 @@ scaler_feat = MinMaxScaler(feature_range=(0, 1))
 scaler_feat.fit(X_test)
 X_test = scaler_feat.transform(X_test)
 # Use standard scalar for the label data
-y_z = [i[0:13] for i in y_test]
-y_k = [i[13:22] for i in y_test]
+scaler_label = StandardScaler()
 
-scaler_label_z = StandardScaler()
-scaler_label_k = StandardScaler()
-
-scaler_label_z.fit(y_z)
-y_z = scaler_label_z.transform(y_z)
-
-scaler_label_k.fit(y_k)
-y_k = scaler_label_k.transform(y_k)
-
-y = np.hstack([y_z, y_k])
+y = scaler_label.fit_transform(y_z)
 
 fit_stacked_model(stacked_model, X_test, y)

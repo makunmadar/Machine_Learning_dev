@@ -7,6 +7,11 @@ import os
 import re
 
 
+def lin(x, m, c):
+    y = (m*x) + c
+    y = np.exp(y)
+    return y
+
 def phi(M, Ps, Ms, b):
     """
     Schecter function for curve fitting tool, fixing the variable alpha as this only affects the faint end and
@@ -82,7 +87,7 @@ columns_k = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
              'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
              ]
 
-base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/k_band_ext/"
+base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_testing/k_band_ext/"
 basek_filenames = os.listdir(base_path_kband)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
@@ -110,7 +115,7 @@ fig, axs = plt.subplots(3, 3, figsize=(18, 13),
 fig.subplots_adjust(wspace=0.2, hspace=0.2)
 axs = axs.ravel()
 
-m = 0
+m = 150
 for j in range(9):
 
     # Only want to test on one of the examples
@@ -123,14 +128,16 @@ for j in range(9):
     y = y[y > 0]
 
     # Which bins to calibrate the curve fitting tool
-    x_sec = x[0:3]
-    y_sec = y[0:3]
-    err_sec = err[0:3]
+    #idx = [0, (len(y)-1)//2, len(y)-1]
+    x_sec = x[0:4]#[x[i] for i in idx]
+    y_sec = y[0:4]#[y[i] for i in idx]
+    err_sec = err[0:4]#[err[i] for i in idx]
 
-    params, cov = curve_fit(phi, x_sec, y_sec, bounds=((0, -22, 0), (10, -15, 1)), sigma=err_sec)
+    #params, cov = curve_fit(phi, x_sec, y_sec, bounds=((0, -22, 0), (10, -15, 1)), sigma=err_sec)
+    params, cov = curve_fit(lin, x_sec, y_sec, sigma=err_sec)
     print("Predicted phi*: ", params[0])
     print("Predicted M*: ", params[1])
-    print("Predicted b: ", params[2])
+    #print("Predicted b: ", params[2])
 
     axs[j].scatter(x, y, color='skyblue', label='Data for model ' + str(j + 1 + m))
     axs[j].scatter(x_sec, y_sec, color='skyblue', edgecolors='black', label='Curve fit inputs')
@@ -139,12 +146,15 @@ for j in range(9):
     pred_phi = list()
     for i in zeroidx:
         pred_bins.append(kbins[i])
-        phi_p = phi(kbins[i], params[0], params[1], params[2])
+        #phi_p = phi(kbins[i], params[0], params[1], params[2])
+        phi_p = lin(kbins[i], params[0], params[1])
         pred_phi.append(phi_p)
 
     axs[j].plot(pred_bins, pred_phi, 'ro', label='Fit')
-    axs[j].plot(kbins, phi(kbins, params[0], params[1], params[2]), 'r--', label="Full Schechter", alpha=0.4)
+    #axs[j].plot(kbins, phi(kbins, params[0], params[1]), 'r--', label="Full Schechter", alpha=0.4)
+    axs[j].plot(kbins, lin(kbins, params[0], params[1]), 'r--', label="Full Schechter", alpha=0.4)
     axs[j].set_yscale('log')
     axs[j].legend()
+    axs[j].set_ylim([None, 1])
 
 plt.show()

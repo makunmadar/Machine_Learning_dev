@@ -12,6 +12,13 @@ import re
 from sklearn.utils import shuffle
 from scipy.optimize import curve_fit
 from numpy import genfromtxt
+import matplotlib.pyplot as plt
+
+
+def lin(x, m, c):
+    y = (m*x) + c
+    y = np.exp(y)
+    return y
 
 
 def phi(M, Ps, Ms, b):
@@ -23,6 +30,7 @@ def phi(M, Ps, Ms, b):
     :param M: Variable x axis representing the absolute magnitude
     :param Ms: Schecter function parameter M*
     :param ps: Schecter function parameter phi*
+    :param b: special parameter to limit the exponential factor
     :return: Schecter funtion phi(L)
     """
 
@@ -58,12 +66,13 @@ def kband_df(path, columns):
     df = df[(df['Mag'] <= -17.67)]
     df = df[(df['Mag'] >= -25.11)]
     df.reset_index(drop=True, inplace=True)
+
     # Replacing the zero values with a prediction from a schechter fitting.
     # See Testing_schec.py for development of this code.
 
     kbins = df['Mag'].values
 
-    if df['Krdust'][0] == 0:
+    if (df['Krdust'] == 0).any():
 
         y = df['Krdust'].values
         err = df['Krdust(error)'].values
@@ -73,14 +82,16 @@ def kband_df(path, columns):
         err = err[y > 0]
         y = y[y > 0]
 
-        x_sec = x[0:3]
-        y_sec = y[0:3]
-        err_sec = err[0:3]
+        x_sec = x[0:4]
+        y_sec = y[0:4]
+        err_sec = err[0:4]
 
-        params, cov = curve_fit(phi, x_sec, y_sec, bounds=((0, -22, 0), (10, -15, 1)), sigma=err_sec)
+        #params, cov = curve_fit(phi, x_sec, y_sec, bounds=((0, -22, 0), (10, -15, 1)), sigma=err_sec)
+        params, cov = curve_fit(lin, x_sec, y_sec, sigma=err_sec)
 
         for i in zeroidx:
-            phi_p = phi(kbins[i], params[0], params[1], params[2])
+            #phi_p = phi(kbins[i], params[0], params[1], params[2])
+            phi_p = lin(kbins[i], params[0], params[1])
             df['Krdust'].iloc[i] = phi_p
 
     df['Krdust'] = np.log10(df['Krdust'])
@@ -151,7 +162,7 @@ def round_sigfigs(x):
 
 # Redshift distribution
 columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
-base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_training_1000/"
+base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_testing/"
 
 base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
@@ -170,9 +181,8 @@ for file in base_filenames:
 
 dndzbins = df['z'].values
 dndzbins = dndzbins[0::4]
-
 print('Redshift distribution bins: ', dndzbins)
-print('Example of dn/dz values: ', training_Hadndz[0])
+print('Example of dn/dz values: ', training_Hadndz[113])
 
 # K-band LF
 columns_k = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
@@ -194,91 +204,66 @@ columns_k = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
              'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
              ]
 
-base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/k_band_ext/"
+base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_testing/k_band_ext/"
 basek_filenames = os.listdir(base_path_kband)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
-training_kband = np.empty((0, 18))
-training_kerror = np.empty((0, 18))
+training_kband = np.empty((0, 9))
 
 for file in basek_filenames:
     model_number = find_number(file, '.')
-    #print(model_number)
     df_k = kband_df(base_path_kband + file, columns_k)
 
     k_vector = df_k['Krdust'].values
-    #k_vector_errors = df_k['Krdust(error)'].values
 
     # Subsample by taking every other value
-    #k_vector = k_vector[0::2]
+    k_vector = k_vector[0::2]
     training_kband = np.vstack([training_kband, k_vector])
-    #training_kerror = np.vstack([training_kerror, k_vector_errors])
 
 kbins = df_k['Mag'].values
-
-# for j in range(1000):
-#
-#     y = training_kband[j]
-#     err = training_kerror[j]
-#     zeroidx = [i for i, e in enumerate(y) if e == 0]
-#     x = kbins[y > 0]
-#     err = err[y > 0]
-#     y = y[y > 0]
-#
-#     x_sec = x[0:3]
-#     y_sec = y[0:3]
-#     err_sec = err[0:3]
-#
-#     params, cov = curve_fit(phi, x_sec, y_sec, bounds=((0, -22, 0), (10, -15, 1)), sigma=err_sec)
-#
-#     pred_phi = list()
-#     for i in zeroidx:
-#         phi_p = phi(kbins[i], params[0], params[1], params[2])
-#         print(phi_p)
-
 kbins = kbins[0::2]
 print('k-band LF distribution bins: ', kbins)
-print('Example of k-band LF values: ', training_kband[0])
+print('Example of k-band LF values: ', training_kband[113])
 
 # Combine the two data sets with the parameter data
 combo_bins = np.hstack([dndzbins, kbins])  # This data is not required for the machine learning
 combo_labels = np.hstack([training_Hadndz, training_kband])
 print('Combo bins: ', combo_bins)
-print('Example of combo labels: ', combo_labels[0])
+print('Example of combo labels: ', combo_labels[113])
 
-# testing_feature_file1 = 'Data/Data_for_ML/raw_features/test_parameters.csv'
-# testing_features1 = genfromtxt(testing_feature_file1, delimiter=',', skip_header=1)
-# # Import the second feature file not including the redshift, subvolume or model information
-# testing_feature_file2 = 'Data/Data_for_ML/raw_features/test_parameters_extended_v3.csv'
-# testing_features2 = genfromtxt(testing_feature_file2, delimiter=',', skip_header=1, usecols= range(6))
-# # Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
-# testing_features2 = testing_features2[::30]
-# testing_features = np.vstack([testing_features1, testing_features2])
+testing_feature_file1 = 'Data/Data_for_ML/raw_features/test_parameters.csv'
+testing_features1 = genfromtxt(testing_feature_file1, delimiter=',', skip_header=1)
+# Import the second feature file not including the redshift, subvolume or model information
+testing_feature_file2 = 'Data/Data_for_ML/raw_features/test_parameters_extended_v3.csv'
+testing_features2 = genfromtxt(testing_feature_file2, delimiter=',', skip_header=1, usecols= range(6))
+# Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
+testing_features2 = testing_features2[::30]
+testing_features = np.vstack([testing_features1, testing_features2])
+testing_features = np.vectorize(round_sigfigs)(testing_features)
+combo_labels = np.round(combo_labels, decimals=3)
+print('Example of features: ', testing_features[113])
 
-training_feature_file = 'Data/Data_for_ML/raw_features/test_parameters_1000v1.csv'
-training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(6))
-training_features = np.vectorize(round_sigfigs)(training_features)
-combo_labels = np.round(combo_labels, decimals=2)
-
-# Shuffle the data properly
-training_features, combo_labels = shuffle(training_features, combo_labels)
+# training_feature_file = 'Data/Data_for_ML/raw_features/test_parameters_1000v1.csv'
+# training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(6))
+# training_features = np.vectorize(round_sigfigs)(training_features)
+# combo_labels = np.round(combo_labels, decimals=3)
+# print('Example of rounded combo labels: ', combo_labels[113])
+# print('Example of features: ', training_features[113])
+# # Shuffle the data properly
+# training_features, combo_labels = shuffle(training_features, combo_labels)
 
 # Save the arrays aas a text file
 training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
 testing_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/testing_data/"
 bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
 #np.savetxt(training_path + 'label_sub12_dndz_S', combo_labels, fmt='%.2f')
-#np.savetxt(testing_path + 'label_sub12_dndz_S', combo_labels, fmt='%.2f')
+np.savetxt(testing_path + 'label_sub12_dndz_S', combo_labels, fmt='%.2f')
 #np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
-#np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
-#np.savetxt(bin_path + 'bin_sub12_dndz', combo_bins)
+np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
+np.savetxt(bin_path + 'bin_sub12_dndz', combo_bins)
 
-# for i in range(len(training_Hadndz)):
-#
-#     #plt.plot(dndzbins, y_test[i])
-#     plt.plot(dndzbins, training_Hadndz[i])
-#
-# plt.title("Spread of training redshift distribution data")
-# plt.xlabel("Redshift, z", fontsize=15)
-# plt.ylabel("Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
+# plt.plot(kbins, training_kband[0], 'rx')
+# kbins = kbins[0::2]
+# training_kband = training_kband[0][0::2]
+# plt.plot(kbins, training_kband, 'gx')
 # plt.show()
