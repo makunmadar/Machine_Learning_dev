@@ -17,6 +17,15 @@ import random
 from sklearn.model_selection import train_test_split
 
 
+# Define a custom loss function with masking
+def masked_mae(y_true, y_pred):
+    mask = tf.not_equal(y_true, 0)  # Create a mask where non-zero values are True
+    masked_y_true = tf.boolean_mask(y_true, mask)
+    masked_y_pred = tf.boolean_mask(y_pred, mask)
+    loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
+    return loss
+
+
 # get the model
 def get_model(input_shape):
     '''
@@ -34,16 +43,16 @@ def get_model(input_shape):
         # Currently using Ed's emulator architecture
         Dense(512, input_shape=(6,), activation='sigmoid'),
         Dense(512, activation='sigmoid'),
-        Dense(13)
+        Dense(22)
     ])
 
     model.build(input_shape)
     model.summary()
 
     model.compile(
-        loss=tf.keras.losses.MeanAbsoluteError(),
-        optimizer=Adam(amsgrad=True, learning_rate=0.005),
-        metrics=[tf.keras.metrics.MeanAbsoluteError()]
+        loss=masked_mae,
+        optimizer=Adam(amsgrad=True, learning_rate=0.005)#,
+        #metrics=[masked_mae]
     )
     return model
 
@@ -68,7 +77,7 @@ label_file = 'Data/Data_for_ML/training_data/label_sub12_dndz_S'
 
 # For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
 X = genfromtxt(feature_file)
-y = genfromtxt(label_file, usecols=range(13))
+y = genfromtxt(label_file)
 
 # print("First training y pre scale: ", y_tot[0])
 # for i in range(4):
@@ -142,7 +151,7 @@ for i in range(n_members):
     #
     # start_epoch = len(model.history.history['loss'])
     #
-    # model.fit(X, y,
+    # model.fit(X_train, y_train,
     #           verbose=0,
     #           validation_split=0.2,
     #           callbacks=[early_stopping, tensorboard_callback],

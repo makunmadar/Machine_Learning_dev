@@ -70,31 +70,32 @@ def kband_df(path, columns):
     # Replacing the zero values with a prediction from a schechter fitting.
     # See Testing_schec.py for development of this code.
 
-    kbins = df['Mag'].values
+    # kbins = df['Mag'].values
 
-    if (df['Krdust'] == 0).any():
-
-        y = df['Krdust'].values
-        err = df['Krdust(error)'].values
-
-        zeroidx = [i for i, e in enumerate(y) if e == 0]
-        x = kbins[y > 0]
-        err = err[y > 0]
-        y = y[y > 0]
-
-        x_sec = x[0:4]
-        y_sec = y[0:4]
-        err_sec = err[0:4]
-
-        #params, cov = curve_fit(phi, x_sec, y_sec, bounds=((0, -22, 0), (10, -15, 1)), sigma=err_sec)
-        params, cov = curve_fit(lin, x_sec, y_sec, sigma=err_sec)
-
-        for i in zeroidx:
-            #phi_p = phi(kbins[i], params[0], params[1], params[2])
-            phi_p = lin(kbins[i], params[0], params[1])
-            df['Krdust'].iloc[i] = phi_p
-
-    df['Krdust'] = np.log10(df['Krdust'])
+    # if (df['Krdust'] == 0).any():
+    #
+    #     y = df['Krdust'].values
+    #     err = df['Krdust(error)'].values
+    #
+    #     zeroidx = [i for i, e in enumerate(y) if e == 0]
+    #     x = kbins[y > 0]
+    #     err = err[y > 0]
+    #     y = y[y > 0]
+    #
+    #     x_sec = x[0:4]
+    #     y_sec = y[0:4]
+    #     err_sec = err[0:4]
+    #
+    #     #params, cov = curve_fit(phi, x_sec, y_sec, bounds=((0, -22, 0), (10, -15, 1)), sigma=err_sec)
+    #     params, cov = curve_fit(lin, x_sec, y_sec, sigma=err_sec)
+    #
+    #     for i in zeroidx:
+    #         #phi_p = phi(kbins[i], params[0], params[1], params[2])
+    #         phi_p = lin(kbins[i], params[0], params[1])
+    #         df['Krdust'].iloc[i] = phi_p
+    #
+    # df['Krdust'] = np.log10(df['Krdust'])
+    df['Krdust'] = np.log10(df['Krdust'].mask(df['Krdust'] <=0)).fillna(0)
 
     #df['Krdust'] = np.log10(df['Krdust'].replace(0, 1E-20))
     # df['Krdust'] = np.log10(df['Krdust'].replace(0,  0.0000025119))
@@ -134,7 +135,8 @@ def dndz_df(path, columns):
     df = df[(df['z'] < 2.1)]
     df = df[(df['z'] > 0.7)]
 
-    df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].replace(0, 1E-20))
+    # df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].replace(0, 1E-20))
+    df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].mask(df['dN(>S)/dz'] <=0)).fillna(0)
 
     return df
 
@@ -162,7 +164,7 @@ def round_sigfigs(x):
 
 # Redshift distribution
 columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
-base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_testing/"
+base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_training_1000/"
 
 base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
@@ -204,7 +206,7 @@ columns_k = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
              'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
              ]
 
-base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_testing/k_band_ext/"
+base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/k_band_ext/"
 basek_filenames = os.listdir(base_path_kband)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
@@ -231,35 +233,35 @@ combo_labels = np.hstack([training_Hadndz, training_kband])
 print('Combo bins: ', combo_bins)
 print('Example of combo labels: ', combo_labels[113])
 
-testing_feature_file1 = 'Data/Data_for_ML/raw_features/test_parameters.csv'
-testing_features1 = genfromtxt(testing_feature_file1, delimiter=',', skip_header=1)
-# Import the second feature file not including the redshift, subvolume or model information
-testing_feature_file2 = 'Data/Data_for_ML/raw_features/test_parameters_extended_v3.csv'
-testing_features2 = genfromtxt(testing_feature_file2, delimiter=',', skip_header=1, usecols= range(6))
-# Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
-testing_features2 = testing_features2[::30]
-testing_features = np.vstack([testing_features1, testing_features2])
-testing_features = np.vectorize(round_sigfigs)(testing_features)
-combo_labels = np.round(combo_labels, decimals=3)
-print('Example of features: ', testing_features[113])
-
-# training_feature_file = 'Data/Data_for_ML/raw_features/test_parameters_1000v1.csv'
-# training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(6))
-# training_features = np.vectorize(round_sigfigs)(training_features)
+# testing_feature_file1 = 'Data/Data_for_ML/raw_features/test_parameters.csv'
+# testing_features1 = genfromtxt(testing_feature_file1, delimiter=',', skip_header=1)
+# # Import the second feature file not including the redshift, subvolume or model information
+# testing_feature_file2 = 'Data/Data_for_ML/raw_features/test_parameters_extended_v3.csv'
+# testing_features2 = genfromtxt(testing_feature_file2, delimiter=',', skip_header=1, usecols= range(6))
+# # Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
+# testing_features2 = testing_features2[::30]
+# testing_features = np.vstack([testing_features1, testing_features2])
+# testing_features = np.vectorize(round_sigfigs)(testing_features)
 # combo_labels = np.round(combo_labels, decimals=3)
-# print('Example of rounded combo labels: ', combo_labels[113])
-# print('Example of features: ', training_features[113])
-# # Shuffle the data properly
-# training_features, combo_labels = shuffle(training_features, combo_labels)
+# print('Example of features: ', testing_features[113])
+
+training_feature_file = 'Data/Data_for_ML/raw_features/test_parameters_1000v1.csv'
+training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(6))
+training_features = np.vectorize(round_sigfigs)(training_features)
+combo_labels = np.round(combo_labels, decimals=3)
+print('Example of rounded combo labels: ', combo_labels[113])
+print('Example of features: ', training_features[113])
+# Shuffle the data properly
+training_features, combo_labels = shuffle(training_features, combo_labels)
 
 # Save the arrays aas a text file
 training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
 testing_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/testing_data/"
 bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
-#np.savetxt(training_path + 'label_sub12_dndz_S', combo_labels, fmt='%.2f')
-np.savetxt(testing_path + 'label_sub12_dndz_S', combo_labels, fmt='%.2f')
-#np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
-np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
+np.savetxt(training_path + 'label_sub12_dndz_S', combo_labels, fmt='%.2f')
+#np.savetxt(testing_path + 'label_sub12_dndz_S', combo_labels, fmt='%.2f')
+np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
+#np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
 np.savetxt(bin_path + 'bin_sub12_dndz', combo_bins)
 
 # plt.plot(kbins, training_kband[0], 'rx')
