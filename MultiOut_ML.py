@@ -51,8 +51,8 @@ def get_model(input_shape):
 
     model.compile(
         loss=masked_mae,
-        optimizer=Adam(amsgrad=True, learning_rate=0.005)#,
-        #metrics=[masked_mae]
+        optimizer=Adam(amsgrad=False, learning_rate=0.005),
+        metrics=[masked_mae]
     )
     return model
 
@@ -141,22 +141,22 @@ for i in range(n_members):
                         callbacks=[early_stopping, tensorboard_callback],
                         epochs=700)
 
-    # model.trainable = True
-    #
-    # model.compile(
-    #     optimizer=Adam(amsgrad=True, learning_rate=0.00001),
-    #     loss=tf.keras.losses.MeanAbsoluteError(),
-    #     metrics=[tf.keras.metrics.MeanAbsoluteError()]
-    # )
-    #
-    # start_epoch = len(model.history.history['loss'])
-    #
-    # model.fit(X_train, y_train,
-    #           verbose=0,
-    #           validation_split=0.2,
-    #           callbacks=[early_stopping, tensorboard_callback],
-    #           initial_epoch=start_epoch,
-    #           epochs=700) # Want to increase this in the future
+    model.trainable = True
+
+    model.compile(
+        optimizer=Adam(amsgrad=True, learning_rate=0.00001),
+        loss=tf.keras.losses.MeanAbsoluteError(),
+        metrics=[tf.keras.metrics.MeanAbsoluteError()]
+    )
+
+    start_epoch = len(model.history.history['loss'])
+
+    model.fit(X_train, y_train,
+              verbose=0,
+              validation_split=0.2,
+              callbacks=[early_stopping, tensorboard_callback],
+              initial_epoch=start_epoch,
+              epochs=700) # Want to increase this in the future
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model '+str(i+1))
 

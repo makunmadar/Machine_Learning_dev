@@ -67,7 +67,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 138
+m = 6
 for i in range(6):
     axs[i].plot(bins[0:13], yhatz[i+m], '--', label=f"Prediction MAE: {MAEz[i+m]:.3f}", alpha=0.5)
     axs[i].plot(bins[0:13], y_testz[i+m], 'gx-', label="True model "+str(i+1+m))
@@ -112,7 +112,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 165
+m = 144
 for i in range(6):
     axs[i].plot(binsk[i+m], yhatk[i+m], '--', label=f"Prediction MAE: {MAEk[i+m]:.3f}", alpha=0.5)
     axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
