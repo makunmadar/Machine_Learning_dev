@@ -87,7 +87,7 @@ model_1 = tf.keras.models.load_model('Models/Ensemble_model_1_1000_S', compile=F
 # Make a prediction for test data
 yhat_1 = model_1.predict(X_test)
 # De-normalize the predictions and truth data
-yhat_1 = scaler_label.inverse_transform(yhat_1)
+# yhat_1 = scaler_label.inverse_transform(yhat_1)
 yhatz = [i[0:13] for i in yhat_1]
 yhatk = [i[13:22] for i in yhat_1]
 

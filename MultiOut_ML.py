@@ -11,7 +11,6 @@ from tensorflow.keras.layers import Dense, Normalization
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping, ModelCheckpoint
 import time
-import matplotlib.pyplot as plt
 from joblib import dump
 import random
 from sklearn.model_selection import train_test_split
@@ -23,6 +22,7 @@ def masked_mae(y_true, y_pred):
     masked_y_true = tf.boolean_mask(y_true, mask)
     masked_y_pred = tf.boolean_mask(y_pred, mask)
     loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
+
     return loss
 
 
@@ -114,10 +114,10 @@ dump(scaler_feat, 'mm_scaler_feat.bin')
 # normalizer.adapt(X)
 
 # Use standard scalar for the label data
-scaler_label = StandardScaler()
-scaler_label.fit(y_train)
-y_train = scaler_label.transform(y_train)
-dump(scaler_label, 'std_scaler_label.bin')
+# scaler_label = StandardScaler()
+# scaler_label.fit(y_train)
+# y_train = scaler_label.transform(y_train)
+# dump(scaler_label, 'std_scaler_label.bin')
 # print("First training y post scale: ", y_tot[0])
 
 input_shape = X_train.shape
@@ -141,22 +141,22 @@ for i in range(n_members):
                         callbacks=[early_stopping, tensorboard_callback],
                         epochs=700)
 
-    model.trainable = True
-
-    model.compile(
-        optimizer=Adam(amsgrad=True, learning_rate=0.00001),
-        loss=tf.keras.losses.MeanAbsoluteError(),
-        metrics=[tf.keras.metrics.MeanAbsoluteError()]
-    )
-
-    start_epoch = len(model.history.history['loss'])
-
-    model.fit(X_train, y_train,
-              verbose=0,
-              validation_split=0.2,
-              callbacks=[early_stopping, tensorboard_callback],
-              initial_epoch=start_epoch,
-              epochs=700) # Want to increase this in the future
+    # model.trainable = True
+    #
+    # model.compile(
+    #     optimizer=Adam(amsgrad=True, learning_rate=0.00001),
+    #     loss=tf.keras.losses.MeanAbsoluteError(),
+    #     metrics=[tf.keras.metrics.MeanAbsoluteError()]
+    # )
+    #
+    # start_epoch = len(model.history.history['loss'])
+    #
+    # model.fit(X_train, y_train,
+    #           verbose=0,
+    #           validation_split=0.2,
+    #           callbacks=[early_stopping, tensorboard_callback],
+    #           initial_epoch=start_epoch,
+    #           epochs=700) # Want to increase this in the future
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model '+str(i+1))
 

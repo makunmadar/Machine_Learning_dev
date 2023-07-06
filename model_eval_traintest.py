@@ -15,7 +15,7 @@ scaler_label = load('std_scaler_label.bin')
 model = tf.keras.models.load_model('Models/Ensemble_model_1_1000_S', compile=False)
 
 yhat = model.predict(X_test)
-yhat = scaler_label.inverse_transform(yhat)
+# yhat = scaler_label.inverse_transform(yhat)
 
 bin_file = 'Data/Data_for_ML/bin_data/bin_sub12_dndz'
 bins = genfromtxt(bin_file)
@@ -121,3 +121,6 @@ for i in range(6):
 
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
 plt.show()
+
+# Plotting the MAE per input parameter, focusing on the poor predictions.
+
