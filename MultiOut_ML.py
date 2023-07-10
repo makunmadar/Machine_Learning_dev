@@ -41,8 +41,8 @@ def get_model(input_shape):
 
         # normalizer,
         # Currently using Ed's emulator architecture
-        Dense(512, input_shape=(6,), activation='sigmoid'),
-        Dense(512, activation='sigmoid'),
+        Dense(512, input_shape=(6,), activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
         Dense(22)
     ])
 
@@ -109,27 +109,27 @@ np.save('Data/Data_for_ML/testing_data/y_test.npy', y_test)
 scaler_feat = MinMaxScaler(feature_range=(0,1))
 scaler_feat.fit(X_train)
 X_train = scaler_feat.transform(X_train)
-dump(scaler_feat, 'mm_scaler_feat.bin')
+# dump(scaler_feat, 'mm_scaler_feat.bin')
 # normalizer = Normalization(axis=-1)
-# normalizer.adapt(X)
+# normalizer.adapt(X_train)
 
 # Use standard scalar for the label data
 # scaler_label = StandardScaler()
 # scaler_label.fit(y_train)
 # y_train = scaler_label.transform(y_train)
 # dump(scaler_label, 'std_scaler_label.bin')
-# print("First training y post scale: ", y_tot[0])
 
+# print("First training y post scale: ", y_tot[0])
 input_shape = X_train.shape
 
 # Fit and save models
-n_members = 1
+n_members = 5
 for i in range(n_members):
     # Fit model
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_"+ str(i+1)+"_1000_S"
+    model_name = "Ensemble_model_"+ str(i+1)+"_2512_mask"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
@@ -141,22 +141,22 @@ for i in range(n_members):
                         callbacks=[early_stopping, tensorboard_callback],
                         epochs=700)
 
-    # model.trainable = True
-    #
-    # model.compile(
-    #     optimizer=Adam(amsgrad=True, learning_rate=0.00001),
-    #     loss=tf.keras.losses.MeanAbsoluteError(),
-    #     metrics=[tf.keras.metrics.MeanAbsoluteError()]
-    # )
-    #
-    # start_epoch = len(model.history.history['loss'])
-    #
-    # model.fit(X_train, y_train,
-    #           verbose=0,
-    #           validation_split=0.2,
-    #           callbacks=[early_stopping, tensorboard_callback],
-    #           initial_epoch=start_epoch,
-    #           epochs=700) # Want to increase this in the future
+    model.trainable = True
+
+    model.compile(
+        optimizer=Adam(amsgrad=True, learning_rate=0.00001),
+        loss=masked_mae,
+        metrics=[masked_mae]
+    )
+
+    start_epoch = len(model.history.history['loss'])
+
+    model.fit(X_train, y_train,
+              verbose=0,
+              validation_split=0.2,
+              callbacks=[early_stopping, tensorboard_callback],
+              initial_epoch=start_epoch,
+              epochs=2000) # Want to increase this in the future
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model '+str(i+1))
 

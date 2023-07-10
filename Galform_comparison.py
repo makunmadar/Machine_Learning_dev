@@ -9,6 +9,29 @@ from joblib import load
 from sklearn.metrics import mean_absolute_error
 
 
+def load_all_models(n_models, X_test):
+    """
+    Load all the models from file
+
+    :param n_models: number of models in the ensemble
+           X_test: test sample in np.array already normalized
+    :return: list of ensemble models
+    """
+
+    all_yhat = list()
+    for i in range(n_models):
+        # Define filename for this ensemble
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask'
+        # Load model from file
+        model = tf.keras.models.load_model(filename, compile=False)
+        # Produce prediction
+        yhat = model.predict(X_test)
+        all_yhat.append(yhat)
+        print('>loaded %s' % filename)
+
+    return all_yhat
+
+
 def emline_df(path, columns):
     data = []
     with open(path, 'r') as fh:
@@ -78,18 +101,17 @@ X_test = np.vstack((X_lacey, X_elliot))
 # Load scalar fits
 scaler_feat = load("mm_scaler_feat.bin")
 X_test = scaler_feat.transform(X_test)
-# Use standard scalar for the label data
-scaler_label = load("std_scaler_label.bin")
+# # Use standard scalar for the label data
+# scaler_label = load("std_scaler_label.bin")
 
-# Load a model from the Model directory
-model_1 = tf.keras.models.load_model('Models/Ensemble_model_1_1000_S', compile=False)
+# Make predictions on the galform set
+yhat_all = load_all_models(n_models=5, X_test=X_test)
+yhat_avg = np.mean(yhat_all, axis=0)
 
-# Make a prediction for test data
-yhat_1 = model_1.predict(X_test)
 # De-normalize the predictions and truth data
 # yhat_1 = scaler_label.inverse_transform(yhat_1)
-yhatz = [i[0:13] for i in yhat_1]
-yhatk = [i[13:22] for i in yhat_1]
+yhatz = [i[0:13] for i in yhat_avg]
+yhatk = [i[13:22] for i in yhat_avg]
 
 
 # Import the counts bins x axis
@@ -99,26 +121,18 @@ bins = genfromtxt(bin_file)
 path_zlc = "Data/Data_for_ML/Observational/Lacey_16/dndz_Bagley_HaNII_ext"
 dflc = dz_df(path_zlc)
 
-path_zed = "Data/Data_for_ML/Observational/Elliott_21/dndz_Bagley_HaNII_ext"
-df_ed = dz_df(path_zed)
-
 z_test_lc = dflc['dN(>S)/dz'].values
 z_test_lc = z_test_lc[0::4]
-z_test_ed = df_ed['dN(>S)/dz'].values
-z_test_ed = z_test_ed[0::4]
 
 # Manual MAE score
 maelc_z = mean_absolute_error(z_test_lc, yhatz[0])
-maeed_z = mean_absolute_error(z_test_ed, yhatz[1])
 #
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[0:13], yhatz[0], 'b--')
-axs.plot(bins[0:13], yhatz[1], 'g--')
+axs.plot(bins[0:13], yhatz[0], 'b--', label=f"Prediction MAE: {maelc_z:.3f}")
 
 # Original galform data
-dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label=f"Prediction MAE: {maelc_z:.3f}")
-df_ed.plot(ax=axs, x="z", y="dN(>S)/dz", color="green", label=f"Prediction MAE: {maeed_z:.3f}")
+dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
 axs.set_ylabel(r"Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
 axs.set_xlabel(r"Redshift, z", fontsize=15)
 axs.set_xlim(0.7, 2.0)
@@ -147,38 +161,25 @@ columns_t = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
              ]
 
 path_lflc = "Data/Data_for_ML/Observational/Lacey_16/gal.lf"
-path_lfed = "Data/Data_for_ML/Observational/Elliott_21/gal.lf"
 
 df_lflc = emline_df(path_lflc, columns_t)
-df_lfed = emline_df(path_lfed, columns_t)
 
 k_test_lc = df_lflc['Krdust'].values
-print(k_test_lc)
 k_test_lc = k_test_lc[0::2]
-print(k_test_lc)
-k_test_ed = df_lfed['Krdust'].values
-k_test_ed = k_test_ed[0::2]
 
 # Ignore the zero truth values
 yhatk_lc = yhatk[0][k_test_lc != 0]
 binsk_lc = bins[13:22][k_test_lc != 0]
 k_test_lc = k_test_lc[k_test_lc != 0]
 
-yhatk_ed = yhatk[1][k_test_ed != 0]
-binsk_ed = bins[13:22][k_test_ed != 0]
-k_test_ed = k_test_ed[k_test_ed != 0]
-
 # Manual MAE score
 maelc_k = mean_absolute_error(k_test_lc, yhatk_lc)
-maeed_k = mean_absolute_error(k_test_ed, yhatk_ed)
 
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(binsk_lc, yhatk_lc, 'b--')
-axs.plot(binsk_ed, yhatk_ed, 'g--')
+axs.plot(bins[13:22], yhatk[0], 'b--', label=f"Prediction MAE: {maelc_k:.3f}")
 
-axs.plot(binsk_lc, k_test_lc, color='blue', marker='x', label=f"Prediction MAE: {maelc_k:.3f}")
-axs.plot(binsk_ed, k_test_ed, color='green', marker='x', label=f"Prediction MAE: {maeed_k:.3f}")
+axs.plot(binsk_lc, k_test_lc, color='blue', marker='x', label="Lacey et al. 2016")
 
 axs.set_xlabel(r"M$_{AB}$ - 5log(h)", fontsize=15)
 axs.set_ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=15)

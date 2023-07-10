@@ -40,7 +40,7 @@ def define_stacked_model(members):
 early_stopping = EarlyStopping(
     monitor='val_loss',
     mode='min',
-    patience=50, # how many epochs to wait before stopping
+    patience=30, # how many epochs to wait before stopping
     restore_best_weights=True,
     verbose=1
 )
@@ -50,7 +50,7 @@ def fit_stacked_model(model, inputX, inputy):
     # prepare input data
     X = [inputX for _ in range(len(model.input))]
     # Fit model
-    log_dir = "logs/fit/stacked_model_1000_S"
+    log_dir = "logs/fit/stacked_model_2512_mask"
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     model.fit(X, inputy,
@@ -60,15 +60,15 @@ def fit_stacked_model(model, inputX, inputy):
     model.save('Models/stacked_model_1000_S')
 
 # Load the models
-keras_model = tf.keras.models.load_model('Models/Ensemble_model_1_1000_S', compile=False)
+keras_model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask', compile=False)
 keras_model._name = 'model1'
-keras_model2 = tf.keras.models.load_model('Models/Ensemble_model_2_1000_S', compile=False)
+keras_model2 = tf.keras.models.load_model('Models/Ensemble_model_2_2512_mask', compile=False)
 keras_model2._name = 'model2'
-keras_model3 = tf.keras.models.load_model('Models/Ensemble_model_3_1000_S', compile=False)
+keras_model3 = tf.keras.models.load_model('Models/Ensemble_model_3_2512_mask', compile=False)
 keras_model3._name = 'model3'
-keras_model4 = tf.keras.models.load_model('Models/Ensemble_model_4_1000_S', compile=False)
+keras_model4 = tf.keras.models.load_model('Models/Ensemble_model_4_2512_mask', compile=False)
 keras_model4._name = 'model4'
-keras_model5 = tf.keras.models.load_model('Models/Ensemble_model_5_1000_S', compile=False)
+keras_model5 = tf.keras.models.load_model('Models/Ensemble_model_5_2512_mask', compile=False)
 keras_model5._name = 'model5'
 
 models = [keras_model, keras_model2, keras_model3, keras_model4, keras_model5]
