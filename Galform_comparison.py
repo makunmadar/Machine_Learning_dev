@@ -9,6 +9,15 @@ from joblib import load
 from sklearn.metrics import mean_absolute_error
 
 
+def masked_mae(y_true, y_pred):
+    mask = tf.not_equal(y_true, 0)  # Create a mask where non-zero values are True
+    masked_y_true = tf.boolean_mask(y_true, mask)
+    masked_y_pred = tf.boolean_mask(y_pred, mask)
+    loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
+
+    return loss
+
+
 def load_all_models(n_models, X_test):
     """
     Load all the models from file
@@ -23,11 +32,11 @@ def load_all_models(n_models, X_test):
         # Define filename for this ensemble
         filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask'
         # Load model from file
-        model = tf.keras.models.load_model(filename, compile=False)
+        model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
+        print('>loaded %s' % filename)
         # Produce prediction
         yhat = model.predict(X_test)
         all_yhat.append(yhat)
-        print('>loaded %s' % filename)
 
     return all_yhat
 
