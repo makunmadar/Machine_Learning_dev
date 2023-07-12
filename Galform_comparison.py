@@ -1,4 +1,4 @@
-# Predicting the plots from Lacey et al. 16 and Elliott et al. 21
+# Predicting the plots from Lacey et al. 16
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -103,9 +103,8 @@ def dz_df(path):
 
 
 #  Lacey parameters
-X_lacey = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
-X_elliot = np.array([0.59, 489, 284, 2.24, 0.84, 0.2])
-X_test = np.vstack((X_lacey, X_elliot))
+X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
+X_test = X_test.reshape(1, -1)
 
 # Load scalar fits
 scaler_feat = load("mm_scaler_feat.bin")
@@ -115,13 +114,13 @@ X_test = scaler_feat.transform(X_test)
 
 # Make predictions on the galform set
 yhat_all = load_all_models(n_models=5, X_test=X_test)
-yhat_avg = np.mean(yhat_all, axis=0)
+yhat_avg = np.mean(yhat_all[0], axis=0)
+
 
 # De-normalize the predictions and truth data
 # yhat_1 = scaler_label.inverse_transform(yhat_1)
-yhatz = [i[0:13] for i in yhat_avg]
-yhatk = [i[13:22] for i in yhat_avg]
-
+yhatz = yhat_avg[0:13]
+yhatk = yhat_avg[13:22]
 
 # Import the counts bins x axis
 bin_file = 'Data/Data_for_ML/bin_data/bin_sub12_dndz'
@@ -134,14 +133,15 @@ z_test_lc = dflc['dN(>S)/dz'].values
 z_test_lc = z_test_lc[0::4]
 
 # Manual MAE score
-maelc_z = mean_absolute_error(z_test_lc, yhatz[0])
+maelc_z = mean_absolute_error(z_test_lc, yhatz)
 #
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[0:13], yhatz[0], 'b--', label=f"Prediction MAE: {maelc_z:.3f}")
+axs.plot(bins[0:13], yhatz, 'b--', label=f"Prediction MAE: {maelc_z:.3f}")
 
 # Original galform data
 dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
+axs.scatter(bins[0:13], z_test_lc, color='blue', marker='x', label="Evaluation bins")
 axs.set_ylabel(r"Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
 axs.set_xlabel(r"Redshift, z", fontsize=15)
 axs.set_xlim(0.7, 2.0)
@@ -173,23 +173,26 @@ path_lflc = "Data/Data_for_ML/Observational/Lacey_16/gal.lf"
 
 df_lflc = emline_df(path_lflc, columns_t)
 
-k_test_lc = df_lflc['Krdust'].values
-k_test_lc = k_test_lc[0::2]
+k_test_lc_full = df_lflc['Krdust'].values
+k_test_lc_sub = k_test_lc_full[0::2]
 
 # Ignore the zero truth values
-yhatk_lc = yhatk[0][k_test_lc != 0]
-binsk_lc = bins[13:22][k_test_lc != 0]
-k_test_lc = k_test_lc[k_test_lc != 0]
+yhatk_lc_sub = yhatk[k_test_lc_sub != 0]
+binsk_lc_sub = bins[13:22][k_test_lc_sub != 0]
+k_test_lc_sub = k_test_lc_sub[k_test_lc_sub != 0]
+
+binsk_full = df_lflc['Mag'][k_test_lc_full != 0]
+k_test_lc_full = k_test_lc_full[k_test_lc_full != 0]
 
 # Manual MAE score
-maelc_k = mean_absolute_error(k_test_lc, yhatk_lc)
+maelc_k = mean_absolute_error(k_test_lc_sub, yhatk_lc_sub)
 
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[13:22], yhatk[0], 'b--', label=f"Prediction MAE: {maelc_k:.3f}")
+axs.plot(bins[13:22], yhatk, 'b--', label=f"Prediction MAE: {maelc_k:.3f}")
 
-axs.plot(binsk_lc, k_test_lc, color='blue', marker='x', label="Lacey et al. 2016")
-
+axs.plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
+axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
 axs.set_xlabel(r"M$_{AB}$ - 5log(h)", fontsize=15)
 axs.set_ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=15)
 axs.set_xlim(-18, -25)

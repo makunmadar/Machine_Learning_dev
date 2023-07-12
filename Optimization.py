@@ -1,0 +1,304 @@
+import numpy as np
+from numpy import genfromtxt
+import matplotlib.pyplot as plt
+import pandas as pd
+from joblib import load
+from scipy.interpolate import interp1d
+import tensorflow as tf
+import corner
+
+
+def masked_mae(y_true, y_pred):
+    # The tensorflow models custom metric, this won't affect the predictions
+    # But it gets rid of the warning message
+    mask = tf.not_equal(y_true, 0)  # Create a mask where non-zero values are True
+    masked_y_true = tf.boolean_mask(y_true, mask)
+    masked_y_pred = tf.boolean_mask(y_pred, mask)
+    loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
+
+    return loss
+
+def kband_df(path, columns):
+    '''
+    This function extracts just the k_band LF data and saves it in a dataframe.
+
+    :param path: path to the LF file
+    :param columns: what are the names of the magnitude columns?
+    :return: dataframe
+    '''
+    data = []
+    with open(path, 'r') as fh:
+        for curline in fh:
+            if curline.startswith("#"):
+                header = curline
+            else:
+                row = curline.strip().split()
+                data.append(row)
+
+    data = np.vstack(data)
+    df = pd.DataFrame(data=data)
+    df = df.apply(pd.to_numeric)
+    df.columns = columns
+
+    df = df[(df['Mag'] <= -17.67)]
+    df = df[(df['Mag'] >= -25.11)]
+    return df
+
+def mcmc_updater(curr_state, curr_likeli, model, obs_x, obs_y, pred_bins,
+                 likelihood, proposal_distribution, stepsize, curr_pred):
+    """ Propose a new state and compare the likelihoods
+
+    Given the current state (initially random),
+      current likelihood, the likelihood function, and
+      the transition (proposal) distribution, `mcmc_updater` generates
+      a new proposal, evaluate its likelihood, compares that to the current
+      likelihood with a uniformly samples threshold,
+    then it returns new or current state in the MCMC chain.
+
+    Args:
+        model: Tensorflow model
+        obs_x: Observable x vector
+        obs_y: Observable y vector
+        pred_bins: Fixed prediction x bins
+        curr_state (float): the current parameter/state value
+        curr_likeli (float): the current likelihood estimate
+        likelihood (function): a function handle to compute the likelihood
+        proposal_distribution (function): a function handle to compute the
+          next proposal state
+        curr_pred: current predictions
+
+    Returns:
+        (tuple): either the current state or the new state
+          and its corresponding likelihood and prediction
+    """
+    # Generate a proposal state using the proposal distribution
+    # Proposal state == new guess state to be compared to current
+    proposal_state = proposal_distribution(curr_state, stepsize)
+
+    # Calculate the acceptance criterion
+    # We want to minimize the MAE value but the likelihood
+    # is set to be maximized therefore flip the acceptance criterion ratio
+    prop_likeli, prop_pred = likelihood(proposal_state, model, obs_x, obs_y, pred_bins)
+    accept_crit = curr_likeli / prop_likeli
+
+    # Generate a random number between 0 and 1
+    accept_threshold = np.random.uniform(0, 1)
+
+    # If the acceptance criterion is greater than the random number,
+    # accept the proposal state as the current state
+
+    if accept_crit > accept_threshold:
+        return proposal_state, prop_likeli, prop_pred
+
+    # Else
+    return curr_state, curr_likeli, curr_pred
+
+
+def metropolis_hastings(
+        model, obs_x, obs_y, pred_bins, likelihood, proposal_distribution, initial_state,
+        num_samples, stepsize, burnin):
+    """ Compute the Markov Chain Monte Carlo
+
+    Args:
+        model: Emulator model
+        obs_x: Observable x values
+        obs_y: Observable y values
+        pred_bins: Prediction x-axis bins
+        likelihood (function): a function handle to compute the likelihood
+        proposal_distribution (function): a function handle to compute the
+          next proposal state
+        initial_state (list): The initial conditions to start the chain
+        num_samples (integer): The number of samples to compte,
+          or length of the chain
+        burnin (float): a float value from 0 to 1.
+          The percentage of chain considered to be the burnin length
+
+    Returns:
+        samples (list): The Markov Chain,
+          samples from the posterior distribution
+        preds (list): Predictions for plotting
+    """
+    samples = []
+    predictions = []
+
+    # The number of samples in the burn in phase
+    idx_burnin = int(burnin * num_samples)
+
+    # Set the current state to the initial state
+    curr_state = initial_state
+    curr_likeli, curr_pred= likelihood(curr_state, model, obs_x, obs_y, pred_bins)
+    predictions.append(curr_pred)
+
+    for i in range(num_samples):
+        # The proposal distribution sampling and comparison
+        # occur within the mcmc_updater routine
+        curr_state, curr_likeli, curr_pred = mcmc_updater(
+            curr_state=curr_state,
+            curr_likeli=curr_likeli,
+            model=model,
+            obs_x=obs_x,
+            obs_y=obs_y,
+            pred_bins=pred_bins,
+            likelihood=likelihood,
+            proposal_distribution=proposal_distribution,
+            stepsize=stepsize,
+            curr_pred=curr_pred
+        )
+
+        # Append the current state to the list of samples
+        if i >= idx_burnin:
+            # Only append after the burn in to avoid including
+            # parts of the chain that are prior_dominated
+            samples.append(curr_state)
+            predictions.append(curr_pred)
+
+    return samples, predictions
+
+
+def likelihood(params, model, obs_x, obs_y, pred_bins):
+    """ Compute the MAE likelihood function, comparing a prediction to observed values
+
+    Args:
+        params: Current state parameters. Inputs to the emulator model.
+        model: A tensorflow model used to map the input Galform parameters to an output predicting,
+        y-axis values
+        obs_x: Observable x-axis vector
+        obs_y: Observable y-axis vector
+        pred_bins: Fixed x-axis bins corresponding to the predicted y-axis values
+
+    Returns:
+        weighted_mae: The calculated MAE value comparing the prediction plot to the observed plot
+        predictions: for plotting
+
+    """
+    # Mean average error (MAE) loss
+    # Perform model prediction using the input parameters
+    params = scaler_feat.transform(params)
+    predictions = model.predict(params)
+
+    # Just wanting to test this for the redshift distribution so far
+    predictions = predictions[0][13:22]
+    pred_bins = pred_bins[13:22]
+
+    # Calculate the mean absolute error (MAE)
+    # First need to interpolate between the observed and the predicted
+    # Create common x-axis
+    common_x = np.linspace(min(min(pred_bins), min(obs_x)), max(max(pred_bins), max(obs_x)), num=50)
+
+    # Interpolate or resample the daa onto the common x-axis
+    interp_func1 = interp1d(pred_bins, predictions, kind='linear', fill_value='extrapolate')
+    interp_func2 = interp1d(obs_x, obs_y, kind='linear', fill_value='extrapolate')
+    interp_y1 = interp_func1(common_x)
+    interp_y2 = interp_func2(common_x)
+
+    # Working out the MAE values
+    # error_weightsz = 1/sigma
+    weighted_error = np.abs(interp_y1-interp_y2)# *error_weightsz
+    weighted_mae = np.mean(weighted_error)
+
+    return weighted_mae, predictions
+
+def proposal_distribution(x, stepsize):
+    # Select the proposed state (new guess) from a Gaussian distribution
+    # centered at the current state, within a Gaussian of width 'stepsize'
+    return np.random.normal(x, stepsize)
+
+# Load in the Observational data
+bag_headers = ["z", "n", "+", "-"]
+Ha_b = pd.read_csv("Data/Data_for_ML/Observational/Bagley_20/Ha_Bagley_dndz.csv",
+                   delimiter=",", names=bag_headers, skiprows=1)
+Ha_b = Ha_b.astype(float)
+Ha_b["n"] = np.log10(Ha_b["n"])
+Ha_b["+"] = np.log10(Ha_b["+"])
+Ha_b["-"] = np.log10(Ha_b["-"])
+Ha_ytop = Ha_b["+"] - Ha_b["n"]
+Ha_ybot = Ha_b["n"] - Ha_b["-"]
+sigma = (Ha_ytop + Ha_ybot) / 2
+
+# Try on the Driver et al. 2012 LF data
+driv_headers = ['Mag', 'LF', 'error', 'Freq']
+drive_path = 'Data/Data_for_ML/Observational/Driver_12/lfk_z0_driver12.data'
+df_k = kband_df(drive_path, driv_headers)
+df_k = df_k[(df_k != 0).all(1)]
+df_k['LF'] = df_k['LF']*2 # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
+df_k['error'] = df_k['error']*2 # Same reason
+df_k['error_upper'] = np.log10(df_k['LF'] + df_k['error']) - np.log10(df_k['LF'])
+df_k['error_lower'] = np.log10(df_k['LF']) - np.log10(df_k['LF'] - df_k['error'])
+df_k['LF'] = np.log10(df_k['LF'])
+
+# Combine the observational data
+obs_x = np.hstack([Ha_b['z'].values, df_k['Mag'].values])
+obs_y = np.hstack([Ha_b['n'].values, df_k['LF'].values])
+
+# Load in the minmax scaler for the parameter data
+scaler_feat = load("mm_scaler_feat.bin")
+
+# Load the Galform bins
+bin_file = 'Data/Data_for_ML/bin_data/bin_sub12_dndz'
+bins = genfromtxt(bin_file)
+
+# Load in the neural network
+# For now only loading one of the models. Sort out the averaging later
+# Checking the model is loading in correctly
+model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
+                                     custom_objects={"masked_mae": masked_mae}, compile=False)
+
+# np.random.seed(42)
+
+# Initial state is the random starting point of the input parameters.
+# The prior is tophat uniform between the parameter bounds so initial
+# states are uniformly chosen at random between these bounds.
+random_ar = np.random.uniform(0.3, 3)
+random_vhd = np.random.uniform(100, 550)
+random_vhb = np.random.uniform(100, 550)
+random_ah = np.random.uniform(1.5, 3.5)
+random_ac = np.random.uniform(0, 2)
+random_nsf = np.random.uniform(0.2, 1.7)
+initial_state = np.array([random_ar, random_vhd, random_vhb, random_ah, random_ac, random_nsf])
+initial_state = initial_state.reshape(1, -1)
+
+num_samples = int(1000)
+stepsize = 0.05
+burnin = 0.3
+
+# Generate samples over the posterior distribution using the metropolis_hastings function
+samples, predictions = metropolis_hastings(
+    model=model,
+    obs_x=df_k['Mag'].values,
+    obs_y=df_k['LF'].values,
+    pred_bins=bins,
+    likelihood=likelihood,
+    proposal_distribution=proposal_distribution,
+    initial_state=initial_state,
+    num_samples=num_samples,
+    stepsize=stepsize,
+    burnin=burnin
+)
+
+# plt.ion()
+# plt.errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor="black", capsize=2,
+#              fmt='co', label=r"Bagley'20 Observed")
+df_k.plot(x="Mag", y="LF", label='Driver et al. 2012', yerr=[df_k['error_lower'], df_k['error_upper']],
+          markeredgecolor='black', ecolor="black", capsize=2, fmt='co')
+
+# for theta in samples[np.random.randint(len(samples), size=100)]:
+for theta in predictions:
+    plt.plot(bins[13:22], theta, color='r', alpha=0.1)
+# plt.plot(bins[0:13], predictions[-1], color='m', linestyle='--')
+# plt.xlabel('Redshift')
+# plt.ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
+# plt.xlim(0.7, 2.0)
+plt.xlabel(r"M$_{AB}$ - 5log(h)", fontsize=16)
+plt.ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=16)
+plt.xlim(-18, -25)
+plt.ylim(-6, -1)
+plt.legend()
+plt.show()
+
+labels = ['alpha_reheat', 'Vhotdisk', 'Vhotburst', 'alpha_hot', 'alpha_cool', 'nu_sf']
+samples = np.array(samples)
+first_dim_size = samples.shape[0]
+samples_reshape = samples.reshape(first_dim_size, 6)
+fig = corner.corner(samples_reshape, show_titles=True, labels=labels,
+                    plot_datapoints=True, quantiles=[0.16, 0.5, 0.84])
+fig.savefig("corner.png")
