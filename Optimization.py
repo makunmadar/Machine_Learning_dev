@@ -1,9 +1,11 @@
 import numpy as np
 from numpy import genfromtxt
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import cm
 import pandas as pd
 from joblib import load
 from scipy.interpolate import interp1d
+from sklearn.metrics import mean_absolute_error
 import tensorflow as tf
 import corner
 
@@ -17,6 +19,7 @@ def masked_mae(y_true, y_pred):
     loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
 
     return loss
+
 
 def kband_df(path, columns):
     '''
@@ -43,6 +46,7 @@ def kband_df(path, columns):
     df = df[(df['Mag'] <= -17.67)]
     df = df[(df['Mag'] >= -25.11)]
     return df
+
 
 def mcmc_updater(curr_state, curr_likeli, model, obs_x, obs_y, pred_bins,
                  likelihood, proposal_distribution, stepsize, curr_pred):
@@ -126,7 +130,7 @@ def metropolis_hastings(
 
     # Set the current state to the initial state
     curr_state = initial_state
-    curr_likeli, curr_pred= likelihood(curr_state, model, obs_x, obs_y, pred_bins)
+    curr_likeli, curr_pred = likelihood(curr_state, model, obs_x, obs_y, pred_bins)
     predictions.append(curr_pred)
 
     for i in range(num_samples):
@@ -173,35 +177,38 @@ def likelihood(params, model, obs_x, obs_y, pred_bins):
     """
     # Mean average error (MAE) loss
     # Perform model prediction using the input parameters
-    params = scaler_feat.transform(params)
+    # params = scaler_feat.transform(params)
     predictions = model.predict(params)
-
-    # Just wanting to test this for the redshift distribution so far
-    predictions = predictions[0][13:22]
-    pred_bins = pred_bins[13:22]
+    predictions = predictions[0]
 
     # Calculate the mean absolute error (MAE)
     # First need to interpolate between the observed and the predicted
-    # Create common x-axis
-    common_x = np.linspace(min(min(pred_bins), min(obs_x)), max(max(pred_bins), max(obs_x)), num=50)
+    # Create common x-axis with same axis as the observable x bins
 
-    # Interpolate or resample the daa onto the common x-axis
-    interp_func1 = interp1d(pred_bins, predictions, kind='linear', fill_value='extrapolate')
-    interp_func2 = interp1d(obs_x, obs_y, kind='linear', fill_value='extrapolate')
-    interp_y1 = interp_func1(common_x)
-    interp_y2 = interp_func2(common_x)
+    # Interpolate or resample the redshift distribution data onto the common x-axis
+    interp_funcz = interp1d(pred_bins[0:13], predictions[0:13], kind='linear', fill_value='extrapolate')
+    interp_yz1 = interp_funcz(obs_x[0:7])
+
+    # Interpolate or resample the luminosity function data onto the common x-axis
+    interp_funck = interp1d(pred_bins[13:22], predictions[13:22], kind='linear', fill_value='extrapolate')
+    interp_yk1 = interp_funck(obs_x[7:20])
+
+    # Combine the interpolated y values
+    interp_y1 = np.hstack([interp_yz1, interp_yk1])
 
     # Working out the MAE values
+    # In the future I want to update this to work with the errors from the observables
     # error_weightsz = 1/sigma
-    weighted_error = np.abs(interp_y1-interp_y2)# *error_weightsz
-    weighted_mae = np.mean(weighted_error)
+    weighted_mae = mean_absolute_error(obs_y, interp_y1)
 
     return weighted_mae, predictions
+
 
 def proposal_distribution(x, stepsize):
     # Select the proposed state (new guess) from a Gaussian distribution
     # centered at the current state, within a Gaussian of width 'stepsize'
     return np.random.normal(x, stepsize)
+
 
 # Load in the Observational data
 bag_headers = ["z", "n", "+", "-"]
@@ -220,8 +227,8 @@ driv_headers = ['Mag', 'LF', 'error', 'Freq']
 drive_path = 'Data/Data_for_ML/Observational/Driver_12/lfk_z0_driver12.data'
 df_k = kband_df(drive_path, driv_headers)
 df_k = df_k[(df_k != 0).all(1)]
-df_k['LF'] = df_k['LF']*2 # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
-df_k['error'] = df_k['error']*2 # Same reason
+df_k['LF'] = df_k['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
+df_k['error'] = df_k['error'] * 2  # Same reason
 df_k['error_upper'] = np.log10(df_k['LF'] + df_k['error']) - np.log10(df_k['LF'])
 df_k['error_lower'] = np.log10(df_k['LF']) - np.log10(df_k['LF'] - df_k['error'])
 df_k['LF'] = np.log10(df_k['LF'])
@@ -241,31 +248,34 @@ bins = genfromtxt(bin_file)
 # For now only loading one of the models. Sort out the averaging later
 # Checking the model is loading in correctly
 model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
-                                     custom_objects={"masked_mae": masked_mae}, compile=False)
+                                   custom_objects={"masked_mae": masked_mae}, compile=False)
 
 # np.random.seed(42)
 
 # Initial state is the random starting point of the input parameters.
 # The prior is tophat uniform between the parameter bounds so initial
 # states are uniformly chosen at random between these bounds.
-random_ar = np.random.uniform(0.3, 3)
-random_vhd = np.random.uniform(100, 550)
-random_vhb = np.random.uniform(100, 550)
-random_ah = np.random.uniform(1.5, 3.5)
-random_ac = np.random.uniform(0, 2)
-random_nsf = np.random.uniform(0.2, 1.7)
-initial_state = np.array([random_ar, random_vhd, random_vhb, random_ah, random_ac, random_nsf])
+# random_ar = np.random.uniform(0.3, 3)
+# random_vhd = np.random.uniform(100, 550)
+# random_vhb = np.random.uniform(100, 550)
+# random_ah = np.random.uniform(1.5, 3.5)
+# random_ac = np.random.uniform(0, 2)
+# random_nsf = np.random.uniform(0.2, 1.7)
+# initial_state = np.array([random_ar, random_vhd, random_vhb, random_ah, random_ac, random_nsf])
+# initial_state = initial_state.reshape(1, -1)
+
+initial_state = np.random.uniform(0, 1, size=6)
 initial_state = initial_state.reshape(1, -1)
 
 num_samples = int(1000)
 stepsize = 0.05
-burnin = 0.3
+burnin = 0.2
 
 # Generate samples over the posterior distribution using the metropolis_hastings function
 samples, predictions = metropolis_hastings(
     model=model,
-    obs_x=df_k['Mag'].values,
-    obs_y=df_k['LF'].values,
+    obs_x=obs_x,
+    obs_y=obs_y,
     pred_bins=bins,
     likelihood=likelihood,
     proposal_distribution=proposal_distribution,
@@ -275,19 +285,27 @@ samples, predictions = metropolis_hastings(
     burnin=burnin
 )
 
-# plt.ion()
-# plt.errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor="black", capsize=2,
-#              fmt='co', label=r"Bagley'20 Observed")
-df_k.plot(x="Mag", y="LF", label='Driver et al. 2012', yerr=[df_k['error_lower'], df_k['error_upper']],
-          markeredgecolor='black', ecolor="black", capsize=2, fmt='co')
-
+colour = iter(cm.rainbow(np.linspace(0, 1, len(predictions))))
+# This is for a large number of samples we want to plot,
+# easier to see the trend by subsampling
 # for theta in samples[np.random.randint(len(samples), size=100)]:
 for theta in predictions:
-    plt.plot(bins[13:22], theta, color='r', alpha=0.1)
-# plt.plot(bins[0:13], predictions[-1], color='m', linestyle='--')
-# plt.xlabel('Redshift')
-# plt.ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
-# plt.xlim(0.7, 2.0)
+    c = next(colour)
+    plt.plot(bins[0:13], theta[0:13], c=c, alpha=0.1)
+plt.errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black', capsize=2,
+             fmt='co', label="Bagley'20 Observed")
+plt.xlabel('Redshift')
+plt.ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
+plt.xlim(0.7, 2.0)
+plt.legend()
+plt.show()
+
+colour = iter(cm.rainbow(np.linspace(0, 1, len(predictions))))
+for theta in predictions:
+    c = next(colour)
+    plt.plot(bins[13:22], theta[13:22], color=c, alpha=0.1)
+plt.errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
+             markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
 plt.xlabel(r"M$_{AB}$ - 5log(h)", fontsize=16)
 plt.ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=16)
 plt.xlim(-18, -25)
