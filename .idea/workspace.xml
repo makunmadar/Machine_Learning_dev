@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a7acc9b9-fa9e-44a1-badd-1ebbdfbf4728" name="Changes" comment="Basic pipeline for MCMC optimization">
+    <list default="true" id="a7acc9b9-fa9e-44a1-badd-1ebbdfbf4728" name="Changes" comment="Main pipeline for optimization, before adding multiple network outputs">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Interpolation_check.py" beforeDir="false" afterPath="$PROJECT_DIR$/Interpolation_check.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Optimization.py" beforeDir="false" afterPath="$PROJECT_DIR$/Optimization.py" afterDir="false" />
@@ -64,7 +64,7 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.Interpolation_check">
+  <component name="RunManager" selected="Python.Optimization">
     <configuration name="Check_LF" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="ML" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -494,7 +494,7 @@
       <workItem from="1686577941086" duration="36781000" />
       <workItem from="1687769491815" duration="73527000" />
       <workItem from="1688370982873" duration="25968000" />
-      <workItem from="1688633485666" duration="103375000" />
+      <workItem from="1688633485666" duration="121245000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1681723311518</created>
@@ -681,7 +681,15 @@
       <option name="project" value="LOCAL" />
       <updated>1689177747567</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="Main pipeline for optimization, before adding multiple network outputs">
+      <option name="closed" value="true" />
+      <created>1689532274226</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1689532274226</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -699,7 +707,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Initial Commit" />
     <MESSAGE value="Adding script descriptions" />
     <MESSAGE value="Removing k-fold evaluation from the model development script" />
     <MESSAGE value="Comparing various fixed learning rates" />
@@ -724,7 +731,8 @@
     <MESSAGE value="Current best performing multi network" />
     <MESSAGE value="Fixed the custom metrics error" />
     <MESSAGE value="Basic pipeline for MCMC optimization" />
-    <option name="LAST_COMMIT_MESSAGE" value="Basic pipeline for MCMC optimization" />
+    <MESSAGE value="Main pipeline for optimization, before adding multiple network outputs" />
+    <option name="LAST_COMMIT_MESSAGE" value="Main pipeline for optimization, before adding multiple network outputs" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -750,8 +758,8 @@
     <SUITE FILE_PATH="coverage/ML$Ensemble_ML.coverage" NAME="Ensemble_ML Coverage Results" MODIFIED="1686658610087" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Check_normalisation.coverage" NAME="Check_normalisation Coverage Results" MODIFIED="1680623218204" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Galform_comparison.coverage" NAME="Galform_comparison Coverage Results" MODIFIED="1689156895859" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Optimization.coverage" NAME="Optimization Coverage Results" MODIFIED="1689352120113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Optimization.coverage" NAME="Optimization Coverage Results" MODIFIED="1689608627148" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Testing_schec.coverage" NAME="Testing_schec Coverage Results" MODIFIED="1688406504550" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Interpolation_check.coverage" NAME="Interpolation_check Coverage Results" MODIFIED="1689352233964" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Interpolation_check.coverage" NAME="Interpolation_check Coverage Results" MODIFIED="1689608509245" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

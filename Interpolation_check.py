@@ -42,7 +42,7 @@ def kband_df(path, columns):
     df = df.apply(pd.to_numeric)
     df.columns = columns
 
-    df = df[(df['Mag'] <= -17.67)]
+    df = df[(df['Mag'] <= -18.00)]
     df = df[(df['Mag'] >= -25.11)]
     return df
 

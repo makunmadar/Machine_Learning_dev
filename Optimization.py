@@ -43,7 +43,7 @@ def kband_df(path, columns):
     df = df.apply(pd.to_numeric)
     df.columns = columns
 
-    df = df[(df['Mag'] <= -17.67)]
+    df = df[(df['Mag'] <= -18.00)]
     df = df[(df['Mag'] >= -25.11)]
     return df
 
@@ -207,7 +207,16 @@ def likelihood(params, model, obs_x, obs_y, pred_bins):
 def proposal_distribution(x, stepsize):
     # Select the proposed state (new guess) from a Gaussian distribution
     # centered at the current state, within a Gaussian of width 'stepsize'
-    return np.random.normal(x, stepsize)
+
+    # Making sure the proposed values are within the minmax boundary
+    while True:
+
+        proposal_params = np.random.normal(x, stepsize)
+
+        if np.all((proposal_params >= 0) & (proposal_params <= 1)):
+            break
+
+    return proposal_params
 
 
 # Load in the Observational data
@@ -250,7 +259,7 @@ bins = genfromtxt(bin_file)
 model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
                                    custom_objects={"masked_mae": masked_mae}, compile=False)
 
-# np.random.seed(42)
+np.random.seed(42)
 
 # Initial state is the random starting point of the input parameters.
 # The prior is tophat uniform between the parameter bounds so initial
@@ -264,59 +273,91 @@ model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
 # initial_state = np.array([random_ar, random_vhd, random_vhb, random_ah, random_ac, random_nsf])
 # initial_state = initial_state.reshape(1, -1)
 
-initial_state = np.random.uniform(0, 1, size=6)
-initial_state = initial_state.reshape(1, -1)
+# initial_state = np.random.uniform(0, 1, size=6)
+# initial_state = initial_state.reshape(1, -1)
 
 num_samples = int(1000)
-stepsize = 0.05
-burnin = 0.2
+stepsize = 0.005
+burnin = 0.0 # For now testing with zero burn in
+n_walkers = 3
 
-# Generate samples over the posterior distribution using the metropolis_hastings function
-samples, predictions = metropolis_hastings(
-    model=model,
-    obs_x=obs_x,
-    obs_y=obs_y,
-    pred_bins=bins,
-    likelihood=likelihood,
-    proposal_distribution=proposal_distribution,
-    initial_state=initial_state,
-    num_samples=num_samples,
-    stepsize=stepsize,
-    burnin=burnin
-)
+n_samples = []
 
-colour = iter(cm.rainbow(np.linspace(0, 1, len(predictions))))
-# This is for a large number of samples we want to plot,
-# easier to see the trend by subsampling
-# for theta in samples[np.random.randint(len(samples), size=100)]:
-for theta in predictions:
-    c = next(colour)
-    plt.plot(bins[0:13], theta[0:13], c=c, alpha=0.1)
-plt.errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black', capsize=2,
-             fmt='co', label="Bagley'20 Observed")
-plt.xlabel('Redshift')
-plt.ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
-plt.xlim(0.7, 2.0)
-plt.legend()
-plt.show()
+# Wrap this in multiple walkers:
+for n in range(n_walkers):
 
-colour = iter(cm.rainbow(np.linspace(0, 1, len(predictions))))
-for theta in predictions:
-    c = next(colour)
-    plt.plot(bins[13:22], theta[13:22], color=c, alpha=0.1)
-plt.errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
-             markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
-plt.xlabel(r"M$_{AB}$ - 5log(h)", fontsize=16)
-plt.ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=16)
-plt.xlim(-18, -25)
-plt.ylim(-6, -1)
-plt.legend()
-plt.show()
+    initial_state = np.random.uniform(0, 1, size=6)
+    initial_state = initial_state.reshape(1, -1)
+    # Generate samples over the posterior distribution using the metropolis_hastings function
+    samples, predictions = metropolis_hastings(
+        model=model,
+        obs_x=obs_x,
+        obs_y=obs_y,
+        pred_bins=bins,
+        likelihood=likelihood,
+        proposal_distribution=proposal_distribution,
+        initial_state=initial_state,
+        num_samples=num_samples,
+        stepsize=stepsize,
+        burnin=burnin
+    )
+    n_samples.append(samples)
+
+# colour = iter(cm.rainbow(np.linspace(0, 1, len(predictions))))
+# # This is for a large number of samples we want to plot,
+# # easier to see the trend by subsampling
+# # for theta in samples[np.random.randint(len(samples), size=100)]:
+# for theta in predictions:
+#     c = next(colour)
+#     plt.plot(bins[0:13], theta[0:13], c=c, alpha=0.1)
+# plt.errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black', capsize=2,
+#              fmt='co', label="Bagley'20 Observed")
+# plt.xlabel('Redshift')
+# plt.ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
+# plt.xlim(0.7, 2.0)
+# plt.legend()
+# plt.show()
+#
+# colour = iter(cm.rainbow(np.linspace(0, 1, len(predictions))))
+# for theta in predictions:
+#     c = next(colour)
+#     plt.plot(bins[13:22], theta[13:22], color=c, alpha=0.1)
+# plt.errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
+#              markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
+# plt.xlabel(r"M$_{AB}$ - 5log(h)", fontsize=16)
+# plt.ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=16)
+# plt.xlim(-18, -25)
+# plt.ylim(-6, -1)
+# plt.legend()
+# plt.show()
 
 labels = ['alpha_reheat', 'Vhotdisk', 'Vhotburst', 'alpha_hot', 'alpha_cool', 'nu_sf']
-samples = np.array(samples)
-first_dim_size = samples.shape[0]
-samples_reshape = samples.reshape(first_dim_size, 6)
-fig = corner.corner(samples_reshape, show_titles=True, labels=labels,
-                    plot_datapoints=True, quantiles=[0.16, 0.5, 0.84])
-fig.savefig("corner.png")
+# fig = corner.corner(samples_reshape, show_titles=True, labels=labels,
+#                     plot_datapoints=True, quantiles=[0.16, 0.5, 0.84])
+# fig.savefig("corner.png")
+
+fig, axs = plt.subplots(2, 3, figsize=(15, 10),
+                        facecolor='w', edgecolor='k')
+fig.subplots_adjust(hspace=0)
+axs = axs.ravel()
+
+for n in range(n_walkers):
+    samples = np.array(n_samples[n])
+    first_dim_size = samples.shape[0]
+    samples_reshape = samples.reshape(first_dim_size, 6)
+    samples_reshape = scaler_feat.inverse_transform(samples_reshape)
+
+    alpha_reheat = [i[0] for i in samples_reshape]
+    vhotdisk = [i[1] for i in samples_reshape]
+    vhotburst = [i[2] for i in samples_reshape]
+    alpha_hot = [i[3] for i in samples_reshape]
+    alpha_cool = [i[4] for i in samples_reshape]
+    nu_sf = [i[5] for i in samples_reshape]
+    axs[0].plot(range(first_dim_size), alpha_reheat)
+    axs[1].plot(range(first_dim_size), vhotdisk)
+    axs[2].plot(range(first_dim_size), vhotburst)
+    axs[3].plot(range(first_dim_size), alpha_hot)
+    axs[4].plot(range(first_dim_size), alpha_cool)
+    axs[5].plot(range(first_dim_size), nu_sf)
+
+plt.show()
