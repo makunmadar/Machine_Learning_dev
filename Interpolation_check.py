@@ -19,6 +19,27 @@ def masked_mae(y_true, y_pred):
 
     return loss
 
+def load_all_models(n_models):
+    """
+    Load all the models from file
+
+    :param n_models: number of models in the ensemble
+    :return: list of ensemble models
+    """
+
+    all_models = list()
+    for i in range(n_models):
+        # Define filename for this ensemble
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask'
+        # Load model from file
+        model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
+                                           compile=False)
+        # add to list of members
+        all_models.append(model)
+        print('>loaded %s' % filename)
+
+    return all_models
+
 
 def kband_df(path, columns):
     '''
@@ -60,8 +81,8 @@ Ha_ybot = Ha_b["n"] - Ha_b["-"]
 sigma = (Ha_ytop + Ha_ybot) / 2
 
 # Import one example from the testing set:
-# X_all = np.load('Data/Data_for_ML/testing_data/X_test.npy')
-# y_all = np.load('Data/Data_for_ML/testing_data/y_test.npy')
+# X_all = np.load('Data/Data_for_ML/testing_data/X_test_200.npy')
+# y_all = np.load('Data/Data_for_ML/testing_data/y_test_200.npy')
 bin_file = 'Data/Data_for_ML/bin_data/bin_sub12_dndz'
 # X = X_all[1]
 # y = y_all[1]
@@ -73,9 +94,21 @@ X_rand = np.array([1.44501626e+00, 5.28109086e+02, 4.29897441e+02, 2.84023718e+0
 X_rand = X_rand.reshape(1, -1)
 scaler_feat = load("mm_scaler_feat.bin")
 X_rand = scaler_feat.transform(X_rand)
-model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
-                                   custom_objects={"masked_mae": masked_mae}, compile=False)
-y = model.predict(X_rand)
+
+# model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
+#                                    custom_objects={"masked_mae": masked_mae}, compile=False)
+members = load_all_models(n_models=5)
+print('Loaded %d models' % len(members))
+# Load in the array of models and average over the predictions
+ensemble_pred = list()
+for model in members:
+    # Perform model prediction using the input parameters
+    pred = model.predict(X_rand)
+    ensemble_pred.append(pred)
+y = np.mean(ensemble_pred, axis=0)
+
+
+# y = model.predict(X_rand)
 y = y[0]
 
 # Redshift distribution

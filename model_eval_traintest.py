@@ -14,7 +14,6 @@ def masked_mae(y_true, y_pred):
 
     return loss
 
-
 def load_all_models(n_models, X_test):
     """
     Load all the models from file
@@ -27,7 +26,7 @@ def load_all_models(n_models, X_test):
     all_yhat = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask_300'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
         print('>loaded %s' % filename)
@@ -37,8 +36,8 @@ def load_all_models(n_models, X_test):
 
     return all_yhat
 
-X_test = np.load('Data/Data_for_ML/testing_data/X_test.npy')
-y_test = np.load('Data/Data_for_ML/testing_data/y_test.npy')
+X_test = np.load('Data/Data_for_ML/testing_data/X_test_100.npy')
+y_test = np.load('Data/Data_for_ML/testing_data/y_test_100.npy')
 
 scaler_feat = load('mm_scaler_feat.bin')
 X_test = scaler_feat.transform(X_test)
@@ -62,31 +61,50 @@ bins_k = bins[13:22]
 # Manual redshift distribution MAE score
 y_testz = [i[0:13] for i in y_test]
 yhatz = [i[0:13] for i in yhat_avg]
+yhatz_1 = [i[0:13] for i in yhat_1]
 
 MAEz = []
-for j in range(200):
+MAEz1 = []
+for j in range(100):
     maei = mean_absolute_error(y_testz[j], yhatz[j])
+    maei1 = mean_absolute_error(y_testz[j], yhatz_1[j])
     if maei > 0.2:
         print("Model ", j + 1, "had dn/dz MAE: ", maei)
     MAEz.append(maei)
+    MAEz1.append(maei1)
 
 # Manual luminosity function MAE score
 y_testk = [i[13:22] for i in y_test]
 yhatk = [i[13:22] for i in yhat_avg]
-
+yhatk_1 = [i[13:22] for i in yhat_1]
 yhatk_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk, y_testk)]
+yhatk_1_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk_1, y_testk)]
 binsk = []
-for i in range(200):
+
+for i in range(100):
     bk = bins_k[y_testk[i] != 0]
     binsk.append(bk)
 y_testk = [row[row != 0] for row in y_testk]
 
 MAEk = []
-for j in range(200):
+MAEk1 = []
+for j in range(100):
     maei = mean_absolute_error(y_testk[j], yhatk_mae[j])
+    maei1 = mean_absolute_error(y_testk[j], yhatk_1_mae[j])
     if maei > 0.2:
         print("Model ", j + 1, "had LF_K MAE: ", maei)
     MAEk.append(maei)
+    MAEk1.append(maei1)
+
+print("\n")
+print("MAE of dn/dz for single model: ", np.mean(MAEz1))
+print("MAE of K-LF for single model: ", np.mean(MAEk1))
+print("MAE of both for single model: ", np.mean(np.vstack([MAEz1, MAEk1])))
+print("\n")
+print("MAE of dn/dz for average model: ", np.mean(MAEz))
+print("MAE of K-LF for average model: ", np.mean(MAEk))
+print("MAE of both for average model: ", np.mean(np.vstack([MAEz, MAEk])))
+print("\n")
 
 plt.hist(MAEz, bins=50)
 plt.xlabel("Redshift Dist. MAE per test sample", fontsize=16)
@@ -97,7 +115,6 @@ plt.hist(MAEk, bins=50)
 plt.xlabel("LF_k MAE per test sample", fontsize=16)
 plt.ylabel("Count", fontsize=16)
 plt.show()
-
 
 # Plot the results
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
@@ -118,6 +135,7 @@ for i in range(6):
     axs[i].set_xlabel("Redshift, z", fontsize=16)
 
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
+axs[3].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
 plt.show()
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
@@ -125,7 +143,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 180
+m = 72
 for i in range(6):
     axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -138,6 +156,7 @@ for i in range(6):
     axs[i].set_xlabel("Redshift, z", fontsize=16)
 
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
+axs[3].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
 plt.show()
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
@@ -145,7 +164,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 5
+m = 7
 for i in range(6):
     axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -155,10 +174,11 @@ for i in range(6):
     axs[i].plot(bins[13:22], yhatk[i+m], 'b--', label=f"Prediction MAE: {MAEk[i+m]:.3f}")
     axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
     axs[i].legend()
-    axs[i].set_xlabel("Redshift, z", fontsize=16)
+    axs[i].set_xlabel("M$_{AB}$ - 5log(h)", fontsize=16)
     axs[i].set_xlim(-18, -25)
 
-axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
+axs[0].set_ylabel('Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)', fontsize=16)
+axs[3].set_ylabel('Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)', fontsize=16)
 plt.show()
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
@@ -166,7 +186,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 180
+m = 72
 for i in range(6):
     axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -176,10 +196,11 @@ for i in range(6):
     axs[i].plot(bins[13:22], yhatk[i+m], 'b--', label=f"Prediction MAE: {MAEk[i+m]:.3f}")
     axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
     axs[i].legend()
-    axs[i].set_xlabel("Redshift, z", fontsize=16)
+    axs[i].set_xlabel("M$_{AB}$ - 5log(h)", fontsize=16)
     axs[i].set_xlim(-18, -25)
 
-axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
+axs[0].set_ylabel('Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)', fontsize=16)
+axs[3].set_ylabel('Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)', fontsize=16)
 plt.show()
 
 # Plotting the MAE per input parameter, focusing on the poor predictions.
@@ -204,7 +225,7 @@ X_test = scaler_feat.inverse_transform(X_test)
 
 for j in range(N):
     maei = MAEk[j]
-    if maei > 0.1:
+    if maei > 0.0:
         # print("Model ", j + 1, "had MAE: ", maei)
         MAEk_filter.append(maei)
         ark.append(X_test[j][0])
@@ -216,7 +237,7 @@ for j in range(N):
 
 for j in range(N):
     maei = MAEz[j]
-    if maei > 0.1:
+    if maei > 0.0:
         # print("Model ", j + 1, "had MAE: ", maei)
         MAEz_filter.append(maei)
         arz.append(X_test[j][0])

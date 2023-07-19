@@ -8,6 +8,7 @@ from scipy.interpolate import interp1d
 from sklearn.metrics import mean_absolute_error
 import tensorflow as tf
 import corner
+import time
 
 
 def masked_mae(y_true, y_pred):
@@ -19,6 +20,28 @@ def masked_mae(y_true, y_pred):
     loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
 
     return loss
+
+
+def load_all_models(n_models):
+    """
+    Load all the models from file
+
+    :param n_models: number of models in the ensemble
+    :return: list of ensemble models
+    """
+
+    all_models = list()
+    for i in range(n_models):
+        # Define filename for this ensemble
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask'
+        # Load model from file
+        model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
+                                           compile=False)
+        # add to list of members
+        all_models.append(model)
+        print('>loaded %s' % filename)
+
+    return all_models
 
 
 def kband_df(path, columns):
@@ -176,9 +199,16 @@ def likelihood(params, model, obs_x, obs_y, pred_bins):
 
     """
     # Mean average error (MAE) loss
+    # Load in the array of models and average over the predictions
+    ensemble_pred = list()
+    for model in members:
+        # Perform model prediction using the input parameters
+        pred = model.predict(params)
+        ensemble_pred.append(pred)
+    predictions = np.mean(ensemble_pred, axis=0)
+
     # Perform model prediction using the input parameters
-    # params = scaler_feat.transform(params)
-    predictions = model.predict(params)
+    # predictions = model.predict(params)
     predictions = predictions[0]
 
     # Calculate the mean absolute error (MAE)
@@ -191,7 +221,7 @@ def likelihood(params, model, obs_x, obs_y, pred_bins):
 
     # Interpolate or resample the luminosity function data onto the common x-axis
     interp_funck = interp1d(pred_bins[13:22], predictions[13:22], kind='linear', fill_value='extrapolate')
-    interp_yk1 = interp_funck(obs_x[7:20])
+    interp_yk1 = interp_funck(obs_x[7:19])
 
     # Combine the interpolated y values
     interp_y1 = np.hstack([interp_yz1, interp_yk1])
@@ -256,41 +286,31 @@ bins = genfromtxt(bin_file)
 # Load in the neural network
 # For now only loading one of the models. Sort out the averaging later
 # Checking the model is loading in correctly
-model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
-                                   custom_objects={"masked_mae": masked_mae}, compile=False)
+# model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
+#                                    custom_objects={"masked_mae": masked_mae}, compile=False)
+members = load_all_models(n_models=5)
+print('Loaded %d models' % len(members))
 
 np.random.seed(42)
 
-# Initial state is the random starting point of the input parameters.
-# The prior is tophat uniform between the parameter bounds so initial
-# states are uniformly chosen at random between these bounds.
-# random_ar = np.random.uniform(0.3, 3)
-# random_vhd = np.random.uniform(100, 550)
-# random_vhb = np.random.uniform(100, 550)
-# random_ah = np.random.uniform(1.5, 3.5)
-# random_ac = np.random.uniform(0, 2)
-# random_nsf = np.random.uniform(0.2, 1.7)
-# initial_state = np.array([random_ar, random_vhd, random_vhb, random_ah, random_ac, random_nsf])
-# initial_state = initial_state.reshape(1, -1)
-
-# initial_state = np.random.uniform(0, 1, size=6)
-# initial_state = initial_state.reshape(1, -1)
-
-num_samples = int(1000)
+num_samples = int(4000)
 stepsize = 0.005
-burnin = 0.0 # For now testing with zero burn in
-n_walkers = 3
+burnin = 0.0  # For now testing with zero burn in
+n_walkers = 2
 
 n_samples = []
 
+start = time.perf_counter()
 # Wrap this in multiple walkers:
 for n in range(n_walkers):
-
+    # Initial state is the random starting point of the input parameters.
+    # The prior is tophat uniform between the parameter bounds so initial
+    # states are uniformly chosen at random between these bounds.
     initial_state = np.random.uniform(0, 1, size=6)
     initial_state = initial_state.reshape(1, -1)
     # Generate samples over the posterior distribution using the metropolis_hastings function
     samples, predictions = metropolis_hastings(
-        model=model,
+        model=members,
         obs_x=obs_x,
         obs_y=obs_y,
         pred_bins=bins,
@@ -302,6 +322,9 @@ for n in range(n_walkers):
         burnin=burnin
     )
     n_samples.append(samples)
+
+elapsed = time.perf_counter() - start
+print('Elapsed %.3f seconds' % elapsed, ' for MCMC ')
 
 # colour = iter(cm.rainbow(np.linspace(0, 1, len(predictions))))
 # # This is for a large number of samples we want to plot,
@@ -331,11 +354,6 @@ for n in range(n_walkers):
 # plt.legend()
 # plt.show()
 
-labels = ['alpha_reheat', 'Vhotdisk', 'Vhotburst', 'alpha_hot', 'alpha_cool', 'nu_sf']
-# fig = corner.corner(samples_reshape, show_titles=True, labels=labels,
-#                     plot_datapoints=True, quantiles=[0.16, 0.5, 0.84])
-# fig.savefig("corner.png")
-
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k')
 fig.subplots_adjust(hspace=0)
@@ -361,3 +379,14 @@ for n in range(n_walkers):
     axs[5].plot(range(first_dim_size), nu_sf)
 
 plt.show()
+
+# labels = ['alpha_reheat', 'Vhotdisk', 'Vhotburst', 'alpha_hot', 'alpha_cool', 'nu_sf']
+# For multiple walkers the shape of "samples" should have the shape (num_walkers, num_samples, num_parameters)
+
+# Flatten the samples
+# flattened_samples = np.reshape(n_samples, (-1, 6))
+
+# Create the corner plot
+# fig = corner.corner(samples_reshape, show_titles=True, labels=labels,
+#                     plot_datapoints=True, quantiles=[0.16, 0.5, 0.84])
+# fig.savefig("corner.png")

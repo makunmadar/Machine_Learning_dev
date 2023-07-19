@@ -11,7 +11,7 @@ from tensorflow.keras.layers import Dense, Normalization
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping, ModelCheckpoint
 import time
-from joblib import dump
+from joblib import dump, load
 import random
 from sklearn.model_selection import train_test_split
 
@@ -39,7 +39,6 @@ def get_model(input_shape):
 
     model = Sequential([
 
-        # normalizer,
         # Currently using Ed's emulator architecture
         Dense(512, input_shape=(6,), activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
@@ -72,54 +71,35 @@ checkpoint = ModelCheckpoint(
 )
 
 # Import the training datasets
-feature_file = 'Data/Data_for_ML/training_data/feature'
-label_file = 'Data/Data_for_ML/training_data/label_sub12_dndz_S'
+# feature_file = 'Data/Data_for_ML/training_data/feature'
+# label_file = 'Data/Data_for_ML/training_data/label_sub12_dndz_S'
 
 # For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
-X = genfromtxt(feature_file)
-y = genfromtxt(label_file)
+# X = genfromtxt(feature_file)
+# y = genfromtxt(label_file)
 
-# print("First training y pre scale: ", y_tot[0])
-# for i in range(4):
-#     c = list(zip(X_tot, y_tot_))
-#
-#     X=[]
-#     y_tot=[]
-#     for a,b in random.sample(c, 200):
-#         X.append(a)
-#         y_tot.append(b)
-#
-#     print("Mean of y: ", np.mean(y_tot, axis=0))
-#     print("Std of y: ", np.std(y_tot, axis=0))
-#
-# exit()
+# print('Feature data shape:', X.shape)
+# print('Label data shape: ', y.shape)
 
-print('Feature data shape:', X.shape)
-print('Label data shape: ', y.shape)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
 # Save the train and test datasets
-np.save('Data/Data_for_ML/training_data/X_train.npy', X_train)
-np.save('Data/Data_for_ML/testing_data/X_test.npy', X_test)
-np.save('Data/Data_for_ML/training_data/y_train.npy', y_train)
-np.save('Data/Data_for_ML/testing_data/y_test.npy', y_test)
+# np.save('Data/Data_for_ML/training_data/X_train_900.npy', X_train)
+# np.save('Data/Data_for_ML/testing_data/X_test_100.npy', X_test)
+# np.save('Data/Data_for_ML/training_data/y_train_900.npy', y_train)
+# np.save('Data/Data_for_ML/testing_data/y_test_100.npy', y_test)
+
+X_train = np.load('Data/Data_for_ML/training_data/X_train_900.npy')
+y_train = np.load('Data/Data_for_ML/training_data/y_train_900.npy')
+
+idx = np.random.choice(np.arange(len(X_train)), 300, replace=False)
+X_train = X_train[idx]
+y_train = y_train[idx]
 
 # Normalize the data to reduce the dynamical range.
-scaler_feat = MinMaxScaler(feature_range=(0,1))
-scaler_feat.fit(X_train)
+scaler_feat = load('mm_scaler_feat.bin')
 X_train = scaler_feat.transform(X_train)
-# dump(scaler_feat, 'mm_scaler_feat.bin')
-# normalizer = Normalization(axis=-1)
-# normalizer.adapt(X_train)
 
-# Use standard scalar for the label data
-# scaler_label = StandardScaler()
-# scaler_label.fit(y_train)
-# y_train = scaler_label.transform(y_train)
-# dump(scaler_label, 'std_scaler_label.bin')
-
-# print("First training y post scale: ", y_tot[0])
 input_shape = X_train.shape
 
 # Fit and save models
@@ -129,7 +109,7 @@ for i in range(n_members):
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_"+ str(i+1)+"_2512_mask"
+    model_name = "Ensemble_model_" + str(i+1)+"_2512_mask_300"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
@@ -160,6 +140,6 @@ for i in range(n_members):
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model '+str(i+1))
 
-    start = time.perf_counter()
+    # start = time.perf_counter()
     model.save('Models/'+model_name)
     print('>Saved %s' % model_name)
