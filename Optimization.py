@@ -71,7 +71,7 @@ def kband_df(path, columns):
     return df
 
 
-def mcmc_updater(curr_state, curr_likeli, model, obs_x, obs_y, pred_bins,
+def mcmc_updater(curr_state, curr_likeli, model, obs_x, obs_y, err_up, err_low, pred_bins,
                  likelihood, proposal_distribution, stepsize, curr_pred):
     """ Propose a new state and compare the likelihoods
 
@@ -87,6 +87,8 @@ def mcmc_updater(curr_state, curr_likeli, model, obs_x, obs_y, pred_bins,
         obs_x: Observable x vector
         obs_y: Observable y vector
         pred_bins: Fixed prediction x bins
+        err_up:
+        err_low:
         curr_state (float): the current parameter/state value
         curr_likeli (float): the current likelihood estimate
         likelihood (function): a function handle to compute the likelihood
@@ -100,12 +102,29 @@ def mcmc_updater(curr_state, curr_likeli, model, obs_x, obs_y, pred_bins,
     """
     # Generate a proposal state using the proposal distribution
     # Proposal state == new guess state to be compared to current
+    # X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
+    # X_test = X_test.reshape(1, -1)
+    # scaler_feat = load("mm_scaler_feat.bin")
+    # curr_state_l = scaler_feat.transform(X_test)
+    # curr_state[0][0] = curr_state_l[0][0]
+    # curr_state[0][1] = curr_state_l[0][1]
+    # curr_state[0][2] = curr_state_l[0][2]
+    # curr_state[0][3] = curr_state_l[0][3]
+    # curr_state[0][4] = curr_state_l[0][4]
+    # curr_state[0][5] = curr_state_l[0][5]
     proposal_state = proposal_distribution(curr_state, stepsize)
+    # proposal_state[0][0] = curr_state[0][0]
+    # proposal_state[0][1] = curr_state[0][1]
+    # proposal_state[0][2] = curr_state[0][2]
+    # proposal_state[0][3] = curr_state[0][3]
+    # proposal_state[0][4] = curr_state[0][4]
+    # proposal_state[0][5] = curr_state[0][5]
 
     # Calculate the acceptance criterion
     # We want to minimize the MAE value but the likelihood
     # is set to be maximized therefore flip the acceptance criterion ratio
-    prop_likeli, prop_pred = likelihood(proposal_state, model, obs_x, obs_y, pred_bins)
+    prop_likeli, prop_pred = likelihood(proposal_state, model, obs_x, obs_y,
+                                        err_up, err_low, pred_bins)
     accept_crit = curr_likeli / prop_likeli
 
     # Generate a random number between 0 and 1
@@ -122,7 +141,7 @@ def mcmc_updater(curr_state, curr_likeli, model, obs_x, obs_y, pred_bins,
 
 
 def metropolis_hastings(
-        model, obs_x, obs_y, pred_bins, likelihood, proposal_distribution, initial_state,
+        model, obs_x, obs_y, err_up, err_low, pred_bins, likelihood, proposal_distribution, initial_state,
         num_samples, stepsize, burnin):
     """ Compute the Markov Chain Monte Carlo
 
@@ -131,11 +150,13 @@ def metropolis_hastings(
         obs_x: Observable x values
         obs_y: Observable y values
         pred_bins: Prediction x-axis bins
+        err_up: Upper error bars for observables
+        err_low: Lower error bars for observables
         likelihood (function): a function handle to compute the likelihood
         proposal_distribution (function): a function handle to compute the
           next proposal state
         initial_state (list): The initial conditions to start the chain
-        num_samples (integer): The number of samples to compte,
+        num_samples (integer): The number of samples to compute,
           or length of the chain
         burnin (float): a float value from 0 to 1.
           The percentage of chain considered to be the burnin length
@@ -153,7 +174,8 @@ def metropolis_hastings(
 
     # Set the current state to the initial state
     curr_state = initial_state
-    curr_likeli, curr_pred = likelihood(curr_state, model, obs_x, obs_y, pred_bins)
+    curr_likeli, curr_pred = likelihood(curr_state, model, obs_x, obs_y,
+                                        err_up, err_low, pred_bins)
     predictions.append(curr_pred)
 
     for i in range(num_samples):
@@ -165,6 +187,8 @@ def metropolis_hastings(
             model=model,
             obs_x=obs_x,
             obs_y=obs_y,
+            err_up=err_up,
+            err_low=err_low,
             pred_bins=pred_bins,
             likelihood=likelihood,
             proposal_distribution=proposal_distribution,
@@ -182,15 +206,17 @@ def metropolis_hastings(
     return samples, predictions
 
 
-def likelihood(params, model, obs_x, obs_y, pred_bins):
+def likelihood(params, models, obs_x, obs_y, err_up, err_low, pred_bins):
     """ Compute the MAE likelihood function, comparing a prediction to observed values
 
     Args:
         params: Current state parameters. Inputs to the emulator model.
-        model: A tensorflow model used to map the input Galform parameters to an output predicting,
+        models: Multiple tensorflow models used to map the input Galform parameters to an output predicting,
         y-axis values
         obs_x: Observable x-axis vector
         obs_y: Observable y-axis vector
+        err_up:
+        err_low:
         pred_bins: Fixed x-axis bins corresponding to the predicted y-axis values
 
     Returns:
@@ -201,9 +227,9 @@ def likelihood(params, model, obs_x, obs_y, pred_bins):
     # Mean average error (MAE) loss
     # Load in the array of models and average over the predictions
     ensemble_pred = list()
-    for model in members:
+    for model in models:
         # Perform model prediction using the input parameters
-        pred = model.predict(params)
+        pred = model(params)
         ensemble_pred.append(pred)
     predictions = np.mean(ensemble_pred, axis=0)
 
@@ -228,8 +254,13 @@ def likelihood(params, model, obs_x, obs_y, pred_bins):
 
     # Working out the MAE values
     # In the future I want to update this to work with the errors from the observables
-    # error_weightsz = 1/sigma
-    weighted_mae = mean_absolute_error(obs_y, interp_y1)
+    # weighted_mae = mean_absolute_error(obs_y, interp_y1)
+
+    upper_abs_diff = np.abs(interp_y1 - obs_y - err_up)
+    lower_abs_diff = np.abs(interp_y1 - obs_y + err_low)
+
+    weighted_diff = (upper_abs_diff + lower_abs_diff) / 2
+    weighted_mae = np.mean(weighted_diff)
 
     return weighted_mae, predictions
 
@@ -275,6 +306,8 @@ df_k['LF'] = np.log10(df_k['LF'])
 # Combine the observational data
 obs_x = np.hstack([Ha_b['z'].values, df_k['Mag'].values])
 obs_y = np.hstack([Ha_b['n'].values, df_k['LF'].values])
+upper_error = np.hstack([Ha_ytop.values, df_k['error_upper'].values])
+lower_error = np.hstack([Ha_ybot.values, df_k['error_lower'].values])
 
 # Load in the minmax scaler for the parameter data
 scaler_feat = load("mm_scaler_feat.bin")
@@ -293,10 +326,10 @@ print('Loaded %d models' % len(members))
 
 np.random.seed(42)
 
-num_samples = int(4000)
+num_samples = int(2000)
 stepsize = 0.005
 burnin = 0.0  # For now testing with zero burn in
-n_walkers = 2
+n_walkers = 3
 
 n_samples = []
 
@@ -308,11 +341,14 @@ for n in range(n_walkers):
     # states are uniformly chosen at random between these bounds.
     initial_state = np.random.uniform(0, 1, size=6)
     initial_state = initial_state.reshape(1, -1)
+
     # Generate samples over the posterior distribution using the metropolis_hastings function
     samples, predictions = metropolis_hastings(
         model=members,
         obs_x=obs_x,
         obs_y=obs_y,
+        err_up=upper_error,
+        err_low=lower_error,
         pred_bins=bins,
         likelihood=likelihood,
         proposal_distribution=proposal_distribution,
@@ -324,7 +360,7 @@ for n in range(n_walkers):
     n_samples.append(samples)
 
 elapsed = time.perf_counter() - start
-print('Elapsed %.3f seconds' % elapsed, ' for MCMC ')
+print('Elapsed %.3f seconds' % elapsed, ' for MCMC')
 
 # colour = iter(cm.rainbow(np.linspace(0, 1, len(predictions))))
 # # This is for a large number of samples we want to plot,
@@ -372,21 +408,32 @@ for n in range(n_walkers):
     alpha_cool = [i[4] for i in samples_reshape]
     nu_sf = [i[5] for i in samples_reshape]
     axs[0].plot(range(first_dim_size), alpha_reheat)
+    axs[0].set_ylabel(r"$\alpha_{ret}$", fontsize=15)
     axs[1].plot(range(first_dim_size), vhotdisk)
+    axs[1].set_ylabel(r"$V_{SN, disk}$", fontsize=15)
     axs[2].plot(range(first_dim_size), vhotburst)
+    axs[2].set_ylabel(r"$V_{SN, burst}$", fontsize=15)
     axs[3].plot(range(first_dim_size), alpha_hot)
+    axs[3].set_ylabel(r"$\gamma_{SN}$", fontsize=15)
+    axs[3].set_xlabel("Iteration", fontsize=15)
     axs[4].plot(range(first_dim_size), alpha_cool)
+    axs[4].set_ylabel(r"$\alpha_{cool}$", fontsize=15)
+    axs[4].set_xlabel("Iteration", fontsize=15)
     axs[5].plot(range(first_dim_size), nu_sf)
+    axs[5].set_ylabel(r"$\nu_{SF}$ [Gyr$^{-1}$]", fontsize=15)
+    axs[5].set_xlabel("Iteration", fontsize=15)
 
 plt.show()
 
-# labels = ['alpha_reheat', 'Vhotdisk', 'Vhotburst', 'alpha_hot', 'alpha_cool', 'nu_sf']
+labels = [r"$\alpha_{ret}$", r"$V_{SN, disk}$", r"$V_{SN, burst}$",
+          r"$\gamma_{SN}$", r"$\alpha_{cool}$", r"$\nu_{SF}$ [Gyr$^{-1}$]"]
 # For multiple walkers the shape of "samples" should have the shape (num_walkers, num_samples, num_parameters)
 
 # Flatten the samples
-# flattened_samples = np.reshape(n_samples, (-1, 6))
+flattened_samples = np.reshape(n_samples, (-1, 6))
 
+flattened_samples = scaler_feat.inverse_transform(flattened_samples)
 # Create the corner plot
-# fig = corner.corner(samples_reshape, show_titles=True, labels=labels,
-#                     plot_datapoints=True, quantiles=[0.16, 0.5, 0.84])
-# fig.savefig("corner.png")
+fig = corner.corner(flattened_samples, show_titles=True, labels=labels,
+                    plot_datapoints=True, quantiles=[0.16, 0.5, 0.84])
+fig.savefig("corner.png")

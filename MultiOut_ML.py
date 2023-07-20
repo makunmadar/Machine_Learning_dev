@@ -14,6 +14,8 @@ import time
 from joblib import dump, load
 import random
 from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
+from sklearn.preprocessing import MinMaxScaler
 
 
 # Define a custom loss function with masking
@@ -40,8 +42,8 @@ def get_model(input_shape):
     model = Sequential([
 
         # Currently using Ed's emulator architecture
-        Dense(512, input_shape=(6,), activation='LeakyReLU'),
-        Dense(512, activation='LeakyReLU'),
+        Dense(512, input_shape=(6,), activation='ReLU'),
+        Dense(512, activation='ReLU'),
         Dense(22)
     ])
 
@@ -92,24 +94,35 @@ checkpoint = ModelCheckpoint(
 X_train = np.load('Data/Data_for_ML/training_data/X_train_900.npy')
 y_train = np.load('Data/Data_for_ML/training_data/y_train_900.npy')
 
-idx = np.random.choice(np.arange(len(X_train)), 300, replace=False)
-X_train = X_train[idx]
-y_train = y_train[idx]
+# idx = np.random.choice(np.arange(len(X_train)), 300, replace=False)
+# X_train = X_train[idx]
+# y_train = y_train[idx]
 
 # Normalize the data to reduce the dynamical range.
-scaler_feat = load('mm_scaler_feat.bin')
-X_train = scaler_feat.transform(X_train)
+# scaler_feat = load('mm_scaler_feat.bin')
+# X_train = scaler_feat.transform(X_train)
+scaler_feat = MinMaxScaler(feature_range=(0, 1))
+X_train = scaler_feat.fit_transform(X_train)
+dump(scaler_feat, "mm_scaler_feat_900.bin")
+
 
 input_shape = X_train.shape
 
 # Fit and save models
 n_members = 5
 for i in range(n_members):
+    idx = np.random.choice(np.arange(len(X_train)), 800, replace=False)
+    X_train = X_train[idx]
+    y_train = y_train[idx]
+
+    # Shuffle data
+    X_train, y_train = shuffle(X_train, y_train)
+
     # Fit model
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i+1)+"_2512_mask_300"
+    model_name = "Ensemble_model_" + str(i+1)+"_2512_mask_900_ReLU"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 

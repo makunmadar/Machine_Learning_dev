@@ -30,12 +30,12 @@ def load_all_models(n_models, X_test):
     all_yhat = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask_900_ReLU'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
         print('>loaded %s' % filename)
         # Produce prediction
-        yhat = model.predict(X_test)
+        yhat = model(X_test)
         all_yhat.append(yhat)
 
     return all_yhat
@@ -107,20 +107,19 @@ X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
 X_test = X_test.reshape(1, -1)
 
 # Load scalar fits
-scaler_feat = load("mm_scaler_feat.bin")
+scaler_feat = load("mm_scaler_feat_900.bin")
 X_test = scaler_feat.transform(X_test)
 # # Use standard scalar for the label data
 # scaler_label = load("std_scaler_label.bin")
 
 # Make predictions on the galform set
 yhat_all = load_all_models(n_models=5, X_test=X_test)
-yhat_avg = np.mean(yhat_all[0], axis=0)
-
+yhat_avg = np.mean(yhat_all, axis=0)
 
 # De-normalize the predictions and truth data
 # yhat_1 = scaler_label.inverse_transform(yhat_1)
-yhatz = yhat_avg[0:13]
-yhatk = yhat_avg[13:22]
+yhatz = yhat_avg[0][0:13]
+yhatk = yhat_avg[0][13:22]
 
 # Import the counts bins x axis
 bin_file = 'Data/Data_for_ML/bin_data/bin_sub12_dndz'
@@ -138,6 +137,11 @@ maelc_z = mean_absolute_error(z_test_lc, yhatz)
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
 axs.plot(bins[0:13], yhatz, 'b--', label=f"Prediction MAE: {maelc_z:.3f}")
+axs.plot(bins[0:13], yhat_all[0][0,0:13], '--', alpha=0.5, label='Model 1')
+axs.plot(bins[0:13], yhat_all[1][0,0:13], '--', alpha=0.5, label='Model 2')
+axs.plot(bins[0:13], yhat_all[2][0,0:13], '--', alpha=0.5, label='Model 3')
+axs.plot(bins[0:13], yhat_all[3][0,0:13], '--', alpha=0.5, label='Model 4')
+axs.plot(bins[0:13], yhat_all[4][0,0:13], '--', alpha=0.5, label='Model 5')
 
 # Original galform data
 dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
@@ -190,6 +194,11 @@ maelc_k = mean_absolute_error(k_test_lc_sub, yhatk_lc_sub)
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
 axs.plot(bins[13:22], yhatk, 'b--', label=f"Prediction MAE: {maelc_k:.3f}")
+axs.plot(bins[13:22], yhat_all[0][0,13:22], '--', alpha=0.5, label='Model 1')
+axs.plot(bins[13:22], yhat_all[1][0,13:22], '--', alpha=0.5, label='Model 2')
+axs.plot(bins[13:22], yhat_all[2][0,13:22], '--', alpha=0.5, label='Model 3')
+axs.plot(bins[13:22], yhat_all[3][0,13:22], '--', alpha=0.5, label='Model 4')
+axs.plot(bins[13:22], yhat_all[4][0,13:22], '--', alpha=0.5, label='Model 5')
 
 axs.plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
 axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")

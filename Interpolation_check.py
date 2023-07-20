@@ -78,7 +78,7 @@ Ha_b["+"] = np.log10(Ha_b["+"])
 Ha_b["-"] = np.log10(Ha_b["-"])
 Ha_ytop = Ha_b["+"] - Ha_b["n"]
 Ha_ybot = Ha_b["n"] - Ha_b["-"]
-sigma = (Ha_ytop + Ha_ybot) / 2
+sigmaz = (Ha_ytop + Ha_ybot) / 2
 
 # Import one example from the testing set:
 # X_all = np.load('Data/Data_for_ML/testing_data/X_test_200.npy')
@@ -92,6 +92,7 @@ bins = genfromtxt(bin_file)
 # An example of where the models thinks there is actually an increase in the LF at the bright end.
 X_rand = np.array([1.44501626e+00, 5.28109086e+02, 4.29897441e+02, 2.84023718e+00, -2.99195420e-01, 6.75682679e-01])
 X_rand = X_rand.reshape(1, -1)
+
 scaler_feat = load("mm_scaler_feat.bin")
 X_rand = scaler_feat.transform(X_rand)
 
@@ -103,7 +104,7 @@ print('Loaded %d models' % len(members))
 ensemble_pred = list()
 for model in members:
     # Perform model prediction using the input parameters
-    pred = model.predict(X_rand)
+    pred = model(X_rand)
     ensemble_pred.append(pred)
 y = np.mean(ensemble_pred, axis=0)
 
@@ -176,6 +177,15 @@ print("Weighted MAE Luminosity function: ", weighted_maek)
 # combine interpolated y values
 interp_y1 = np.hstack([interp_yz1, interp_yk1])
 y2 = np.hstack([yz2, yk2])
+upper_error = np.hstack([Ha_ytop.values, df_k['error_upper'].values])
+lower_error = np.hstack([Ha_ybot.values, df_k['error_lower'].values])
 
 MAE = mean_absolute_error(y2, interp_y1)
-print("Combined MAE: ", MAE)
+print("Combined MAE (sklearn): ", MAE)
+
+upper_abs_diff = np.abs(interp_y1 - y2 - upper_error)
+lower_abs_diff = np.abs(interp_y1 - y2 + lower_error)
+
+weighted_diff = (upper_abs_diff + lower_abs_diff) / 2
+mae = np.mean(weighted_diff)
+print("Combined MAE (manual with uncertainties): ", mae)
