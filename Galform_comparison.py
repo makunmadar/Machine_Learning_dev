@@ -30,7 +30,7 @@ def load_all_models(n_models, X_test):
     all_yhat = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask_900_ReLU'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555_mask_900_ELU'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
         print('>loaded %s' % filename)
@@ -107,8 +107,8 @@ X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
 X_test = X_test.reshape(1, -1)
 
 # Load scalar fits
-scaler_feat = load("mm_scaler_feat_900.bin")
-X_test = scaler_feat.transform(X_test)
+# scaler_feat = load("mm_scaler_feat_900.bin")
+# X_test = scaler_feat.transform(X_test)
 # # Use standard scalar for the label data
 # scaler_label = load("std_scaler_label.bin")
 
@@ -116,36 +116,34 @@ X_test = scaler_feat.transform(X_test)
 yhat_all = load_all_models(n_models=5, X_test=X_test)
 yhat_avg = np.mean(yhat_all, axis=0)
 
-# De-normalize the predictions and truth data
-# yhat_1 = scaler_label.inverse_transform(yhat_1)
-yhatz = yhat_avg[0][0:13]
-yhatk = yhat_avg[0][13:22]
+yhatz = yhat_avg[0][0:49]
+yhatk = yhat_avg[0][49:67]
 
 # Import the counts bins x axis
-bin_file = 'Data/Data_for_ML/bin_data/bin_sub12_dndz'
+bin_file = 'Data/Data_for_ML/bin_data/bin_full'
 bins = genfromtxt(bin_file)
 
 path_zlc = "Data/Data_for_ML/Observational/Lacey_16/dndz_Bagley_HaNII_ext"
 dflc = dz_df(path_zlc)
 
 z_test_lc = dflc['dN(>S)/dz'].values
-z_test_lc = z_test_lc[0::4]
+# z_test_lc = z_test_lc[0::4]
 
 # Manual MAE score
 maelc_z = mean_absolute_error(z_test_lc, yhatz)
 #
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[0:13], yhatz, 'b--', label=f"Prediction MAE: {maelc_z:.3f}")
-axs.plot(bins[0:13], yhat_all[0][0,0:13], '--', alpha=0.5, label='Model 1')
-axs.plot(bins[0:13], yhat_all[1][0,0:13], '--', alpha=0.5, label='Model 2')
-axs.plot(bins[0:13], yhat_all[2][0,0:13], '--', alpha=0.5, label='Model 3')
-axs.plot(bins[0:13], yhat_all[3][0,0:13], '--', alpha=0.5, label='Model 4')
-axs.plot(bins[0:13], yhat_all[4][0,0:13], '--', alpha=0.5, label='Model 5')
+axs.plot(bins[0:49], yhatz, 'b--', label=f"Prediction MAE: {maelc_z:.3f}")
+# axs.plot(bins[0:49], yhat_all[0][0,0:49], '--', alpha=0.5, label='Model 1')
+# axs.plot(bins[0:49], yhat_all[1][0,0:49], '--', alpha=0.5, label='Model 2')
+# axs.plot(bins[0:49], yhat_all[2][0,0:49], '--', alpha=0.5, label='Model 3')
+# axs.plot(bins[0:49], yhat_all[3][0,0:49], '--', alpha=0.5, label='Model 4')
+# axs.plot(bins[0:49], yhat_all[4][0,0:49], '--', alpha=0.5, label='Model 5')
 
 # Original galform data
 dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
-axs.scatter(bins[0:13], z_test_lc, color='blue', marker='x', label="Evaluation bins")
+axs.scatter(bins[0:49], z_test_lc, color='blue', marker='x', label="Evaluation bins")
 axs.set_ylabel(r"Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
 axs.set_xlabel(r"Redshift, z", fontsize=15)
 axs.set_xlim(0.7, 2.0)
@@ -178,11 +176,12 @@ path_lflc = "Data/Data_for_ML/Observational/Lacey_16/gal.lf"
 df_lflc = emline_df(path_lflc, columns_t)
 
 k_test_lc_full = df_lflc['Krdust'].values
-k_test_lc_sub = k_test_lc_full[0::2]
+k_test_lc_sub = k_test_lc_full
+# k_test_lc_sub = k_test_lc_full[0::2]
 
 # Ignore the zero truth values
 yhatk_lc_sub = yhatk[k_test_lc_sub != 0]
-binsk_lc_sub = bins[13:22][k_test_lc_sub != 0]
+binsk_lc_sub = bins[49:67][k_test_lc_sub != 0]
 k_test_lc_sub = k_test_lc_sub[k_test_lc_sub != 0]
 
 binsk_full = df_lflc['Mag'][k_test_lc_full != 0]
@@ -193,12 +192,12 @@ maelc_k = mean_absolute_error(k_test_lc_sub, yhatk_lc_sub)
 
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[13:22], yhatk, 'b--', label=f"Prediction MAE: {maelc_k:.3f}")
-axs.plot(bins[13:22], yhat_all[0][0,13:22], '--', alpha=0.5, label='Model 1')
-axs.plot(bins[13:22], yhat_all[1][0,13:22], '--', alpha=0.5, label='Model 2')
-axs.plot(bins[13:22], yhat_all[2][0,13:22], '--', alpha=0.5, label='Model 3')
-axs.plot(bins[13:22], yhat_all[3][0,13:22], '--', alpha=0.5, label='Model 4')
-axs.plot(bins[13:22], yhat_all[4][0,13:22], '--', alpha=0.5, label='Model 5')
+axs.plot(bins[49:67], yhatk, 'b--', label=f"Prediction MAE: {maelc_k:.3f}")
+# axs.plot(bins[49:67], yhat_all[0][0,49:67], '--', alpha=0.5, label='Model 1')
+# axs.plot(bins[49:67], yhat_all[1][0,49:67], '--', alpha=0.5, label='Model 2')
+# axs.plot(bins[49:67], yhat_all[2][0,49:67], '--', alpha=0.5, label='Model 3')
+# axs.plot(bins[49:67], yhat_all[3][0,49:67], '--', alpha=0.5, label='Model 4')
+# axs.plot(bins[49:67], yhat_all[4][0,49:67], '--', alpha=0.5, label='Model 5')
 
 axs.plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
 axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
@@ -209,3 +208,63 @@ axs.set_ylim(-6, -1)
 plt.tick_params(labelsize=15)
 plt.legend()
 plt.show()
+
+# MCMC_params = np.array([2.33, 545.51, 227.26, 2.93, 0.69, 0.59])
+# MCMC_params_up = np.array([2.48, 551.34, 234.44, 2.95, 0.71, 0.60])
+# MCMC_params_low = np.array([2.23, 540.06, 220.73, 2.91, 0.68, 0.58])
+#
+# MCMC_params = MCMC_params.reshape(1, -1)
+# MCMC_params_up = MCMC_params_up.reshape(1, -1)
+# MCMC_params_low = MCMC_params_low.reshape(1, -1)
+# # Load scalar fits
+# scaler_feat = load("mm_scaler_feat_900.bin")
+# MCMC_params = scaler_feat.transform(MCMC_params)
+# MCMC_params_up = scaler_feat.transform(MCMC_params_up)
+# MCMC_params_low = scaler_feat.transform(MCMC_params_low)
+# # Make predictions on the galform set
+# yhat_all = load_all_models(n_models=5, X_test=MCMC_params)
+# yhat_avg = np.mean(yhat_all, axis=0)
+# yhat_avg = yhat_avg[0]
+# yhatz = yhat_avg[0:13]
+# yhatk = yhat_avg[13:22]
+#
+# yhat_all_up = load_all_models(n_models=5, X_test=MCMC_params_up)
+# yhat_avg_up = np.mean(yhat_all_up, axis=0)
+# yhat_avg_up = yhat_avg_up[0]
+# yhatz_up = yhat_avg_up[0:13]
+# yhatk_up = yhat_avg_up[13:22]
+#
+# yhat_all_low = load_all_models(n_models=5, X_test=MCMC_params_low)
+# yhat_avg_low = np.mean(yhat_all_low, axis=0)
+# yhat_avg_low = yhat_avg_low[0]
+# yhatz_low = yhat_avg_low[0:13]
+# yhatk_low = yhat_avg_low[13:22]
+#
+# fig, axs = plt.subplots(1, 1, figsize=(10, 8))
+# axs.plot(bins[0:13], yhatz, 'b--', label="MCMC fit")
+# axs.plot(bins[0:13], yhatz_up, '--', label="MCMC fit upper bound", alpha=0.5)
+# axs.plot(bins[0:13], yhatz_low, '--', label="MCMC fit lower bound", alpha=0.5)
+# dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
+# axs.set_ylabel(r"Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
+# axs.set_xlabel(r"Redshift, z", fontsize=15)
+# plt.tick_params(labelsize=15)
+# plt.legend()
+# plt.show()
+#
+# fig, axs = plt.subplots(1, 1, figsize=(10, 8))
+# axs.plot(bins[13:22], yhatk, 'b--', label="MCMC fit")
+# axs.plot(bins[13:22], yhatk_up, '--', label="MCMC fit upper bound", alpha=0.5)
+# axs.plot(bins[13:22], yhatk_low, '--', label="MCMC fit lower bound", alpha=0.5)
+# axs.plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
+# axs.set_xlabel(r"M$_{AB}$ - 5log(h)", fontsize=15)
+# axs.set_ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=15)
+# plt.tick_params(labelsize=15)
+# plt.legend()
+# axs.set_xlim(-18, -25)
+# axs.set_ylim(-6, -1)
+# plt.show()
+
+# Checking the likeliness function
+y_true = np.hstack([z_test_lc, k_test_lc_sub])
+y_pred = np.hstack([yhatz, yhatk_lc_sub])
+

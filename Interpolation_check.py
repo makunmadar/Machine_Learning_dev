@@ -30,7 +30,7 @@ def load_all_models(n_models):
     all_models = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_2512_mask'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555_mask_900_ELU'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
                                            compile=False)
@@ -83,18 +83,22 @@ sigmaz = (Ha_ytop + Ha_ybot) / 2
 # Import one example from the testing set:
 # X_all = np.load('Data/Data_for_ML/testing_data/X_test_200.npy')
 # y_all = np.load('Data/Data_for_ML/testing_data/y_test_200.npy')
-bin_file = 'Data/Data_for_ML/bin_data/bin_sub12_dndz'
+bin_file = 'Data/Data_for_ML/bin_data/bin_full'
 # X = X_all[1]
 # y = y_all[1]
 bins = genfromtxt(bin_file)
 
 # Test with a random prediction
 # An example of where the models thinks there is actually an increase in the LF at the bright end.
-X_rand = np.array([1.44501626e+00, 5.28109086e+02, 4.29897441e+02, 2.84023718e+00, -2.99195420e-01, 6.75682679e-01])
+# X_rand = np.array([2.33, 545.51, 227.26, 2.93, 0.69, 0.59])
+# Lacey et al. 2016
+# X_rand = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
+# X_rand = np.array([1.44501626e+00, 5.28109086e+02, 4.29897441e+02, 2.84023718e+00, -2.99195420e-01, 6.75682679e-01])
+X_rand = np.array([0.08, 217.70, 199.91, 3.95, 0.90, 0.65])
 X_rand = X_rand.reshape(1, -1)
 
-scaler_feat = load("mm_scaler_feat.bin")
-X_rand = scaler_feat.transform(X_rand)
+# scaler_feat = load("mm_scaler_feat_900_full.bin")
+# X_rand = scaler_feat.transform(X_rand)
 
 # model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
 #                                    custom_objects={"masked_mae": masked_mae}, compile=False)
@@ -114,8 +118,8 @@ y = y[0]
 
 # Redshift distribution
 # Perform interpolation
-xz1 = bins[0:13]
-yz1 = y[0:13]
+xz1 = bins[0:49]
+yz1 = y[0:49]
 xz2 = Ha_b['z'].values
 yz2 = Ha_b['n'].values
 
@@ -124,18 +128,17 @@ interp_funcz = interp1d(xz1, yz1, kind='linear', fill_value='extrapolate')
 interp_yz1 = interp_funcz(xz2)
 
 # Plot to see how this looks
-fig, axs = plt.subplots(1, 1, figsize=(10, 5))
+fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 axs.errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor="black", capsize=2,
              fmt='co', label=r"Bagley'20 Observed")
-axs.plot(bins[0:13], y[0:13], 'b--', label="Test galform")
+axs.plot(bins[0:49], y[0:49], 'b--', label="Test galform")
 axs.plot(xz2, interp_yz1, 'bx', label='Interpolated galform')
 plt.legend()
 plt.show()
 
 # Working out the MAE values
-# error_weightsz = 1/sigma
-weighted_maez = mean_absolute_error(yz2, interp_yz1)  # *error_weightsz
-print("Weighted MAE redshift distribution: ", weighted_maez)
+weighted_maez = mean_absolute_error(yz2, interp_yz1)
+print("MAE redshift distribution: ", weighted_maez)
 
 # Try on the Driver et al. 2012 LF data
 driv_headers = ['Mag', 'LF', 'error', 'Freq']
@@ -149,8 +152,8 @@ df_k['error_lower'] = np.log10(df_k['LF']) - np.log10(df_k['LF'] - df_k['error']
 df_k['LF'] = np.log10(df_k['LF'])
 
 # Perform interpolation
-xk1 = bins[13:22]
-yk1 = y[13:22]
+xk1 = bins[49:67]
+yk1 = y[49:67]
 xk2 = df_k['Mag'].values
 yk2 = df_k['LF'].values
 
@@ -159,33 +162,61 @@ interp_funck = interp1d(xk1, yk1, kind='linear', fill_value='extrapolate')
 interp_yk1 = interp_funck(xk2)
 
 # Plot to see how this looks
-fig, axs = plt.subplots(1, 1, figsize=(10, 5))
+fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 df_k.plot(ax=axs, x="Mag", y="LF", label='Driver et al. 2012', yerr=[df_k['error_lower'], df_k['error_upper']],
           markeredgecolor='black', ecolor="black", capsize=2, fmt='co')
-axs.plot(bins[13:22], y[13:22], 'b--', label='Test galform')
+axs.plot(bins[49:67], y[49:67], 'b--', label='Test galform')
 axs.plot(xk2, interp_yk1, 'bx', label='Interpolated galform')
-axs.invert_xaxis()
+axs.set_xlim(-18, -25)
+axs.set_ylim(-6, -1)
 plt.legend()
 plt.show()
 
-# Working out the MAE values
-# error_weightsk = 1/df_k['error']
-weighted_maek = mean_absolute_error(yk2, interp_yk1)  # *error_weightsk
-print("Weighted MAE Luminosity function: ", weighted_maek)
+weighted_maek = mean_absolute_error(yk2, interp_yk1)
+print("MAE luminosity function: ", weighted_maek)
 
-# Test combining the two interpolations for a combined MAE
-# combine interpolated y values
-interp_y1 = np.hstack([interp_yz1, interp_yk1])
-y2 = np.hstack([yz2, yk2])
-upper_error = np.hstack([Ha_ytop.values, df_k['error_upper'].values])
-lower_error = np.hstack([Ha_ybot.values, df_k['error_lower'].values])
+# Working out the MAE values using Lagrangian likelihood:
+mae_weighting = [1.0] * 7 + [0.5] * 12
+pred = np.hstack([interp_yz1, interp_yk1])
+obs = np.hstack([yz2, yk2])
 
-MAE = mean_absolute_error(y2, interp_y1)
-print("Combined MAE (sklearn): ", MAE)
+# # Need to apply scaling:
+min_value = np.min([np.min(pred), np.min(obs)])
+max_value = np.max([np.max(pred), np.max(obs)])
+scaled_pred = (pred - min_value) / (max_value - min_value)
+scaled_obs = (obs - min_value) / (max_value - min_value)
 
-upper_abs_diff = np.abs(interp_y1 - y2 - upper_error)
-lower_abs_diff = np.abs(interp_y1 - y2 + lower_error)
+# Manually calculate the weighted MAE
+abs_diff = np.abs(scaled_pred - scaled_obs)
+weighted_diff = mae_weighting * abs_diff
 
-weighted_diff = (upper_abs_diff + lower_abs_diff) / 2
-mae = np.mean(weighted_diff)
-print("Combined MAE (manual with uncertainties): ", mae)
+bag_i = weighted_diff[0:7] / 7
+driv_i = weighted_diff[7:19] / 12
+
+weighted_mae = (1 / 2) * (np.sum(bag_i) + np.sum(driv_i))
+print("Weighted MAE: ", weighted_mae)
+
+# Convert to Lagrangian likelihood
+likelihood = np.prod((1 / (2 * 0.05)) * np.exp(-weighted_mae / 0.05))
+print("Likelihood: ", likelihood)
+
+# Testing Laplacian distibution
+initial_ar = np.random.uniform(0.3, 3.0)
+initial_vd = np.random.uniform(100, 500)
+initial_vb = np.random.uniform(100, 500)
+initial_ah = np.random.uniform(1.5, 3.5)
+initial_ac = np.random.uniform(0.0, 2.0)
+initial_ns = np.random.uniform(0.2, 1.7)
+initial_state = np.array([initial_ar, initial_vd, initial_vb, initial_ah, initial_ac, initial_ns])
+initial_state = initial_state.reshape(1, -1)
+print("Initial random state: ", initial_state)
+
+# Scale parameter is 1/20th the parameter range
+# same as the original step size.
+param_range = [2.7, 450.0, 450.0, 2.0, 2.0, 1.5]
+b = [i/20 for i in param_range]
+L = np.random.laplace(scale=b)
+print("Lagrangian values: ", L)
+
+new_state = initial_state + L
+print("Proposed new state: ", new_state)

@@ -15,12 +15,6 @@ from numpy import genfromtxt
 import matplotlib.pyplot as plt
 
 
-def lin(x, m, c):
-    y = (m*x) + c
-    y = np.exp(y)
-    return y
-
-
 def phi(M, Ps, Ms, b):
     """
     Schecter function for curve fitting tool, fixing the variable alpha as this only affects the faint end and
@@ -170,6 +164,7 @@ base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
 training_Hadndz = np.empty((0, 13))
+# training_Hadndz = np.empty((0, 49))
 for file in base_filenames:
     model_number = find_number(file, '.')
     df = dndz_df(base_path_dndz + file, columns_Z)
@@ -177,11 +172,13 @@ for file in base_filenames:
     dndz_vector = df['dN(>S)/dz'].values
 
     # Subsample by taking every 4th value
+    # dndz_vector = dndz_vector[0::2]
     dndz_vector = dndz_vector[0::4]
 
     training_Hadndz = np.vstack([training_Hadndz, dndz_vector])
 
 dndzbins = df['z'].values
+# dndzbins = dndzbins[0::2]
 dndzbins = dndzbins[0::4]
 print('Redshift distribution bins: ', dndzbins)
 print('Example of dn/dz values: ', training_Hadndz[113])
@@ -211,7 +208,7 @@ basek_filenames = os.listdir(base_path_kband)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
 training_kband = np.empty((0, 9))
-
+# training_kband = np.empty((0, 18))
 for file in basek_filenames:
     model_number = find_number(file, '.')
     df_k = kband_df(base_path_kband + file, columns_k)
@@ -258,11 +255,11 @@ training_features, combo_labels = shuffle(training_features, combo_labels)
 training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
 testing_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/testing_data/"
 bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
-np.savetxt(training_path + 'label_sub12_dndz_S', combo_labels, fmt='%.2f')
-#np.savetxt(testing_path + 'label_sub12_dndz_S', combo_labels, fmt='%.2f')
-np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
-#np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
-np.savetxt(bin_path + 'bin_sub12_dndz', combo_bins)
+# np.savetxt(training_path + 'label_full', combo_labels, fmt='%.2f')
+# np.savetxt(testing_path + 'label_sub12_dndz', combo_labels, fmt='%.2f')
+# np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
+# np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
+np.savetxt(bin_path + 'bin_sub139', combo_bins)
 
 # plt.plot(kbins, training_kband[0], 'rx')
 # kbins = kbins[0::2]
