@@ -7,65 +7,7 @@ from scipy.interpolate import interp1d
 import tensorflow as tf
 from joblib import load
 from sklearn.metrics import mean_absolute_error
-
-
-def masked_mae(y_true, y_pred):
-    # The tensorflow models custom metric, this won't affect the predictions
-    # But it gets rid of the warning message
-    mask = tf.not_equal(y_true, 0)  # Create a mask where non-zero values are True
-    masked_y_true = tf.boolean_mask(y_true, mask)
-    masked_y_pred = tf.boolean_mask(y_pred, mask)
-    loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
-
-    return loss
-
-def load_all_models(n_models):
-    """
-    Load all the models from file
-
-    :param n_models: number of models in the ensemble
-    :return: list of ensemble models
-    """
-
-    all_models = list()
-    for i in range(n_models):
-        # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555_mask_900_ELU'
-        # Load model from file
-        model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
-                                           compile=False)
-        # add to list of members
-        all_models.append(model)
-        print('>loaded %s' % filename)
-
-    return all_models
-
-
-def kband_df(path, columns):
-    '''
-    This function extracts just the k_band LF data and saves it in a dataframe.
-
-    :param path: path to the LF file
-    :param columns: what are the names of the magnitude columns?
-    :return: dataframe
-    '''
-    data = []
-    with open(path, 'r') as fh:
-        for curline in fh:
-            if curline.startswith("#"):
-                header = curline
-            else:
-                row = curline.strip().split()
-                data.append(row)
-
-    data = np.vstack(data)
-    df = pd.DataFrame(data=data)
-    df = df.apply(pd.to_numeric)
-    df.columns = columns
-
-    df = df[(df['Mag'] <= -18.00)]
-    df = df[(df['Mag'] >= -25.11)]
-    return df
+from Loading_functions import kband_df, load_all_models
 
 
 # Import the Bagley et al. 2020 data
@@ -93,8 +35,8 @@ bins = genfromtxt(bin_file)
 # X_rand = np.array([2.33, 545.51, 227.26, 2.93, 0.69, 0.59])
 # Lacey et al. 2016
 # X_rand = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
-# X_rand = np.array([1.44501626e+00, 5.28109086e+02, 4.29897441e+02, 2.84023718e+00, -2.99195420e-01, 6.75682679e-01])
-X_rand = np.array([0.08, 217.70, 199.91, 3.95, 0.90, 0.65])
+X_rand = np.array([3.33549021e-02, 2.30908099e+02, 5.49004953e+02, 3.98471052e+00, 1.96841889e-02, 1.46965671e+00])
+# X_rand = np.array([2.51037146e-02, 1.78693367e+02, 2.46481835e+02, 3.9979414, 7.84771343e-01, 8.19003567e-01])
 X_rand = X_rand.reshape(1, -1)
 
 # scaler_feat = load("mm_scaler_feat_900_full.bin")

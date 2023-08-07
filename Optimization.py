@@ -10,70 +10,7 @@ import tensorflow as tf
 import corner
 import time
 from scipy.stats import norm
-
-
-def masked_mae(y_true, y_pred):
-    # The tensorflow models custom metric, this won't affect the predictions
-    # But it gets rid of the warning message
-    mask = tf.not_equal(y_true, 0)  # Create a mask where non-zero values are True
-    masked_y_true = tf.boolean_mask(y_true, mask)
-    masked_y_pred = tf.boolean_mask(y_pred, mask)
-    loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
-
-    return loss
-
-
-def likelihood_fun(mae, sigma):
-    return norm.pdf(mae, loc=0, scale=sigma)
-
-
-def load_all_models(n_models):
-    """
-    Load all the models from file
-
-    :param n_models: number of models in the ensemble
-    :return: list of ensemble models
-    """
-
-    all_models = list()
-    for i in range(n_models):
-        # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555_mask_900_ELU'
-        # Load model from file
-        model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
-                                           compile=False)
-        # add to list of members
-        all_models.append(model)
-        print('>loaded %s' % filename)
-
-    return all_models
-
-
-def kband_df(path, columns):
-    '''
-    This function extracts just the k_band LF data and saves it in a dataframe.
-
-    :param path: path to the LF file
-    :param columns: what are the names of the magnitude columns?
-    :return: dataframe
-    '''
-    data = []
-    with open(path, 'r') as fh:
-        for curline in fh:
-            if curline.startswith("#"):
-                header = curline
-            else:
-                row = curline.strip().split()
-                data.append(row)
-
-    data = np.vstack(data)
-    df = pd.DataFrame(data=data)
-    df = df.apply(pd.to_numeric)
-    df.columns = columns
-
-    df = df[(df['Mag'] <= -18.00)]
-    df = df[(df['Mag'] >= -25.11)]
-    return df
+from Loading_functions import kband_df, load_all_models
 
 
 def mcmc_updater(curr_state, curr_likeli, model, obs_x, obs_y, err_up, err_low, mae_weighting,
@@ -108,24 +45,8 @@ def mcmc_updater(curr_state, curr_likeli, model, obs_x, obs_y, err_up, err_low, 
     """
     # Generate a proposal state using the proposal distribution
     # Proposal state == new guess state to be compared to current
-    # X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
-    # X_test = X_test.reshape(1, -1)
-    # scaler_feat = load("mm_scaler_feat.bin")
-    # curr_state_l = scaler_feat.transform(X_test)
-    # curr_state[0][0] = curr_state_l[0][0]
-    # curr_state[0][1] = curr_state_l[0][1]
-    # curr_state[0][2] = curr_state_l[0][2]
-    # curr_state[0][3] = curr_state_l[0][3]
-    # curr_state[0][4] = curr_state_l[0][4]
-    # curr_state[0][5] = curr_state_l[0][5]
     proposal_state = proposal_distribution(curr_state, stepsize)
     # print("Proposed state: ", proposal_state)
-    # proposal_state[0][0] = curr_state[0][0]
-    # proposal_state[0][1] = curr_state[0][1]
-    # proposal_state[0][2] = curr_state[0][2]
-    # proposal_state[0][3] = curr_state[0][3]
-    # proposal_state[0][4] = curr_state[0][4]
-    # proposal_state[0][5] = curr_state[0][5]
 
     # Calculate the acceptance criterion
     # We want to minimize the MAE value but the likelihood
@@ -260,18 +181,18 @@ def likelihood(params, models, obs_x, obs_y, err_up, err_low, mae_weighting, pre
     # Create common x-axis with same axis as the observable x bins
 
     # Interpolate or resample the redshift distribution data onto the common x-axis
-    # interp_funcz = interp1d(pred_bins[0:49], predictions[0:49], kind='linear', fill_value='extrapolate')
-    # interp_yz1 = interp_funcz(obs_x[0:7])
+    interp_funcz = interp1d(pred_bins[0:49], predictions[0:49], kind='linear', fill_value='extrapolate')
+    interp_yz1 = interp_funcz(obs_x[0:7])
     # interp_y1 = interp_funcz(obs_x)
     #
     # # Interpolate or resample the luminosity function data onto the common x-axis
     interp_funck = interp1d(pred_bins[49:67], predictions[49:67], kind='linear', fill_value='extrapolate')
-    # interp_yk1 = interp_funck(obs_x[7:19])
-    interp_y1 = interp_funck(obs_x)
+    interp_yk1 = interp_funck(obs_x[7:19])
+    # interp_y1 = interp_funck(obs_x)
 
 
     # Combine the interpolated y values
-    # interp_y1 = np.hstack([interp_yz1, interp_yk1])
+    interp_y1 = np.hstack([interp_yz1, interp_yk1])
 
     # Working out the MAE values
     # In the future I want to update this to work with the errors from the observables
@@ -288,14 +209,14 @@ def likelihood(params, models, obs_x, obs_y, err_up, err_low, mae_weighting, pre
     abs_diff = np.abs(scaled_pred - scaled_obs)
     weighted_diff = mae_weighting * abs_diff
 
-    # bag_i = weighted_diff[0:7] / 7
+    bag_i = weighted_diff[0:7] / 7
     # bag_i = weighted_diff / 7
-    # driv_i = weighted_diff[7:19] / 12
-    driv_i = weighted_diff / 12
+    driv_i = weighted_diff[7:19] / 12
+    # driv_i = weighted_diff / 12
 
-    # weighted_mae = (1 / 2) * (np.sum(bag_i) + np.sum(driv_i))
+    weighted_mae = (1 / 2) * (np.sum(bag_i) + np.sum(driv_i))
 
-    weighted_mae =  np.sum(driv_i)
+    # weighted_mae =  np.sum(driv_i)
 
     # Convert to Lagrangian likelihood
     likelihood = np.exp(-weighted_mae / 0.001)  # 1/2b constant removed as it is cancelled out with the ratio
@@ -344,21 +265,21 @@ df_k['error_lower'] = np.log10(df_k['LF']) - np.log10(df_k['LF'] - df_k['error']
 df_k['LF'] = np.log10(df_k['LF'])
 
 # Combine the observational data
-# obs_x = np.hstack([Ha_b['z'].values, df_k['Mag'].values])
-obs_x = df_k['Mag'].values
+obs_x = np.hstack([Ha_b['z'].values, df_k['Mag'].values])
+# obs_x = df_k['Mag'].values
 # obs_x = Ha_b['z'].values
-# obs_y = np.hstack([Ha_b['n'].values, df_k['LF'].values])
-obs_y = df_k['LF'].values
+obs_y = np.hstack([Ha_b['n'].values, df_k['LF'].values])
+# obs_y = df_k['LF'].values
 # obs_y = Ha_b['n']
 upper_error = np.hstack([Ha_ytop.values, df_k['error_upper'].values])
 lower_error = np.hstack([Ha_ybot.values, df_k['error_lower'].values])
 
 # # MAE weighting
-# W = [0.0] * 7 + [1.0] * 12
-W = [1.0] * 12
+W = [1.0] * 7 + [1.0] * 12
+# W = [1.0] * 12
 
 param_range = [3.0, 450.0, 450.0, 2.5, 2.0, 1.5]
-b = [i/30 for i in param_range]
+b = [i/40 for i in param_range]
 
 # Load in the minmax scaler for the parameter data
 # scaler_feat = load("mm_scaler_feat_900_full.bin")
@@ -368,19 +289,14 @@ bin_file = 'Data/Data_for_ML/bin_data/bin_full'
 bins = genfromtxt(bin_file)
 
 # Load in the neural network
-# For now only loading one of the models. Sort out the averaging later
-# Checking the model is loading in correctly
-# model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
-#                                    custom_objects={"masked_mae": masked_mae}, compile=False)
 members = load_all_models(n_models=5)
 print('Loaded %d models' % len(members))
 
 # np.random.seed(42)
 
 num_samples = int(20000)
-# stepsize = 0.01
 burnin = 0.5  # For now testing with zero burn in
-n_walkers = 2
+n_walkers = 10
 
 n_samples = []
 n_predictions = []
@@ -425,37 +341,6 @@ elapsed = time.perf_counter() - start
 print('Elapsed %.3f seconds' % elapsed, ' for MCMC')
 
 flattened_predictions = np.reshape(n_predictions, (-1, 67))
-
-# fig, axs = plt.subplots(1, 1, figsize=(10, 8))
-# colour = iter(cm.rainbow(np.linspace(0, 1, len(flattened_predictions))))
-# # This is for a large number of samples we want to plot,
-# # easier to see the trend by subsampling
-# # for theta in samples[np.random.randint(len(samples), size=100)]:
-# for theta in flattened_predictions:
-#     c = next(colour)
-#     axs.plot(bins[0:49], theta[0:49], c=c, alpha=0.1)
-# axs.errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black', capsize=2,
-#              fmt='co', label="Bagley'20 Observed")
-# axs.set_xlabel('Redshift')
-# axs.set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
-# axs.set_xlim(0.7, 2.0)
-# axs.legend()
-# plt.show()
-
-fig, axs = plt.subplots(1, 1, figsize=(10, 8))
-colour = iter(cm.rainbow(np.linspace(0, 1, len(flattened_predictions))))
-for theta in flattened_predictions:
-    c = next(colour)
-    axs.plot(bins[49:67], theta[49:67], color=c, alpha=0.1)
-axs.errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
-             markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
-axs.set_xlabel(r"M$_{AB}$ - 5log(h)", fontsize=16)
-axs.set_ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=16)
-axs.set_xlim(-18, -25)
-axs.set_ylim(-6, -1)
-axs.legend()
-plt.show()
-
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k')
@@ -504,26 +389,17 @@ for n in range(n_walkers):
 
 plt.show()
 
-labels = [r"$\alpha_{ret}$", r"$V_{SN, disk}$", r"$V_{SN, burst}$",
-          r"$\gamma_{SN}$", r"$\alpha_{cool}$", r"$\nu_{SF}$ [Gyr$^{-1}$]"]
-# For multiple walkers the shape of "samples" should have the shape (num_walkers, num_samples, num_parameters)
-
 # Flatten the samples
 flattened_samples = np.reshape(n_samples, (-1, 6))
-
-# flattened_samples = scaler_feat.inverse_transform(flattened_samples)
-# Create the corner plot
-p_range = [(0, 3.0), (100, 550), (100, 550), (1.5, 4.0), (0.0, 2.0), (0.2, 1.7)]
-fig = corner.corner(flattened_samples, show_titles=True, labels=labels,
-                    plot_datapoints=True, quantiles=[0.16, 0.5, 0.84], range=p_range)
-# Try contours off
-# Also check this is working correctly
-# fig.savefig("corner_z.png")
-fig.savefig("corner_LF.png")
-
-# Find the best model with the highest likelihood
 flattened_likelihoods = np.reshape(n_likelihoods, (-1, 1))
-max_likeli_idx = np.argmax(flattened_likelihoods)
-print("\n")
-print("Highest likelihood: ", flattened_likelihoods[max_likeli_idx])
-print("Best parameters: ", flattened_samples[max_likeli_idx])
+flattened_likelihoods = (1/(2*0.001))*flattened_likelihoods
+
+# np.save('Samples_redshiftdist.npy', flattened_samples)
+# np.save('Likelihoods_redshiftdist.npy', flattened_likelihoods)
+# np.save('Predictions_redshiftdist.npy', flattened_predictions)
+# np.save('Samples_KLF.npy', flattened_samples)
+# np.save('Likelihoods_KLF.npy', flattened_likelihoods)
+# np.save('Predictions_KLF.npy', flattened_predictions)
+np.save('Samples_combo.npy', flattened_samples)
+np.save('Likelihoods_combo.npy', flattened_likelihoods)
+np.save('Predictions_combo.npy', flattened_predictions)
