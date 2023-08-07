@@ -67,14 +67,15 @@ print("\n")
 print("Highest likelihood combo: ", combo_likelihoods[max_clikeli_idx])
 print("Best parameters combo: ", combo_samples[max_clikeli_idx])
 
-
 # Plotting the plots
 # redshift_predictions = np.load("Predictions_redshiftdist.npy")
 # KLF_predictions = np.load("Predictions_KLF.npy")
 combo_predictions = np.load("Predictions_combo.npy")
+
 # Load the Galform bins
 bin_file = 'Data/Data_for_ML/bin_data/bin_full'
 bins = genfromtxt(bin_file)
+
 # Load in the Observational data
 bag_headers = ["z", "n", "+", "-"]
 Ha_b = pd.read_csv("Data/Data_for_ML/Observational/Bagley_20/Ha_Bagley_dndz.csv",
@@ -160,6 +161,7 @@ axs[0].set_xlabel('Redshift')
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
 axs[0].set_xlim(0.7, 2.0)
 axs[0].legend()
+axs[1].legend()
 axs[1].set_xlabel(r"M$_{AB}$ - 5log(h)", fontsize=16)
 axs[1].set_ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=16)
 axs[1].set_xlim(-18, -25)

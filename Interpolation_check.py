@@ -35,7 +35,7 @@ bins = genfromtxt(bin_file)
 # X_rand = np.array([2.33, 545.51, 227.26, 2.93, 0.69, 0.59])
 # Lacey et al. 2016
 # X_rand = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
-X_rand = np.array([3.33549021e-02, 2.30908099e+02, 5.49004953e+02, 3.98471052e+00, 1.96841889e-02, 1.46965671e+00])
+X_rand = np.array([2.86048669, 350.5901748, 539.77983928, 3.94626232, 0.98279349, 1.50068536])
 # X_rand = np.array([2.51037146e-02, 1.78693367e+02, 2.46481835e+02, 3.9979414, 7.84771343e-01, 8.19003567e-01])
 X_rand = X_rand.reshape(1, -1)
 
@@ -69,15 +69,6 @@ yz2 = Ha_b['n'].values
 interp_funcz = interp1d(xz1, yz1, kind='linear', fill_value='extrapolate')
 interp_yz1 = interp_funcz(xz2)
 
-# Plot to see how this looks
-fig, axs = plt.subplots(1, 1, figsize=(10, 8))
-axs.errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor="black", capsize=2,
-             fmt='co', label=r"Bagley'20 Observed")
-axs.plot(bins[0:49], y[0:49], 'b--', label="Test galform")
-axs.plot(xz2, interp_yz1, 'bx', label='Interpolated galform')
-plt.legend()
-plt.show()
-
 # Working out the MAE values
 weighted_maez = mean_absolute_error(yz2, interp_yz1)
 print("MAE redshift distribution: ", weighted_maez)
@@ -104,14 +95,20 @@ interp_funck = interp1d(xk1, yk1, kind='linear', fill_value='extrapolate')
 interp_yk1 = interp_funck(xk2)
 
 # Plot to see how this looks
-fig, axs = plt.subplots(1, 1, figsize=(10, 8))
-df_k.plot(ax=axs, x="Mag", y="LF", label='Driver et al. 2012', yerr=[df_k['error_lower'], df_k['error_upper']],
+fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+axs[0].plot(bins[0:49], y[0:49], 'b--', label="Galform prediction")
+axs[0].plot(xz2, interp_yz1, 'bx', label='Interpolated galform')
+axs[0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor="black", capsize=2,
+             fmt='co', label=r"Bagley et al. 2020")
+axs[0].set_xlim(0.7, 2.0)
+axs[0].legend()
+df_k.plot(ax=axs[1], x="Mag", y="LF", label='Driver et al. 2012', yerr=[df_k['error_lower'], df_k['error_upper']],
           markeredgecolor='black', ecolor="black", capsize=2, fmt='co')
-axs.plot(bins[49:67], y[49:67], 'b--', label='Test galform')
-axs.plot(xk2, interp_yk1, 'bx', label='Interpolated galform')
-axs.set_xlim(-18, -25)
-axs.set_ylim(-6, -1)
-plt.legend()
+axs[1].plot(bins[49:67], y[49:67], 'b--', label='Galform prediction')
+axs[1].plot(xk2, interp_yk1, 'bx', label='Interpolated galform')
+axs[1].set_xlim(-18, -25)
+axs[1].set_ylim(-6, -1)
+axs[1].legend()
 plt.show()
 
 weighted_maek = mean_absolute_error(yk2, interp_yk1)
