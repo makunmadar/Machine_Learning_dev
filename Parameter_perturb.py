@@ -39,7 +39,7 @@ print('Loaded %d models' % len(members))
 param_range = [3.0, 450.0, 450.0, 2.5, 2.0, 1.5]
 min_bound = np.array([0.0, 100, 100, 1.5, 0.0, 0.2])
 max_bound = np.array([3.0, 550, 550, 4.0, 2.0, 1.7])
-b = [i / 80 for i in param_range]
+b = [i / 40 for i in param_range]
 
 figz, axz = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k', sharey=True)

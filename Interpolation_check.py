@@ -22,12 +22,8 @@ Ha_ytop = Ha_b["+"] - Ha_b["n"]
 Ha_ybot = Ha_b["n"] - Ha_b["-"]
 sigmaz = (Ha_ytop + Ha_ybot) / 2
 
-# Import one example from the testing set:
-# X_all = np.load('Data/Data_for_ML/testing_data/X_test_200.npy')
-# y_all = np.load('Data/Data_for_ML/testing_data/y_test_200.npy')
+# Import bin data
 bin_file = 'Data/Data_for_ML/bin_data/bin_full'
-# X = X_all[1]
-# y = y_all[1]
 bins = genfromtxt(bin_file)
 
 # Test with a random prediction
@@ -35,15 +31,10 @@ bins = genfromtxt(bin_file)
 # X_rand = np.array([2.33, 545.51, 227.26, 2.93, 0.69, 0.59])
 # Lacey et al. 2016
 # X_rand = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
-X_rand = np.array([2.86048669, 350.5901748, 539.77983928, 3.94626232, 0.98279349, 1.50068536])
-# X_rand = np.array([2.51037146e-02, 1.78693367e+02, 2.46481835e+02, 3.9979414, 7.84771343e-01, 8.19003567e-01])
+X_rand = np.array([2.94840466, 331.25762284, 547.62364758, 3.82213777, 0.98064155, 1.5137949])
+# X_rand = np.array([2.68279027e-01, 2.56808456e+02, 1.29159966e+02, 3.52188322e+00, 7.92401106e-01, 2.00182274e-01])
 X_rand = X_rand.reshape(1, -1)
 
-# scaler_feat = load("mm_scaler_feat_900_full.bin")
-# X_rand = scaler_feat.transform(X_rand)
-
-# model = tf.keras.models.load_model('Models/Ensemble_model_1_2512_mask',
-#                                    custom_objects={"masked_mae": masked_mae}, compile=False)
 members = load_all_models(n_models=5)
 print('Loaded %d models' % len(members))
 # Load in the array of models and average over the predictions
@@ -54,8 +45,6 @@ for model in members:
     ensemble_pred.append(pred)
 y = np.mean(ensemble_pred, axis=0)
 
-
-# y = model.predict(X_rand)
 y = y[0]
 
 # Redshift distribution
@@ -83,6 +72,7 @@ df_k['error'] = df_k['error'] * 2  # Same reason
 df_k['error_upper'] = np.log10(df_k['LF'] + df_k['error']) - np.log10(df_k['LF'])
 df_k['error_lower'] = np.log10(df_k['LF']) - np.log10(df_k['LF'] - df_k['error'])
 df_k['LF'] = np.log10(df_k['LF'])
+sigmak = (df_k['error_upper'] + df_k['error_lower'])/2
 
 # Perform interpolation
 xk1 = bins[49:67]
@@ -97,7 +87,7 @@ interp_yk1 = interp_funck(xk2)
 # Plot to see how this looks
 fig, axs = plt.subplots(1, 2, figsize=(12, 5))
 axs[0].plot(bins[0:49], y[0:49], 'b--', label="Galform prediction")
-axs[0].plot(xz2, interp_yz1, 'bx', label='Interpolated galform')
+# axs[0].plot(xz2, interp_yz1, 'bx', label='Interpolated galform')
 axs[0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor="black", capsize=2,
              fmt='co', label=r"Bagley et al. 2020")
 axs[0].set_xlim(0.7, 2.0)
@@ -105,7 +95,7 @@ axs[0].legend()
 df_k.plot(ax=axs[1], x="Mag", y="LF", label='Driver et al. 2012', yerr=[df_k['error_lower'], df_k['error_upper']],
           markeredgecolor='black', ecolor="black", capsize=2, fmt='co')
 axs[1].plot(bins[49:67], y[49:67], 'b--', label='Galform prediction')
-axs[1].plot(xk2, interp_yk1, 'bx', label='Interpolated galform')
+# axs[1].plot(xk2, interp_yk1, 'bx', label='Interpolated galform')
 axs[1].set_xlim(-18, -25)
 axs[1].set_ylim(-6, -1)
 axs[1].legend()
@@ -115,9 +105,10 @@ weighted_maek = mean_absolute_error(yk2, interp_yk1)
 print("MAE luminosity function: ", weighted_maek)
 
 # Working out the MAE values using Lagrangian likelihood:
-mae_weighting = [1.0] * 7 + [0.5] * 12
+mae_weighting = [1.0] * 7 + [0.7] * 12
 pred = np.hstack([interp_yz1, interp_yk1])
 obs = np.hstack([yz2, yk2])
+sigma = np.hstack([sigmaz, sigmak])
 
 # # Need to apply scaling:
 min_value = np.min([np.min(pred), np.min(obs)])
@@ -126,7 +117,7 @@ scaled_pred = (pred - min_value) / (max_value - min_value)
 scaled_obs = (obs - min_value) / (max_value - min_value)
 
 # Manually calculate the weighted MAE
-abs_diff = np.abs(scaled_pred - scaled_obs)
+abs_diff = np.abs((scaled_pred - scaled_obs))
 weighted_diff = mae_weighting * abs_diff
 
 bag_i = weighted_diff[0:7] / 7
@@ -136,26 +127,26 @@ weighted_mae = (1 / 2) * (np.sum(bag_i) + np.sum(driv_i))
 print("Weighted MAE: ", weighted_mae)
 
 # Convert to Lagrangian likelihood
-likelihood = np.prod((1 / (2 * 0.05)) * np.exp(-weighted_mae / 0.05))
+likelihood = (1 / (2 * 0.001)) * np.exp(-weighted_mae / 0.001)
 print("Likelihood: ", likelihood)
 
 # Testing Laplacian distibution
-initial_ar = np.random.uniform(0.3, 3.0)
-initial_vd = np.random.uniform(100, 500)
-initial_vb = np.random.uniform(100, 500)
-initial_ah = np.random.uniform(1.5, 3.5)
-initial_ac = np.random.uniform(0.0, 2.0)
-initial_ns = np.random.uniform(0.2, 1.7)
-initial_state = np.array([initial_ar, initial_vd, initial_vb, initial_ah, initial_ac, initial_ns])
-initial_state = initial_state.reshape(1, -1)
-print("Initial random state: ", initial_state)
-
-# Scale parameter is 1/20th the parameter range
-# same as the original step size.
-param_range = [2.7, 450.0, 450.0, 2.0, 2.0, 1.5]
-b = [i/20 for i in param_range]
-L = np.random.laplace(scale=b)
-print("Lagrangian values: ", L)
-
-new_state = initial_state + L
-print("Proposed new state: ", new_state)
+# initial_ar = np.random.uniform(0.3, 3.0)
+# initial_vd = np.random.uniform(100, 500)
+# initial_vb = np.random.uniform(100, 500)
+# initial_ah = np.random.uniform(1.5, 3.5)
+# initial_ac = np.random.uniform(0.0, 2.0)
+# initial_ns = np.random.uniform(0.2, 1.7)
+# initial_state = np.array([initial_ar, initial_vd, initial_vb, initial_ah, initial_ac, initial_ns])
+# initial_state = initial_state.reshape(1, -1)
+# print("Initial random state: ", initial_state)
+#
+# # Scale parameter is 1/20th the parameter range
+# # same as the original step size.
+# param_range = [2.7, 450.0, 450.0, 2.0, 2.0, 1.5]
+# b = [i/20 for i in param_range]
+# L = np.random.laplace(scale=b)
+# print("Lagrangian values: ", L)
+#
+# new_state = initial_state + L
+# print("Proposed new state: ", new_state)

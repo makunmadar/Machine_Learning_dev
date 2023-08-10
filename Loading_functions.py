@@ -52,7 +52,7 @@ def load_all_models(n_models):
     all_models = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555_mask_900_ELU'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555_mask_900_LRELU'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
                                            compile=False)
@@ -61,3 +61,29 @@ def load_all_models(n_models):
         print('>loaded %s' % filename)
 
     return all_models
+
+
+def predict_all_models(n_models, X_test):
+    """
+    Load all the models from file and create predictions.
+
+    Args:
+        n_models: number of models in the ensemble
+        X_test: Test sample in np.array already. No need to normalize as this is done in the model
+
+    Returns:
+        all_yhat: list of predictions from each model
+    """
+
+    all_yhat = list()
+    for i in range(n_models):
+        # Define filename for this ensemble
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555_mask_900_LRELU'
+        # Load model from file
+        model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
+        print('>loaded %s' % filename)
+        # Produce prediction
+        yhat = model(X_test)
+        all_yhat.append(yhat)
+
+    return all_yhat

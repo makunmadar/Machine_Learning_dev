@@ -7,38 +7,7 @@ import tensorflow as tf
 from numpy import genfromtxt
 from joblib import load
 from sklearn.metrics import mean_absolute_error
-
-
-def masked_mae(y_true, y_pred):
-    mask = tf.not_equal(y_true, 0)  # Create a mask where non-zero values are True
-    masked_y_true = tf.boolean_mask(y_true, mask)
-    masked_y_pred = tf.boolean_mask(y_pred, mask)
-    loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
-
-    return loss
-
-
-def load_all_models(n_models, X_test):
-    """
-    Load all the models from file
-
-    :param n_models: number of models in the ensemble
-           X_test: test sample in np.array already normalized
-    :return: list of ensemble models
-    """
-
-    all_yhat = list()
-    for i in range(n_models):
-        # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555_mask_900_ELU'
-        # Load model from file
-        model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
-        print('>loaded %s' % filename)
-        # Produce prediction
-        yhat = model(X_test)
-        all_yhat.append(yhat)
-
-    return all_yhat
+from Loading_functions import predict_all_models
 
 
 def emline_df(path, columns):
@@ -103,7 +72,8 @@ def dz_df(path):
 
 
 #  Lacey parameters
-X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
+# X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
+X_test = np.array([2.02260189, 538.08737116, 296.87422017, 2.81219293, 0.69174271, 0.70226472])
 X_test = X_test.reshape(1, -1)
 
 # Load scalar fits
@@ -113,7 +83,7 @@ X_test = X_test.reshape(1, -1)
 # scaler_label = load("std_scaler_label.bin")
 
 # Make predictions on the galform set
-yhat_all = load_all_models(n_models=5, X_test=X_test)
+yhat_all = predict_all_models(n_models=5, X_test=X_test)
 yhat_avg = np.mean(yhat_all, axis=0)
 
 yhatz = yhat_avg[0][0:49]
@@ -143,7 +113,7 @@ axs.plot(bins[0:49], yhatz, 'b--', label=f"Prediction MAE: {maelc_z:.3f}")
 
 # Original galform data
 dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
-axs.scatter(bins[0:49], z_test_lc, color='blue', marker='x', label="Evaluation bins")
+# axs.scatter(bins[0:49], z_test_lc, color='blue', marker='x', label="Evaluation bins")
 axs.set_ylabel(r"Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
 axs.set_xlabel(r"Redshift, z", fontsize=15)
 axs.set_xlim(0.7, 2.0)
@@ -200,7 +170,7 @@ axs.plot(bins[49:67], yhatk, 'b--', label=f"Prediction MAE: {maelc_k:.3f}")
 # axs.plot(bins[49:67], yhat_all[4][0,49:67], '--', alpha=0.5, label='Model 5')
 
 axs.plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
-axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
+# axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
 axs.set_xlabel(r"M$_{AB}$ - 5log(h)", fontsize=15)
 axs.set_ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=15)
 axs.set_xlim(-18, -25)
@@ -264,7 +234,6 @@ plt.show()
 # axs.set_ylim(-6, -1)
 # plt.show()
 
-# Checking the likeliness function
-y_true = np.hstack([z_test_lc, k_test_lc_sub])
-y_pred = np.hstack([yhatz, yhatk_lc_sub])
-
+# Save Lacey y values
+# y_true = np.hstack([z_test_lc, k_test_lc_sub])
+# np.save('Lacey_y_true.npy', y_true)

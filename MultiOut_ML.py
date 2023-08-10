@@ -16,19 +16,7 @@ import time
 from joblib import dump, load
 import random
 from sklearn.model_selection import train_test_split
-from sklearn.utils import shuffle
-from sklearn.preprocessing import MinMaxScaler
-
-
-# Define a custom loss function with masking
-def masked_mae(y_true, y_pred):
-    mask = tf.not_equal(y_true, 0)  # Create a mask where non-zero values are True
-    masked_y_true = tf.boolean_mask(y_true, mask)
-    masked_y_pred = tf.boolean_mask(y_pred, mask)
-
-    loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
-
-    return loss
+from Loading_functions import masked_mae
 
 
 # get the model
@@ -45,9 +33,9 @@ def get_model(input_shape):
     model = Sequential([
 
         normalizer,
-        Dense(512, input_shape=(6,), activation='elu'),
-        Dense(512, activation='elu'),
-        Dense(512, activation='elu'),
+        Dense(512, input_shape=(6,), activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
         Dense(67)
     ])
 
@@ -130,7 +118,7 @@ for i in range(n_members):
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i + 1) + "_555_mask_900_ELU"
+    model_name = "Ensemble_model_" + str(i + 1) + "_555_mask_900_LRELU"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
@@ -138,7 +126,7 @@ for i in range(n_members):
     start = time.perf_counter()
     history = model.fit(X_train, y_train,
                         verbose=0,
-                        validation_split=0.2,
+                        validation_split=0.3,
                         callbacks=[early_stopping, tensorboard_callback],
                         epochs=700)
 
@@ -154,10 +142,10 @@ for i in range(n_members):
 
     model.fit(X_train, y_train,
               verbose=0,
-              validation_split=0.2,
+              validation_split=0.3,
               callbacks=[early_stopping, tensorboard_callback],
               initial_epoch=start_epoch,
-              epochs=3000)  # Want to increase this in the future
+              epochs=3000)
 
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model ' + str(i + 1))

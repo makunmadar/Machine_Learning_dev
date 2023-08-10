@@ -5,38 +5,7 @@ import matplotlib.pyplot as plt
 from joblib import load
 from sklearn.metrics import mean_absolute_error
 import seaborn as sns
-
-
-def masked_mae(y_true, y_pred):
-    mask = tf.not_equal(y_true, 0)  # Create a mask where non-zero values are True
-    masked_y_true = tf.boolean_mask(y_true, mask)
-    masked_y_pred = tf.boolean_mask(y_pred, mask)
-
-    loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
-
-    return loss
-
-def load_all_models(n_models, X_test):
-    """
-    Load all the models from file
-
-    :param n_models: number of models in the ensemble
-           X_test: test sample in np.array already normalized
-    :return: list of ensemble models
-    """
-
-    all_yhat = list()
-    for i in range(n_models):
-        # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555_mask_900_ELU'
-        # Load model from file
-        model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
-        print('>loaded %s' % filename)
-        # Produce prediction
-        yhat = model(X_test)
-        all_yhat.append(yhat)
-
-    return all_yhat
+from Loading_functions import predict_all_models
 
 
 X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_full.npy')
@@ -47,7 +16,7 @@ y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_full.npy')
 # scaler_label = load('std_scaler_label.bin')
 
 # Load all the models and make predictions on the test set
-yhat_all = load_all_models(n_models=5, X_test=X_test)
+yhat_all = predict_all_models(n_models=5, X_test=X_test)
 yhat_avg = np.mean(yhat_all, axis=0)
 
 # Individual predictions for plotting
@@ -109,15 +78,12 @@ print("MAE of K-LF for average model: ", np.mean(MAEk))
 print("MAE of both for average model: ", np.mean(np.vstack([MAEz, MAEk])))
 print("\n")
 
-plt.hist(MAEz, bins=50)
-plt.xlabel("Redshift Dist. MAE per test sample", fontsize=16)
+plt.hist(MAEz, bins=50, label='Redshift distribution')
+plt.hist(MAEk, bins=50, histtype='step', label='K-band LF')
+plt.xlabel("MAE per test sample", fontsize=16)
 plt.ylabel("Count", fontsize=16)
-# plt.show()
-
-plt.hist(MAEk, bins=50)
-plt.xlabel("LF_k MAE per test sample", fontsize=16)
-plt.ylabel("Count", fontsize=16)
-# plt.show()
+plt.legend()
+plt.show()
 
 # Plot the results
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
@@ -125,7 +91,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 52
+m = 30
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -139,14 +105,14 @@ for i in range(6):
 
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
 axs[3].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
-# plt.show()
+plt.show()
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k', sharey='row')
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 40
+m = 50
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -160,14 +126,14 @@ for i in range(6):
 
 axs[0].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
 axs[3].set_ylabel('Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]', fontsize=16)
-# plt.show()
+plt.show()
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k', sharey='row')
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 52
+m = 20
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -182,14 +148,14 @@ for i in range(6):
 
 axs[0].set_ylabel('Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)', fontsize=16)
 axs[3].set_ylabel('Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)', fontsize=16)
-# plt.show()
+plt.show()
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k', sharey='row')
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 21
+m = 50
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -204,7 +170,7 @@ for i in range(6):
 
 axs[0].set_ylabel('Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)', fontsize=16)
 axs[3].set_ylabel('Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)', fontsize=16)
-# plt.show()
+plt.show()
 
 # Plotting the MAE per input parameter, focusing on the poor predictions.
 # Manual MAE score
@@ -289,14 +255,14 @@ axs[5].plot(nsfk, MAEk_filter, '.', label='Luminosity Function MAE')
 axs[5].set_xlabel("Nu SF", fontsize=16)
 axs[5].legend()
 
-# plt.show()
+plt.show()
 
 yhatz = np.ravel(yhatz)
 y_testz = np.ravel(y_testz)
 yhatk = np.concatenate(yhatk_mae).ravel().tolist()
 y_testk = np.concatenate(y_testk).ravel().tolist()
 
-nbins = 10
+nbins = 50
 yhatz = np.array(yhatz)
 binz = np.linspace(2, max(y_testz), nbins)
 dz = binz[1] - binz[0]
