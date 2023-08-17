@@ -8,6 +8,7 @@ import tensorflow as tf
 from joblib import load
 from sklearn.metrics import mean_absolute_error
 from Loading_functions import kband_df, load_all_models
+import time
 
 
 # Import the Bagley et al. 2020 data
@@ -15,35 +16,32 @@ bag_headers = ["z", "n", "+", "-"]
 Ha_b = pd.read_csv("Data/Data_for_ML/Observational/Bagley_20/Ha_Bagley_dndz.csv",
                    delimiter=",", names=bag_headers, skiprows=1)
 Ha_b = Ha_b.astype(float)
+sigmaz = (Ha_b["+"].values - Ha_b['-'].values)/2
 Ha_b["n"] = np.log10(Ha_b["n"])
 Ha_b["+"] = np.log10(Ha_b["+"])
 Ha_b["-"] = np.log10(Ha_b["-"])
 Ha_ytop = Ha_b["+"] - Ha_b["n"]
 Ha_ybot = Ha_b["n"] - Ha_b["-"]
-sigmaz = (Ha_ytop + Ha_ybot) / 2
+
 
 # Import bin data
 bin_file = 'Data/Data_for_ML/bin_data/bin_full'
 bins = genfromtxt(bin_file)
+# Import Lacey et al. 2016 for comparison
+Lacey_y = np.load("Lacey_y_true.npy")
 
 # Test with a random prediction
 # An example of where the models thinks there is actually an increase in the LF at the bright end.
 # X_rand = np.array([2.33, 545.51, 227.26, 2.93, 0.69, 0.59])
 # Lacey et al. 2016
 # X_rand = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
-X_rand = np.array([2.94840466, 331.25762284, 547.62364758, 3.82213777, 0.98064155, 1.5137949])
-# X_rand = np.array([2.68279027e-01, 2.56808456e+02, 1.29159966e+02, 3.52188322e+00, 7.92401106e-01, 2.00182274e-01])
+X_rand = np.array([1.99663586e-01, 2.86960496e+02, 5.47770858e+02, 2.90472274e+00, 2.75011891e-01, 1.69007209e+00])
 X_rand = X_rand.reshape(1, -1)
 
 members = load_all_models(n_models=5)
 print('Loaded %d models' % len(members))
 # Load in the array of models and average over the predictions
-ensemble_pred = list()
-for model in members:
-    # Perform model prediction using the input parameters
-    pred = model(X_rand)
-    ensemble_pred.append(pred)
-y = np.mean(ensemble_pred, axis=0)
+y = np.mean([model(X_rand) for model in members], axis=0)
 
 y = y[0]
 
@@ -69,10 +67,10 @@ df_k = kband_df(drive_path, driv_headers)
 df_k = df_k[(df_k != 0).all(1)]
 df_k['LF'] = df_k['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
 df_k['error'] = df_k['error'] * 2  # Same reason
+sigmak = df_k['error'].values
 df_k['error_upper'] = np.log10(df_k['LF'] + df_k['error']) - np.log10(df_k['LF'])
 df_k['error_lower'] = np.log10(df_k['LF']) - np.log10(df_k['LF'] - df_k['error'])
 df_k['LF'] = np.log10(df_k['LF'])
-sigmak = (df_k['error_upper'] + df_k['error_lower'])/2
 
 # Perform interpolation
 xk1 = bins[49:67]
@@ -87,6 +85,7 @@ interp_yk1 = interp_funck(xk2)
 # Plot to see how this looks
 fig, axs = plt.subplots(1, 2, figsize=(12, 5))
 axs[0].plot(bins[0:49], y[0:49], 'b--', label="Galform prediction")
+axs[0].plot(bins[0:49], Lacey_y[0:49], 'r--', label="Lacey et al. 2016")
 # axs[0].plot(xz2, interp_yz1, 'bx', label='Interpolated galform')
 axs[0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor="black", capsize=2,
              fmt='co', label=r"Bagley et al. 2020")
@@ -95,6 +94,7 @@ axs[0].legend()
 df_k.plot(ax=axs[1], x="Mag", y="LF", label='Driver et al. 2012', yerr=[df_k['error_lower'], df_k['error_upper']],
           markeredgecolor='black', ecolor="black", capsize=2, fmt='co')
 axs[1].plot(bins[49:67], y[49:67], 'b--', label='Galform prediction')
+axs[1].plot(bins[51:67], Lacey_y[49:65], 'r--', label="Lacey et al. 2016")
 # axs[1].plot(xk2, interp_yk1, 'bx', label='Interpolated galform')
 axs[1].set_xlim(-18, -25)
 axs[1].set_ylim(-6, -1)
@@ -105,19 +105,19 @@ weighted_maek = mean_absolute_error(yk2, interp_yk1)
 print("MAE luminosity function: ", weighted_maek)
 
 # Working out the MAE values using Lagrangian likelihood:
-mae_weighting = [1.0] * 7 + [0.7] * 12
-pred = np.hstack([interp_yz1, interp_yk1])
-obs = np.hstack([yz2, yk2])
+mae_weighting = [4.0] * 7 + [0.7] * 12
+pred = 10 ** (np.hstack([interp_yz1, interp_yk1]))
+obs = 10 ** (np.hstack([yz2, yk2]))
 sigma = np.hstack([sigmaz, sigmak])
 
 # # Need to apply scaling:
-min_value = np.min([np.min(pred), np.min(obs)])
-max_value = np.max([np.max(pred), np.max(obs)])
-scaled_pred = (pred - min_value) / (max_value - min_value)
-scaled_obs = (obs - min_value) / (max_value - min_value)
+# min_value = np.min([np.min(pred), np.min(obs)])
+# max_value = np.max([np.max(pred), np.max(obs)])
+# scaled_pred = (pred - min_value) / (max_value - min_value)
+# scaled_obs = (obs - min_value) / (max_value - min_value)
 
 # Manually calculate the weighted MAE
-abs_diff = np.abs((scaled_pred - scaled_obs))
+abs_diff = np.abs(pred - obs)/sigma
 weighted_diff = mae_weighting * abs_diff
 
 bag_i = weighted_diff[0:7] / 7
@@ -127,7 +127,7 @@ weighted_mae = (1 / 2) * (np.sum(bag_i) + np.sum(driv_i))
 print("Weighted MAE: ", weighted_mae)
 
 # Convert to Lagrangian likelihood
-likelihood = (1 / (2 * 0.001)) * np.exp(-weighted_mae / 0.001)
+likelihood = (1/(2*0.1)) * np.exp(-weighted_mae / 0.1)
 print("Likelihood: ", likelihood)
 
 # Testing Laplacian distibution
