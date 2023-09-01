@@ -6,17 +6,17 @@ import numpy as np
 from numpy import genfromtxt
 import tensorflow as tf
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.experimental import RMSprop
 from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping, ModelCheckpoint
 import time
 from sklearn.model_selection import train_test_split
-from Loading_functions import masked_mae
+from Loading_functions import get_custom_loss
 
 
 # get the model
-def get_model(input_shape):
+def get_model(input_shape, sigma):
     '''
     Building the machine learning architecture for model training
 
@@ -39,10 +39,10 @@ def get_model(input_shape):
     model.summary()
 
     model.compile(
-        loss=masked_mae,
-        optimizer=Adam(amsgrad=True, learning_rate=0.005),
-        metrics=[masked_mae]
+        loss=get_custom_loss(sigma),
+        optimizer=Adam(amsgrad=True, learning_rate=0.005)
     )
+
     return model
 
 
@@ -63,17 +63,17 @@ checkpoint = ModelCheckpoint(
 # Import the training datasets
 # feature_file = 'Data/Data_for_ML/training_data/feature'
 # label_file = 'Data/Data_for_ML/training_data/label_full_int'
-#
-# # For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
+
+# For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
 # X = genfromtxt(feature_file)
 # y = genfromtxt(label_file)
-#
+
 # print('Feature data shape:', X.shape)
 # print('Label data shape: ', y.shape)
-#
+
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
-#
-# # Save the train and test datasets
+
+# Save the train and test datasets
 # np.save('Data/Data_for_ML/training_data/X_train_900.npy', X_train)
 # np.save('Data/Data_for_ML/testing_data/X_test_100.npy', X_test)
 # np.save('Data/Data_for_ML/training_data/y_train_900.npy', y_train)
@@ -85,6 +85,7 @@ checkpoint = ModelCheckpoint(
 
 X_train = np.load('Data/Data_for_ML/training_data/X_train_900_full_int.npy')
 y_train = np.load('Data/Data_for_ML/training_data/y_train_900_full_int.npy')
+frac_sig = np.load('fractional_sigma.npy')
 
 # idx = np.random.choice(np.arange(len(X_train)), 800, replace=False)
 # X_train = X_train[idx]
@@ -100,11 +101,11 @@ print('Label data shape: ', y_train.shape)
 input_shape = X_train.shape
 
 # Fit and save models
-n_members = 1
+n_members = 5
 for i in range(n_members):
 
     # Fit model
-    model = get_model(input_shape)
+    model = get_model(input_shape, frac_sig)
 
     # Log for tensorboard analysis
     model_name = "Ensemble_model_" + str(i + 1) + "_555_mask_900_LRELU_int"
@@ -134,7 +135,7 @@ for i in range(n_members):
               validation_split=0.3,
               callbacks=[early_stopping, tensorboard_callback],
               initial_epoch=start_epoch,
-              epochs=1000)
+              epochs=3000)
 
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model ' + str(i + 1))

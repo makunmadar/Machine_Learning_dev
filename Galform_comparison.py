@@ -2,13 +2,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-import tensorflow as tf
 from numpy import genfromtxt
-from joblib import load
 from sklearn.metrics import mean_absolute_error
 from Loading_functions import predict_all_models
-
+plt.rcParams["font.family"] = "serif"
+plt.rcParams["font.size"] = 15
+plt.rc('xtick', labelsize=15)
+plt.rc('ytick', labelsize=15)
 
 def emline_df(path, columns):
     data = []
@@ -31,6 +31,7 @@ def emline_df(path, columns):
     # df['Mag'] = np.log10(df['Mag'].replace(0, np.nan))
     # df['Krdust'] = np.log10(df['Krdust'].replace(0, 1e-20))
     df['Krdust'] = np.log10(df['Krdust'].mask(df['Krdust'] <=0)).fillna(0)
+    df['Rrdust'] = np.log10(df['Rrdust'].mask(df['Rrdust'] <=0)).fillna(0)
 
     return df
 
@@ -76,28 +77,23 @@ X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
 # X_test = np.array([0.69578677, 330.96668774, 293.5104189, 3.058798, 0.68834065, 0.71530994])
 X_test = X_test.reshape(1, -1)
 
-# Load scalar fits
-# scaler_feat = load("mm_scaler_feat_900.bin")
-# X_test = scaler_feat.transform(X_test)
-# # Use standard scalar for the label data
-# scaler_label = load("std_scaler_label.bin")
-
 # Make predictions on the galform set
 yhat_all = predict_all_models(n_models=5, X_test=X_test)
 yhat_avg = np.mean(yhat_all, axis=0)
 
 yhatz = yhat_avg[0][0:49]
 yhatk = yhat_avg[0][49:67]
+yhatr = yhat_avg[0][67:85]
 
 # Import the counts bins x axis
 bin_file = 'Data/Data_for_ML/bin_data/bin_full'
 bins = genfromtxt(bin_file)
 
+# Redshift distribution
 path_zlc = "Data/Data_for_ML/Observational/Lacey_16/dndz_Bagley_HaNII_ext"
 dflc = dz_df(path_zlc)
 
 z_test_lc = dflc['dN(>S)/dz'].values
-# z_test_lc = z_test_lc[0::4]
 
 # Manual MAE score
 maelc_z = mean_absolute_error(z_test_lc, yhatz)
@@ -105,20 +101,14 @@ maelc_z = mean_absolute_error(z_test_lc, yhatz)
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
 axs.plot(bins[0:49], yhatz, 'b--', label=f"Prediction MAE: {maelc_z:.3f}")
-# axs.plot(bins[0:49], yhat_all[0][0,0:49], '--', alpha=0.5, label='Model 1')
-# axs.plot(bins[0:49], yhat_all[1][0,0:49], '--', alpha=0.5, label='Model 2')
-# axs.plot(bins[0:49], yhat_all[2][0,0:49], '--', alpha=0.5, label='Model 3')
-# axs.plot(bins[0:49], yhat_all[3][0,0:49], '--', alpha=0.5, label='Model 4')
-# axs.plot(bins[0:49], yhat_all[4][0,0:49], '--', alpha=0.5, label='Model 5')
 
 # Original galform data
 dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
 # axs.scatter(bins[0:49], z_test_lc, color='blue', marker='x', label="Evaluation bins")
-axs.set_ylabel(r"Log$_{10}$(dN(>S)/dz) [deg$^{-2}$]", fontsize=15)
-axs.set_xlabel(r"Redshift, z", fontsize=15)
+axs.set_ylabel(r"log$_{10}$(dN(>S)/dz) [deg$^{-2}$]")
+axs.set_xlabel(r"Redshift, z")
 axs.set_xlim(0.7, 2.0)
 axs.set_ylim(3.0, 4.0)
-plt.tick_params(labelsize=15)
 plt.legend()
 plt.show()
 
@@ -145,9 +135,9 @@ path_lflc = "Data/Data_for_ML/Observational/Lacey_16/gal.lf"
 
 df_lflc = emline_df(path_lflc, columns_t)
 
+# K-band LF
 k_test_lc_full = df_lflc['Krdust'].values
 k_test_lc_sub = k_test_lc_full
-# k_test_lc_sub = k_test_lc_full[0::2]
 
 # Ignore the zero truth values
 yhatk_lc_sub = yhatk[k_test_lc_sub != 0]
@@ -163,19 +153,41 @@ maelc_k = mean_absolute_error(k_test_lc_sub, yhatk_lc_sub)
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
 axs.plot(bins[49:67], yhatk, 'b--', label=f"Prediction MAE: {maelc_k:.3f}")
-# axs.plot(bins[49:67], yhat_all[0][0,49:67], '--', alpha=0.5, label='Model 1')
-# axs.plot(bins[49:67], yhat_all[1][0,49:67], '--', alpha=0.5, label='Model 2')
-# axs.plot(bins[49:67], yhat_all[2][0,49:67], '--', alpha=0.5, label='Model 3')
-# axs.plot(bins[49:67], yhat_all[3][0,49:67], '--', alpha=0.5, label='Model 4')
-# axs.plot(bins[49:67], yhat_all[4][0,49:67], '--', alpha=0.5, label='Model 5')
 
 axs.plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
 # axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
-axs.set_xlabel(r"M$_{AB}$ - 5log(h)", fontsize=15)
-axs.set_ylabel(r"Log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)", fontsize=15)
+axs.set_xlabel(r"M$_{K,AB}$ - 5log(h)")
+axs.set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
 axs.set_xlim(-18, -25)
 axs.set_ylim(-6, -1)
-plt.tick_params(labelsize=15)
+plt.legend()
+plt.show()
+
+# R-band LF
+r_test_lc_full = df_lflc['Rrdust'].values
+r_test_lc_sub = r_test_lc_full
+
+# Ignore the zero truth values
+yhatr_lc_sub = yhatr[r_test_lc_sub != 0]
+binsr_lc_sub = bins[49:67][r_test_lc_sub != 0]
+r_test_lc_sub = r_test_lc_sub[r_test_lc_sub != 0]
+
+binsr_full = df_lflc['Mag'][r_test_lc_full != 0]
+r_test_lc_full = r_test_lc_full[r_test_lc_full != 0]
+
+# Manual MAE score
+maelc_r = mean_absolute_error(r_test_lc_sub, yhatr_lc_sub)
+
+fig, axs = plt.subplots(1, 1, figsize=(10, 8))
+
+axs.plot(bins[49:67], yhatr, 'b--', label=f"Prediction MAE: {maelc_r:.3f}")
+
+axs.plot(binsr_full, r_test_lc_full, 'b-', label="Lacey et al. 2016")
+# axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
+axs.set_xlabel(r"M$_{r,AB}$ - 5log(h)")
+axs.set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
+axs.set_xlim(-18, -25)
+axs.set_ylim(-6, -1)
 plt.legend()
 plt.show()
 
@@ -235,5 +247,5 @@ plt.show()
 # plt.show()
 
 # Save Lacey y values
-# y_true = np.hstack([z_test_lc, k_test_lc_sub])
-# np.save('Lacey_y_true.npy', y_true)
+y_true = np.hstack([z_test_lc, k_test_lc_sub, r_test_lc_sub])
+np.save('Lacey_y_true.npy', y_true)

@@ -4,97 +4,44 @@ machine learning training and evaluation.
 
 For now only saving the redshift distribution outputs for training.
 """
-
 import numpy as np
 import pandas as pd
 import os
 import re
 from sklearn.utils import shuffle
-from scipy.optimize import curve_fit
 from numpy import genfromtxt
-import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
+from Loading_functions import lf_df
 
 
-def phi(M, Ps, Ms, b):
-    """
-    Schecter function for curve fitting tool, fixing the variable alpha as this only affects the faint end and
-    this is to optimize the bright end.
-    Setting alpha to roughly the local universe, -1.3.
-
-    :param M: Variable x axis representing the absolute magnitude
-    :param Ms: Schecter function parameter M*
-    :param ps: Schecter function parameter phi*
-    :param b: special parameter to limit the exponential factor
-    :return: Schecter funtion phi(L)
-    """
-
-    a = -1.3
-    #b = 0.45
-    phi_L = (np.log(10) / 2.5) * Ps * ((10 ** (0.4 * (Ms - M))) ** (a + 1)) * np.exp(-(10 ** (0.4 * (Ms - M))) ** b)
-    return phi_L
-
-
-def kband_df(path, columns):
-    """
-    This function extracts just the k_band LF data and saves it in a dataframe.
-
-    :param path: path to the LF file
-    :param columns: what are the names of the magnitude columns?
-    :return: dataframe
-    """
-    data = []
-    with open(path, 'r') as fh:
-        for curline in fh:
-            if curline.startswith("#"):
-                header = curline
-            else:
-                row = curline.strip().split()
-                data.append(row)
-
-    data = np.vstack(data)
-    df = pd.DataFrame(data=data)
-    df = df.apply(pd.to_numeric)
-    df.columns = columns
-
-    # Keep it between the magnitude range -18<Mag_k<-25
-    df = df[(df['Mag'] <= -17.67)]
-    df = df[(df['Mag'] >= -25.11)]
-    df.reset_index(drop=True, inplace=True)
-
-    # Replacing the zero values with a prediction from a schechter fitting.
-    # See Testing_schec.py for development of this code.
-
-    # kbins = df['Mag'].values
-
-    # if (df['Krdust'] == 0).any():
-    #
-    #     y = df['Krdust'].values
-    #     err = df['Krdust(error)'].values
-    #
-    #     zeroidx = [i for i, e in enumerate(y) if e == 0]
-    #     x = kbins[y > 0]
-    #     err = err[y > 0]
-    #     y = y[y > 0]
-    #
-    #     x_sec = x[0:4]
-    #     y_sec = y[0:4]
-    #     err_sec = err[0:4]
-    #
-    #     #params, cov = curve_fit(phi, x_sec, y_sec, bounds=((0, -22, 0), (10, -15, 1)), sigma=err_sec)
-    #     params, cov = curve_fit(lin, x_sec, y_sec, sigma=err_sec)
-    #
-    #     for i in zeroidx:
-    #         #phi_p = phi(kbins[i], params[0], params[1], params[2])
-    #         phi_p = lin(kbins[i], params[0], params[1])
-    #         df['Krdust'].iloc[i] = phi_p
-    #
-    # df['Krdust'] = np.log10(df['Krdust'])
-    df['Krdust'] = np.log10(df['Krdust'].mask(df['Krdust'] <=0)).fillna(0)
-
-    #df['Krdust'] = np.log10(df['Krdust'].replace(0, 1E-20))
-    # df['Krdust'] = np.log10(df['Krdust'].replace(0,  0.0000025119))
-
-    return df
+# def lf_df(path, columns, mag_low, mag_high):
+#     """
+#     This function extracts just the k-band and r-band LF data and saves it in a dataframe.
+#
+#     :param path: path to the LF file
+#     :param columns: what are the names of the magnitude columns?
+#     :return: dataframe
+#     """
+#     data = []
+#     with open(path, 'r') as fh:
+#         for curline in fh:
+#             if curline.startswith("#"):
+#                 header = curline
+#             else:
+#                 row = curline.strip().split()
+#                 data.append(row)
+#
+#     data = np.vstack(data)
+#     df = pd.DataFrame(data=data)
+#     df = df.apply(pd.to_numeric)
+#     df.columns = columns
+#
+#     # Keep it between the magnitude range -18<Mag<-25
+#     df = df[(df['Mag'] <= mag_high)]
+#     df = df[(df['Mag'] >= mag_low)]
+#     df.reset_index(drop=True, inplace=True)
+#
+#     return df
 
 
 def dndz_df(path, columns):
@@ -129,8 +76,7 @@ def dndz_df(path, columns):
     df = df[(df['z'] < 2.1)]
     df = df[(df['z'] > 0.7)]
 
-    # df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].replace(0, 1E-20))
-    df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].mask(df['dN(>S)/dz'] <=0)).fillna(0)
+    df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].mask(df['dN(>S)/dz'] <= 0)).fillna(0)
 
     return df
 
@@ -155,6 +101,33 @@ def round_sigfigs(x):
     """
     return np.around(x, -int(np.floor(np.log10(abs(x)))) + 2)
 
+# Load in the Observational data
+bag_headers = ["z", "n", "+", "-"]
+Ha_b = pd.read_csv("Data/Data_for_ML/Observational/Bagley_20/Ha_Bagley_dndz.csv",
+                   delimiter=",", names=bag_headers, skiprows=1)
+Ha_b = Ha_b.astype(float)
+sigmaz = (Ha_b["+"].values - Ha_b['-'].values) / 2
+
+# Import the Driver et al. 2012 data
+driv_headers = ['Mag', 'LF', 'error', 'Freq']
+drive_path_k = 'Data/Data_for_ML/Observational/Driver_12/lfk_z0_driver12.data'
+df_k = lf_df(drive_path_k, driv_headers, mag_low=-23.75, mag_high=-15.25)
+df_k = df_k[(df_k != 0).all(1)]
+df_k['LF'] = df_k['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
+df_k['error'] = df_k['error'] * 2  # Same reason
+sigmak = df_k['error'].values
+
+drive_path_r = 'Data/Data_for_ML/Observational/Driver_12/lfr_z0_driver12.data'
+df_r = lf_df(drive_path_r, driv_headers, mag_low=-23.25, mag_high=-13.75)
+df_r = df_r[(df_r != 0).all(1)]
+df_r['LF'] = df_r['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
+df_r['error'] = df_r['error'] * 2  # Same reason
+sigmar = df_r['error'].values
+
+sigma = np.hstack([sigmaz, sigmak, sigmar])
+obs = np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].values])
+frac_sigma = sigma/obs
+np.save('fractional_sigma.npy', frac_sigma)
 
 # Redshift distribution
 columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
@@ -163,28 +136,22 @@ base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_trai
 base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
-training_Hadndz = np.empty((0, 13))
-# training_Hadndz = np.empty((0, 49))
+training_Hadndz = np.empty((0, 7))
 for file in base_filenames:
     model_number = find_number(file, '.')
-    df = dndz_df(base_path_dndz + file, columns_Z)
+    df_z = dndz_df(base_path_dndz + file, columns_Z)
 
-    dndz_vector = df['dN(>S)/dz'].values
+    interp_funcz = interp1d(df_z['z'].values, df_z['dN(>S)/dz'].values, kind='linear', fill_value='extrapolate')
+    interp_yz1 = interp_funcz(Ha_b['z'].values)
 
-    # Subsample by taking every 4th value
-    # dndz_vector = dndz_vector[0::2]
-    dndz_vector = dndz_vector[0::4]
+    training_Hadndz = np.vstack([training_Hadndz, interp_yz1])
 
-    training_Hadndz = np.vstack([training_Hadndz, dndz_vector])
-
-dndzbins = df['z'].values
-# dndzbins = dndzbins[0::2]
-dndzbins = dndzbins[0::4]
+dndzbins = Ha_b['z'].values
 print('Redshift distribution bins: ', dndzbins)
 print('Example of dn/dz values: ', training_Hadndz[113])
 
-# K-band LF
-columns_k = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
+# LF
+columns_lf = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
              'Br', 'Br(error)', 'Brdust', 'Brdust(error)',
              'Vr', 'Vr(error)', 'Vrdust', 'Vrdust(error)',
              'Rr', 'Rr(error)', 'Rrdust', 'Rrdust(error)',
@@ -203,30 +170,47 @@ columns_k = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
              'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
              ]
 
-base_path_kband = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/k_band_ext/"
-basek_filenames = os.listdir(base_path_kband)
+base_path_lf = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/k_band_ext/"
+basek_filenames = os.listdir(base_path_lf)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
-training_kband = np.empty((0, 9))
-# training_kband = np.empty((0, 18))
+training_lf = np.empty((0, 38))
 for file in basek_filenames:
     model_number = find_number(file, '.')
-    df_k = kband_df(base_path_kband + file, columns_k)
 
-    k_vector = df_k['Krdust'].values
+    df_lfk = lf_df(base_path_lf + file, columns_lf, mag_low=-23.80, mag_high=-15.04)
+    df_lfk['Krdust'] = np.log10(df_lfk['Krdust'].mask(df_lfk['Krdust'] <=0)).fillna(0)
+    df_lfk = df_lfk[df_lfk['Krdust'] != 0]
+    interp_funck = interp1d(df_lfk['Mag'].values, df_lfk['Krdust'].values, kind='linear', fill_value='extrapolate',
+                            bounds_error=False)
+    interp_yk1 = interp_funck(df_k['Mag'].values)
 
-    # Subsample by taking every other value
-    k_vector = k_vector[0::2]
-    training_kband = np.vstack([training_kband, k_vector])
+    df_lfr = lf_df(base_path_lf + file, columns_lf, mag_low=-23.36, mag_high=-13.73)
+    df_lfr['Rrdust'] = np.log10(df_lfr['Rrdust'].mask(df_lfr['Rrdust'] <=0)).fillna(0)
+    df_lfr = df_lfr[df_lfr['Rrdust'] != 0]
+    interp_funcr = interp1d(df_lfr['Mag'].values, df_lfr['Rrdust'].values, kind='linear', fill_value='extrapolate',
+                            bounds_error=False)
+    interp_yr1 = interp_funcr(df_r['Mag'].values)
 
-kbins = df_k['Mag'].values
-kbins = kbins[0::2]
-print('k-band LF distribution bins: ', kbins)
-print('Example of k-band LF values: ', training_kband[113])
+    # Calculate the amount of padding needed for both arrays
+    paddingk = [(0, 18 - len(interp_yk1))]
+    paddingr = [(0, 20 - len(interp_yr1))]
+
+    # Pad both arrays with zeros
+    padded_arrayk = np.pad(interp_yk1, paddingk, mode='constant', constant_values=0)
+    padded_arrayr = np.pad(interp_yr1, paddingr, mode='constant', constant_values=0)
+
+    lf_vector = np.concatenate((padded_arrayk, padded_arrayr))
+    training_lf = np.vstack([training_lf, lf_vector])
+
+lfbins = np.concatenate((df_k['Mag'].values, df_r['Mag'].values))
+print('LF distribution bins: ', lfbins)
+print('Example of k-band LF values: ', training_lf[113][0:18])
+print('Example of r-band LF values: ', training_lf[113][18:36])
 
 # Combine the two data sets with the parameter data
-combo_bins = np.hstack([dndzbins, kbins])  # This data is not required for the machine learning
-combo_labels = np.hstack([training_Hadndz, training_kband])
+combo_bins = np.hstack([dndzbins, lfbins])  # This data is not required for the machine learning
+combo_labels = np.hstack([training_Hadndz, training_lf])
 print('Combo bins: ', combo_bins)
 print('Example of combo labels: ', combo_labels[113])
 
@@ -255,11 +239,11 @@ training_features, combo_labels = shuffle(training_features, combo_labels)
 training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
 testing_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/testing_data/"
 bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
-# np.savetxt(training_path + 'label_full', combo_labels, fmt='%.2f')
-# np.savetxt(testing_path + 'label_sub12_dndz', combo_labels, fmt='%.2f')
-# np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
+np.savetxt(training_path + 'label_full_int', combo_labels, fmt='%.2f')
+# np.savetxt(testing_path + 'label_full_r', combo_labels, fmt='%.2f')
+np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
 # np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
-np.savetxt(bin_path + 'bin_sub139', combo_bins)
+np.savetxt(bin_path + 'bin_full_int', combo_bins, fmt='%.2f')
 
 # plt.plot(kbins, training_kband[0], 'rx')
 # kbins = kbins[0::2]
