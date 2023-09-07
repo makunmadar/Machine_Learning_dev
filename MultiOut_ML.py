@@ -7,6 +7,7 @@ from numpy import genfromtxt
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers.experimental import preprocessing
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.experimental import RMSprop
 from tensorflow.keras.callbacks import LearningRateScheduler, EarlyStopping, ModelCheckpoint
@@ -28,10 +29,10 @@ def get_model(input_shape):
 
     model = Sequential([
 
-        # normalizer,
-        Dense(512, input_shape=(6,), activation='LeakyReLU'),
-        Dense(512, activation='LeakyReLU'),
-        Dense(512, activation='LeakyReLU'),
+        normalizer,
+        Dense(512, input_shape=(6,), activation='ReLU'),
+        Dense(512, activation='ReLU'),
+        # Dense(512, activation='LeakyReLU'),
         Dense(45)
     ])
 
@@ -91,8 +92,8 @@ y_train = np.load('Data/Data_for_ML/training_data/y_train_900_full_int.npy')
 # y_train = y_train[idx]
 
 # Normalize the data to reduce the dynamical range.
-# normalizer = preprocessing.Normalization()
-# normalizer.adapt(X_train)
+normalizer = preprocessing.Normalization()
+normalizer.adapt(X_train)
 
 print('Feature data shape:', X_train.shape)
 print('Label data shape: ', y_train.shape)
@@ -107,7 +108,7 @@ for i in range(n_members):
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i + 1) + "_555_mask_900_LRELU_int"
+    model_name = "Ensemble_model_" + str(i + 1) + "_555_mask_900_LRELU_int_tmp"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 

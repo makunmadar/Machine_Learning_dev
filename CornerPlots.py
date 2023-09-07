@@ -12,7 +12,7 @@ plt.rc('ytick', labelsize=11)
 
 # redshift_samples = np.load("Samples_redshiftdist.npy")
 # KLF_samples = np.load("Samples_KLF.npy")
-combo_samples = np.load("Samples_combo_MAE811.npy")
+combo_samples = np.load("Samples_combo_MAE111.npy")
 
 # Corner plot
 labels = [r"$\alpha_{ret}$", r"$V_{SN, disk}$", r"$V_{SN, burst}$",
@@ -46,13 +46,13 @@ figc = corner.corner(combo_samples, show_titles=True, labels=labels, color='gree
                      plot_datapoints=True, levels=[0.68, 0.95],
                      smooth=0.0, bins=50, range=p_range, fill_contours=True)
 figc.show()
-figc.savefig("corner_combo_MAE811.png")
+figc.savefig("corner_combo_MAE111.png")
 
 #
 # redshift_likelihoods = np.load("Likelihoods_redshiftdist.npy")
 # KLF_likelihoods = np.load("Likelihoods_KLF.npy")
-combo_likelihoods = np.load("Likelihoods_combo_MAE811.npy")
-combo_error = np.load("Error_combo_MAE811.npy")
+combo_likelihoods = np.load("Likelihoods_combo_MAE111.npy")
+combo_error = np.load("Error_combo_MAE111.npy")
 
 # Find the best model with the highest likelihood
 # max_zlikeli_idx = np.argmax(redshift_likelihoods)
@@ -75,6 +75,7 @@ print("\n")
 print("Lowest error combo: ", combo_error[min_cerror_idx])
 print("Corresponding likelihood combo: ", combo_likelihoods[min_cerror_idx])
 print("Best parameters combo: ", combo_samples[min_cerror_idx])
+exit()
 
 # Load the individual error data
 # combo_errorz = np.load("Error_comboz_MAE.npy")
@@ -94,7 +95,7 @@ print("Best parameters combo: ", combo_samples[min_cerror_idx])
 # KLF_predictions = np.load("Predictions_KLF.npy")
 
 # Load the Galform bins
-bin_file = 'Data/Data_for_ML/bin_data/bin_full'
+bin_file = 'Data/Data_for_ML/bin_data/bin_full_int'
 bins = genfromtxt(bin_file)
 
 # Load in the Observational data
@@ -111,7 +112,7 @@ Ha_ybot = Ha_b["n"] - Ha_b["-"]
 # Try on the Driver et al. 2012 LF data
 driv_headers = ['Mag', 'LF', 'error', 'Freq']
 drive_pathk = 'Data/Data_for_ML/Observational/Driver_12/lfk_z0_driver12.data'
-df_k = lf_df(drive_pathk, driv_headers)
+df_k = lf_df(drive_pathk, driv_headers, mag_high=-15.25, mag_low=-23.75)
 df_k = df_k[(df_k != 0).all(1)]
 df_k['LF'] = df_k['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
 df_k['error'] = df_k['error'] * 2  # Same reason
@@ -120,7 +121,7 @@ df_k['error_lower'] = np.log10(df_k['LF']) - np.log10(df_k['LF'] - df_k['error']
 df_k['LF'] = np.log10(df_k['LF'])
 
 drive_pathr = 'Data/Data_for_ML/Observational/Driver_12/lfr_z0_driver12.data'
-df_r = lf_df(drive_pathr, driv_headers)
+df_r = lf_df(drive_pathr, driv_headers, mag_high=-13.75, mag_low=-23.25)
 df_r = df_r[(df_r != 0).all(1)]
 df_r['LF'] = df_r['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
 df_r['error'] = df_r['error'] * 2  # Same reason
@@ -174,7 +175,7 @@ df_r['LF'] = np.log10(df_r['LF'])
 # axs[1].set_ylim(-6, -1)
 # plt.show()
 
-combo_predictions_raw = np.load("Predictions_combo_MAE811_raw.npy")
+combo_predictions_raw = np.load("Predictions_combo_MAE111_raw.npy")
 
 # Combination plots
 fig, axs = plt.subplots(5, 3, figsize=(23, 15))
@@ -186,9 +187,9 @@ for i in range(len(combo_predictions_raw)):
 
     for theta in combo_predictions_raw[i]:
         c = next(colour)
-        axs[i, 0].plot(bins[0:49], theta[0:49], c=c, alpha=0.1)
-        axs[i, 1].plot(bins[49:67], theta[49:67], c=c, alpha=0.1)
-        axs[i, 2].plot(bins[49:67], theta[67:85], c=c, alpha=0.1)
+        axs[i, 0].plot(bins[0:7], theta[0:7], c=c, alpha=0.1)
+        axs[i, 1].plot(bins[7:25], theta[7:25], c=c, alpha=0.1)
+        axs[i, 2].plot(bins[25:45], theta[25:45], c=c, alpha=0.1)
     axs[i, 0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black',
                        capsize=2, fmt='co')
     axs[i, 1].errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
@@ -196,11 +197,11 @@ for i in range(len(combo_predictions_raw)):
     axs[i, 2].errorbar(df_r['Mag'], df_r['LF'], yerr=(df_r['error_lower'], df_r['error_upper']),
                        markeredgecolor='black', ecolor='black', capsize=2, fmt='co')
 
-    axs[i, 0].set_xlim(0.7, 2.0)
+    axs[i, 0].set_xlim(0.9, 1.6)
     axs[i, 0].set_ylim(2.5, 4.5)
-    axs[i, 1].set_xlim(-18, -25)
+    axs[i, 1].set_xlim(-15.0, -24.0)
     axs[i, 1].set_ylim(-6, -1)
-    axs[i, 2].set_xlim(-18, -25)
+    axs[i, 2].set_xlim(-13.0, -24)
     axs[i, 2].set_ylim(-6, -1)
 
 axs[0, 0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black',

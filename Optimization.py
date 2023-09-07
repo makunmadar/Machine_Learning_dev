@@ -1,8 +1,6 @@
 import numpy as np
-from numpy import genfromtxt
 import matplotlib.pyplot as plt
 import pandas as pd
-from scipy.interpolate import interp1d
 import time
 from Loading_functions import lf_df, load_all_models
 plt.rcParams["font.family"] = "serif"
@@ -11,8 +9,8 @@ plt.rc('xtick', labelsize=11)
 plt.rc('ytick', labelsize=11)
 
 
-def mcmc_updater(curr_state, curr_likeli, curr_err, model, obs_x, obs_y, sigma, mae_weighting,
-                 pred_bins, likelihood, proposal_distribution, stepsize, curr_pred):
+def mcmc_updater(curr_state, curr_likeli, curr_err, model, obs_y, mae_weighting,
+                 likelihood, proposal_distribution, stepsize, curr_pred):
     """ Propose a new state and compare the likelihoods
 
     Given the current state (initially random),
@@ -24,10 +22,8 @@ def mcmc_updater(curr_state, curr_likeli, curr_err, model, obs_x, obs_y, sigma, 
 
     Args:
         model: Tensorflow model
-        obs_x: Observable x vector
         obs_y: Observable y vector
         mae_weighting:
-        pred_bins: Fixed prediction x bins
         sigma:
         curr_state (float): the current parameter/state value
         curr_likeli (float): the current likelihood estimate
@@ -49,8 +45,7 @@ def mcmc_updater(curr_state, curr_likeli, curr_err, model, obs_x, obs_y, sigma, 
     # Calculate the acceptance criterion
     # We want to minimize the MAE value but the likelihood
     # is set to be maximized therefore flip the acceptance criterion ratio
-    prop_likeli, prop_pred, prop_err = likelihood(proposal_state, model, obs_x, obs_y, sigma,
-                                        mae_weighting, pred_bins)
+    prop_likeli, prop_pred, prop_err = likelihood(proposal_state, model, obs_y, mae_weighting)
 
     # accept_crit = curr_err / prop_err
     # print("Prop: ", prop_likeli)
@@ -58,7 +53,6 @@ def mcmc_updater(curr_state, curr_likeli, curr_err, model, obs_x, obs_y, sigma, 
     accept_crit = prop_likeli / curr_likeli
     # print("Ratio: ", accept_crit)
     # print("\n")
-
     # Generate a random number between 0 and 1
     accept_threshold = np.random.uniform(0, 1)
 
@@ -75,16 +69,14 @@ def mcmc_updater(curr_state, curr_likeli, curr_err, model, obs_x, obs_y, sigma, 
 
 
 def metropolis_hastings(
-        model, obs_x, obs_y, sigma, mae_weighting, pred_bins, likelihood,
+        model, obs_y, mae_weighting, likelihood,
         proposal_distribution, initial_state, num_samples, stepsize, burnin):
     """ Compute the Markov Chain Monte Carlo
 
     Args:
         model: Emulator model
-        obs_x: Observable x values
         obs_y: Observable y values
         mae_weighting:
-        pred_bins: Prediction x-axis bins
         sigma:
         likelihood (function): a function handle to compute the likelihood
         proposal_distribution (function): a function handle to compute the
@@ -111,8 +103,8 @@ def metropolis_hastings(
 
     # Set the current state to the initial state
     curr_state = initial_state
-    curr_likeli, curr_pred, curr_err = likelihood(curr_state, model, obs_x, obs_y,
-                                        sigma, mae_weighting, pred_bins)
+    curr_likeli, curr_pred, curr_err = likelihood(curr_state, model, obs_y,
+                                                  mae_weighting)
     # predictions.append(curr_pred)
     # likeli.append(curr_likeli)
 
@@ -124,11 +116,11 @@ def metropolis_hastings(
             curr_likeli=curr_likeli,
             curr_err=curr_err,
             model=model,
-            obs_x=obs_x,
             obs_y=obs_y,
-            sigma=sigma,
+            # sigma=sigma,
+            # scaling=scaling,
+            # offset=offset,
             mae_weighting=mae_weighting,
-            pred_bins=pred_bins,
             likelihood=likelihood,
             proposal_distribution=proposal_distribution,
             stepsize=stepsize,
@@ -148,18 +140,16 @@ def metropolis_hastings(
     return samples, predictions, likeli, errors, counts
 
 
-def likelihood(params, models, obs_x, obs_y, sigma, mae_weighting, pred_bins):
+def likelihood(params, models, obs_y, mae_weighting):
     """ Compute the MAE likelihood function, comparing a prediction to observed values
 
     Args:
         params: Current state parameters. Inputs to the emulator model.
         models: Multiple tensorflow models used to map the input Galform parameters to an output predicting,
         y-axis values
-        obs_x: Observable x-axis vector
         obs_y: Observable y-axis vector
         sigma:
         mae_weighting: Observable weightings for MAE calculation
-        pred_bins: Fixed x-axis bins corresponding to the predicted y-axis values
 
     Returns:
         weighted_mae: The calculated MAE value comparing the prediction plot to the observed plot
@@ -179,24 +169,24 @@ def likelihood(params, models, obs_x, obs_y, sigma, mae_weighting, pred_bins):
     # Create common x-axis with same axis as the observable x bins
 
     # Interpolate or resample the redshift distribution data onto the common x-axis
-    interp_funcz = interp1d(pred_bins[0:49], predictions[0:49], kind='linear', fill_value='extrapolate')
-    interp_yz1 = interp_funcz(obs_x[0:7])
+    # interp_funcz = interp1d(pred_bins[0:49], predictions[0:49], kind='linear', fill_value='extrapolate')
+    # interp_yz1 = interp_funcz(obs_x[0:7])
     # interp_y1 = interp_funcz(obs_x)
     #
     # # Interpolate or resample the K-band luminosity function data onto the common x-axis
-    interp_funck = interp1d(pred_bins[49:67], predictions[49:67], kind='linear', fill_value='extrapolate')
-    interp_yk1 = interp_funck(obs_x[7:19])
+    # interp_funck = interp1d(pred_bins[49:67], predictions[49:67], kind='linear', fill_value='extrapolate')
+    # interp_yk1 = interp_funck(obs_x[7:19])
     # interp_y1 = interp_funck(obs_x)
     #
     # # Interpolate or resample the K-band luminosity function data onto the common x-axis
-    interp_funcr = interp1d(pred_bins[49:67], predictions[67:85], kind='linear', fill_value='extrapolate')
-    interp_yr1 = interp_funcr(obs_x[19:30])
+    # interp_funcr = interp1d(pred_bins[49:67], predictions[67:85], kind='linear', fill_value='extrapolate')
+    # interp_yr1 = interp_funcr(obs_x[19:30])
     # interp_y1 = interp_funck(obs_x)
 
     # Combine the interpolated y values
-    pred = np.hstack([interp_yz1, interp_yk1, interp_yr1])
-    pred = 10**pred
-    obs_y = 10**obs_y
+    # pred = np.hstack([interp_yz1, interp_yk1, interp_yr1])
+    # pred = 10**predictions
+    # obs_y = 10**obs_y
     # Remove empty bins from Lacey et al. 2016
     # predz = predictions[0:49]
     # predk = predictions[51:67]
@@ -205,33 +195,33 @@ def likelihood(params, models, obs_x, obs_y, sigma, mae_weighting, pred_bins):
 
     # Working out the MAE values
     # In the future I want to update this to work with the errors from the observables
-    if len(obs_y) != len(pred):
+    if len(obs_y) != len(predictions):
         raise ValueError("Observation length and predictions length must be identical")
 
     # Need to apply scaling:
-    # min_value = np.min([np.min(pred), np.min(obs_y)])
-    # max_value = np.max([np.max(pred), np.max(obs_y)])
-    # scaled_pred = (pred - min_value) / (max_value - min_value)
-    # scaled_obs = (obs_y - min_value) / (max_value - min_value)
+    # scaled_predz = (pred[0:7] * scaling[0]) + offset[0]
+    # scaled_predk = (pred[7:25] * scaling[1]) + offset[1]
+    # scaled_predr = (pred[25:45] * scaling[2]) + offset[2]
+    # scaled_pred = np.hstack([scaled_predz, scaled_predk, scaled_predr])
 
     # Manually calculate the weighted MAE
-    abs_diff = np.abs(pred - obs_y)/sigma  # L1 norm
-    # sqr_diff = ((pred-obs_y)**2)/sigma**2# L2 norm
+    abs_diff = np.abs(obs_y - predictions) # / sigma # L1 norm
+    # sqr_diff = ((pred-obs_y)**2)/sigma**2 # L2 norm
     weighted_diff = mae_weighting * abs_diff
 
     bag = weighted_diff[0:7] / 7
     # bag_i = weighted_diff / 7
-    driv_k = weighted_diff[7:19] / 12
+    driv_k = weighted_diff[7:25] / 18
     # driv_i = weighted_diff / 12
-    driv_r = weighted_diff[19:30] / 11
+    driv_r = weighted_diff[25:45] / 20
 
     weighted_err = (np.sum(bag) + np.sum(driv_k) + np.sum(driv_r)) * (1/3)
 
     # weighted_mae =  np.sum(driv_i)
 
     # Convert to Laplacian likelihood
-    b = 0.1
-    likelihood = (1/(2*b)) * np.exp(-weighted_err/b)  # 1/2b
+    b = 0.005
+    likelihood = (1/(2*b)) * np.exp(-weighted_err/b)
     # likelihood = np.exp(-weighted_err/2)
 
     return likelihood, predictions_mean[0], weighted_err
@@ -259,44 +249,48 @@ bag_headers = ["z", "n", "+", "-"]
 Ha_b = pd.read_csv("Data/Data_for_ML/Observational/Bagley_20/Ha_Bagley_dndz.csv",
                    delimiter=",", names=bag_headers, skiprows=1)
 Ha_b = Ha_b.astype(float)
-sigmaz = (Ha_b["+"].values - Ha_b['-'].values)/2
-
-# Try on the Driver et al. 2012 LF data
+# sigmaz = (Ha_b["+"].values - Ha_b['-'].values)/2
+#
+# # Try on the Driver et al. 2012 LF data
 driv_headers = ['Mag', 'LF', 'error', 'Freq']
 drive_pathk = 'Data/Data_for_ML/Observational/Driver_12/lfk_z0_driver12.data'
-df_k = lf_df(drive_pathk, driv_headers)
+df_k = lf_df(drive_pathk, driv_headers, mag_high=-15.25, mag_low=-23.75)
 df_k = df_k[(df_k != 0).all(1)]
 df_k['LF'] = df_k['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
 df_k['error'] = df_k['error'] * 2  # Same reason
-sigmak = df_k['error'].values
-
+# sigmak = df_k['error'].values
+#
 drive_pathr = 'Data/Data_for_ML/Observational/Driver_12/lfr_z0_driver12.data'
-df_r = lf_df(drive_pathr, driv_headers)
+df_r = lf_df(drive_pathr, driv_headers, mag_high=-13.75, mag_low=-23.25)
 df_r = df_r[(df_r != 0).all(1)]
 df_r['LF'] = df_r['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
 df_r['error'] = df_r['error'] * 2  # Same reason
-sigmar = df_r['error'].values
+# sigmar = df_r['error'].values
 
 # Combine the observational data
-obs_x = np.hstack([Ha_b['z'].values, df_k['Mag'].values, df_r['Mag'].values])
+# obs_x = np.hstack([Ha_b['z'].values, df_k['Mag'].values, df_r['Mag'].values])
 # obs_x = df_k['Mag'].values
 # obs_x = Ha_b['z'].values
-obs_y = np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].values])
+obs_y = np.log10(np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].values]))
 # obs_y = df_k['LF'].values
 # obs_y = Ha_b['n']
-sigma = np.hstack([sigmaz, sigmak, sigmar])
+# sigma = np.hstack([sigmaz, sigmak, sigmar])
+# obs_y = np.load("Scaled_obs.npy")
+# sigma = np.load("fractional_sigma.npy")
+# scaling = np.load("Scaling_factor.npy")
+# offset = np.load("Offset.npy")
 
 # obs_y = np.load("Lacey_y_true.npy")
 
 # # MAE weighting
 # W = [8.0] * 49 + [1.0] * 16
-W = [8.0] * 7 + [1.0] * 12 + [1.0] * 11
+W = [1.0] * 7 + [1.0] * 18 + [1.0] * 20
 param_range = [2.7, 450.0, 450.0, 2.0, 2.0, 1.5]
-b = [i/100 for i in param_range]
+b = [i/40 for i in param_range]
 
 # Load the Galform bins
-bin_file = 'Data/Data_for_ML/bin_data/bin_full'
-bins = genfromtxt(bin_file)
+# bin_file = 'Data/Data_for_ML/bin_data/bin_full_int'
+# bins = genfromtxt(bin_file)
 
 # Load in the neural network
 members = load_all_models(n_models=5)
@@ -304,7 +298,7 @@ print('Loaded %d models' % len(members))
 
 # np.random.seed(42)
 
-num_samples = int(20000)
+num_samples = int(15000)
 burnin = 0.0  # For now testing with zero burn in
 n_walkers = 5
 
@@ -331,11 +325,11 @@ for n in range(n_walkers):
     # Generate samples over the posterior distribution using the metropolis_hastings function
     samples, predictions, likelihoods, error, counts = metropolis_hastings(
         model=members,
-        obs_x=obs_x,
-        obs_y=np.log10(obs_y),
-        sigma=sigma,
+        obs_y=obs_y,
+        # sigma=sigma,
+        # scaling=scaling,
+        # offset=offset,
         mae_weighting=W,
-        pred_bins=bins,
         likelihood=likelihood,
         proposal_distribution=proposal_distribution,
         initial_state=initial_state,
@@ -353,7 +347,7 @@ for n in range(n_walkers):
 elapsed = time.perf_counter() - start
 print('Elapsed %.3f seconds' % elapsed, ' for MCMC')
 
-flattened_predictions = np.reshape(n_predictions, (-1, 85))
+flattened_predictions = np.reshape(n_predictions, (-1, 45))
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k')
@@ -405,7 +399,6 @@ plt.show()
 # Flatten the samples
 flattened_samples = np.reshape(n_samples, (-1, 6))
 flattened_likelihoods = np.reshape(n_likelihoods, (-1, 1))
-# flattened_likelihoods = (1/(2*0.1)) * flattened_likelihoods
 flattened_error = np.reshape(n_error, (-1, 1))
 
 # np.save('Samples_redshiftdist.npy', flattened_samples)
@@ -414,10 +407,10 @@ flattened_error = np.reshape(n_error, (-1, 1))
 # np.save('Samples_KLF.npy', flattened_samples)
 # np.save('Likelihoods_KLF.npy', flattened_likelihoods)
 # np.save('Predictions_KLF.npy', flattened_predictions)
-np.save('Samples_combo_MAE811.npy', flattened_samples)
-np.save('Likelihoods_combo_MAE811.npy', flattened_likelihoods)
-np.save('Predictions_combo_MAE811.npy', flattened_predictions)
-np.save('Predictions_combo_MAE811_raw.npy', n_predictions)
-np.save('Error_combo_MAE811.npy', flattened_error)
+np.save('Samples_combo_MAE111.npy', flattened_samples)
+np.save('Likelihoods_combo_MAE111.npy', flattened_likelihoods)
+np.save('Predictions_combo_MAE111.npy', flattened_predictions)
+np.save('Predictions_combo_MAE111_raw.npy', n_predictions)
+np.save('Error_combo_MAE111.npy', flattened_error)
 # np.save('Error_comboz_MAE.npy', flattened_error)
 # np.save('Error_combok_MAE.npy', flattened_error)

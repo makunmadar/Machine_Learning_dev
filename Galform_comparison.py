@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from numpy import genfromtxt
 from sklearn.metrics import mean_absolute_error
-from Loading_functions import predict_all_models
+from Loading_functions import predict_all_models, lf_df
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.size"] = 15
 plt.rc('xtick', labelsize=15)
@@ -247,5 +247,19 @@ plt.show()
 # plt.show()
 
 # Save Lacey y values
-y_true = np.hstack([z_test_lc, k_test_lc_sub, r_test_lc_sub])
+df_lck = lf_df(path_lflc, columns_t, mag_high=-15.25, mag_low=-24)
+df_lck['Krdust'] = np.log10(df_lck['Krdust'].mask(df_lck['Krdust'] <=0)).fillna(0)
+k_test_lc_full = df_lck['Krdust'].values
+binsk_full = df_lck['Mag'].values
+
+df_lcr = lf_df(path_lflc, columns_t, mag_high=-13.75, mag_low=-24)
+df_lcr['Rrdust'] = np.log10(df_lcr['Rrdust'].mask(df_lcr['Rrdust'] <=0)).fillna(0)
+r_test_lc_sub = df_lcr['Rrdust'].values
+binsr_full = df_lcr['Mag'].values
+binsr_full = binsr_full[r_test_lc_sub != 0]
+r_test_lc_sub = r_test_lc_sub[r_test_lc_sub != 0]
+
+y_true = np.hstack([z_test_lc, k_test_lc_full, r_test_lc_sub])
 np.save('Lacey_y_true.npy', y_true)
+l_bins = np.hstack([bins[0:49], binsk_full, binsr_full])
+np.save('Lacey_bins.npy', l_bins)
