@@ -33,7 +33,7 @@ def get_model(input_shape):
         Dense(512, input_shape=(6,), activation='ReLU'),
         Dense(512, activation='ReLU'),
         # Dense(512, activation='LeakyReLU'),
-        Dense(45)
+        Dense(51)
     ])
 
     model.build(input_shape)
@@ -63,7 +63,7 @@ checkpoint = ModelCheckpoint(
 
 # Import the training datasets
 # feature_file = 'Data/Data_for_ML/training_data/feature'
-# label_file = 'Data/Data_for_ML/training_data/label_full_int'
+# label_file = 'Data/Data_for_ML/training_data/label_full_int_colek'
 #
 # # For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
 # X = genfromtxt(feature_file)
@@ -83,9 +83,13 @@ checkpoint = ModelCheckpoint(
 # np.save('Data/Data_for_ML/testing_data/X_test_100_full_int.npy', X_test)
 # np.save('Data/Data_for_ML/training_data/y_train_900_full_int.npy', y_train)
 # np.save('Data/Data_for_ML/testing_data/y_test_100_full_int.npy', y_test)
+# np.save('Data/Data_for_ML/training_data/X_train_900_full_int_colek.npy', X_train)
+# np.save('Data/Data_for_ML/testing_data/X_test_100_full_int_colek.npy', X_test)
+# np.save('Data/Data_for_ML/training_data/y_train_900_full_int_colek.npy', y_train)
+# np.save('Data/Data_for_ML/testing_data/y_test_100_full_int_colek.npy', y_test)
 
-X_train = np.load('Data/Data_for_ML/training_data/X_train_900_full_int.npy')
-y_train = np.load('Data/Data_for_ML/training_data/y_train_900_full_int.npy')
+X_train = np.load('Data/Data_for_ML/training_data/X_train_900_full_int_colek.npy')
+y_train = np.load('Data/Data_for_ML/training_data/y_train_900_full_int_colek.npy')
 
 # idx = np.random.choice(np.arange(len(X_train)), 800, replace=False)
 # X_train = X_train[idx]
@@ -101,14 +105,14 @@ print('Label data shape: ', y_train.shape)
 input_shape = X_train.shape
 
 # Fit and save models
-n_members = 1
+n_members = 5
 for i in range(n_members):
 
     # Fit model
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i + 1) + "_555_mask_900_LRELU_int_tmp"
+    model_name = "Ensemble_model_" + str(i + 1) + "_555_mask_900_LRELU_int_colek"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 

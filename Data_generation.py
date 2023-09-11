@@ -14,36 +14,6 @@ from scipy.interpolate import interp1d
 from Loading_functions import lf_df
 
 
-# def lf_df(path, columns, mag_low, mag_high):
-#     """
-#     This function extracts just the k-band and r-band LF data and saves it in a dataframe.
-#
-#     :param path: path to the LF file
-#     :param columns: what are the names of the magnitude columns?
-#     :return: dataframe
-#     """
-#     data = []
-#     with open(path, 'r') as fh:
-#         for curline in fh:
-#             if curline.startswith("#"):
-#                 header = curline
-#             else:
-#                 row = curline.strip().split()
-#                 data.append(row)
-#
-#     data = np.vstack(data)
-#     df = pd.DataFrame(data=data)
-#     df = df.apply(pd.to_numeric)
-#     df.columns = columns
-#
-#     # Keep it between the magnitude range -18<Mag<-25
-#     df = df[(df['Mag'] <= mag_high)]
-#     df = df[(df['Mag'] >= mag_low)]
-#     df.reset_index(drop=True, inplace=True)
-#
-#     return df
-
-
 def dndz_df(path, columns):
     """
     This function extracts the redshift distribution data and saves it in a dataframe.
@@ -102,6 +72,7 @@ def round_sigfigs(x):
     return np.around(x, -int(np.floor(np.log10(abs(x)))) + 2)
 
 # Load in the Observational data
+# Import Bagley et al. 2020
 bag_headers = ["z", "n", "+", "-"]
 Ha_b = pd.read_csv("Data/Data_for_ML/Observational/Bagley_20/Ha_Bagley_dndz.csv",
                    delimiter=",", names=bag_headers, skiprows=1)
@@ -127,7 +98,14 @@ sigmar = df_r['error'].values
 sigma = np.hstack([sigmaz, sigmak, sigmar])
 obs = np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].values])
 frac_sigma = sigma/obs
-np.save('fractional_sigma.npy', frac_sigma)
+
+# Import Cole et al. 2001
+cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
+cole_path_k = 'Data/Data_for_ML/Observational/Cole_2001/lfJK_Cole2001.data'
+df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00, mag_high=-18.00)
+df_ck = df_ck[df_ck['PhiK'] != 0]
+df_ck = df_ck.sort_values(['Mag'], ascending=[True])
+# np.save('fractional_sigma.npy', frac_sigma)
 
 # Redshift distribution
 columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
@@ -174,16 +152,17 @@ base_path_lf = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_train
 basek_filenames = os.listdir(base_path_lf)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
-training_lf = np.empty((0, 38))
+training_lf = np.empty((0, 44))
 for file in basek_filenames:
     model_number = find_number(file, '.')
 
-    df_lfk = lf_df(base_path_lf + file, columns_lf, mag_low=-23.80, mag_high=-15.04)
+    df_lfk = lf_df(base_path_lf + file, columns_lf, mag_low=-24.00, mag_high=-18.00)  # -23.80, -15.04 for driver
     df_lfk['Krdust'] = np.log10(df_lfk['Krdust'].mask(df_lfk['Krdust'] <=0)).fillna(0)
     df_lfk = df_lfk[df_lfk['Krdust'] != 0]
     interp_funck = interp1d(df_lfk['Mag'].values, df_lfk['Krdust'].values, kind='linear', fill_value='extrapolate',
                             bounds_error=False)
-    interp_yk1 = interp_funck(df_k['Mag'].values)
+    # interp_yk1 = interp_funck(df_k['Mag'].values)
+    interp_yk1 = interp_funck(df_ck['Mag'].values)
 
     df_lfr = lf_df(base_path_lf + file, columns_lf, mag_low=-23.36, mag_high=-13.73)
     df_lfr['Rrdust'] = np.log10(df_lfr['Rrdust'].mask(df_lfr['Rrdust'] <=0)).fillna(0)
@@ -193,7 +172,7 @@ for file in basek_filenames:
     interp_yr1 = interp_funcr(df_r['Mag'].values)
 
     # Calculate the amount of padding needed for both arrays
-    paddingk = [(0, 18 - len(interp_yk1))]
+    paddingk = [(0, 24 - len(interp_yk1))] # 18 for driver
     paddingr = [(0, 20 - len(interp_yr1))]
 
     # Pad both arrays with zeros
@@ -203,10 +182,11 @@ for file in basek_filenames:
     lf_vector = np.concatenate((padded_arrayk, padded_arrayr))
     training_lf = np.vstack([training_lf, lf_vector])
 
-lfbins = np.concatenate((df_k['Mag'].values, df_r['Mag'].values))
+# lfbins = np.concatenate((df_k['Mag'].values, df_r['Mag'].values))
+lfbins = np.concatenate((df_ck['Mag'].values, df_r['Mag'].values))
 print('LF distribution bins: ', lfbins)
-print('Example of k-band LF values: ', training_lf[113][0:18])
-print('Example of r-band LF values: ', training_lf[113][18:36])
+print('Example of k-band LF values: ', training_lf[113][0:24])
+print('Example of r-band LF values: ', training_lf[113][24:44])
 
 # Combine the two data sets with the parameter data
 combo_bins = np.hstack([dndzbins, lfbins])  # This data is not required for the machine learning
@@ -239,11 +219,11 @@ training_features, combo_labels = shuffle(training_features, combo_labels)
 training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
 testing_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/testing_data/"
 bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
-np.savetxt(training_path + 'label_full_int', combo_labels, fmt='%.2f')
+np.savetxt(training_path + 'label_full_int_colek', combo_labels, fmt='%.2f')
 # np.savetxt(testing_path + 'label_full_r', combo_labels, fmt='%.2f')
 np.savetxt(training_path + 'feature', training_features, fmt='%.2f')
 # np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
-np.savetxt(bin_path + 'bin_full_int', combo_bins, fmt='%.2f')
+np.savetxt(bin_path + 'bin_full_int_colek', combo_bins, fmt='%.2f')
 
 # plt.plot(kbins, training_kband[0], 'rx')
 # kbins = kbins[0::2]

@@ -211,9 +211,9 @@ def likelihood(params, models, obs_y, mae_weighting):
 
     bag = weighted_diff[0:7] / 7
     # bag_i = weighted_diff / 7
-    driv_k = weighted_diff[7:25] / 18
+    driv_k = weighted_diff[7:31] / 24
     # driv_i = weighted_diff / 12
-    driv_r = weighted_diff[25:45] / 20
+    driv_r = weighted_diff[31:51] / 20
 
     weighted_err = (np.sum(bag) + np.sum(driv_k) + np.sum(driv_r)) * (1/3)
 
@@ -267,11 +267,18 @@ df_r['LF'] = df_r['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to c
 df_r['error'] = df_r['error'] * 2  # Same reason
 # sigmar = df_r['error'].values
 
+# Import Cole et al. 2001
+cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
+cole_path_k = 'Data/Data_for_ML/Observational/Cole_2001/lfJK_Cole2001.data'
+df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00, mag_high=-18.00)
+df_ck = df_ck[df_ck['PhiK'] != 0]
+df_ck = df_ck.sort_values(['Mag'], ascending=[True])
+
 # Combine the observational data
 # obs_x = np.hstack([Ha_b['z'].values, df_k['Mag'].values, df_r['Mag'].values])
 # obs_x = df_k['Mag'].values
 # obs_x = Ha_b['z'].values
-obs_y = np.log10(np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].values]))
+obs_y = np.log10(np.hstack([Ha_b['n'].values, df_ck['PhiK'].values, df_r['LF'].values]))
 # obs_y = df_k['LF'].values
 # obs_y = Ha_b['n']
 # sigma = np.hstack([sigmaz, sigmak, sigmar])
@@ -284,7 +291,7 @@ obs_y = np.log10(np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].valu
 
 # # MAE weighting
 # W = [8.0] * 49 + [1.0] * 16
-W = [1.0] * 7 + [1.0] * 18 + [1.0] * 20
+W = [1.0] * 7 + [1.0] * 24 + [1.0] * 20
 param_range = [2.7, 450.0, 450.0, 2.0, 2.0, 1.5]
 b = [i/40 for i in param_range]
 
@@ -347,7 +354,7 @@ for n in range(n_walkers):
 elapsed = time.perf_counter() - start
 print('Elapsed %.3f seconds' % elapsed, ' for MCMC')
 
-flattened_predictions = np.reshape(n_predictions, (-1, 45))
+flattened_predictions = np.reshape(n_predictions, (-1, 51))
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k')
@@ -407,10 +414,10 @@ flattened_error = np.reshape(n_error, (-1, 1))
 # np.save('Samples_KLF.npy', flattened_samples)
 # np.save('Likelihoods_KLF.npy', flattened_likelihoods)
 # np.save('Predictions_KLF.npy', flattened_predictions)
-np.save('Samples_combo_MAE111.npy', flattened_samples)
-np.save('Likelihoods_combo_MAE111.npy', flattened_likelihoods)
-np.save('Predictions_combo_MAE111.npy', flattened_predictions)
-np.save('Predictions_combo_MAE111_raw.npy', n_predictions)
-np.save('Error_combo_MAE111.npy', flattened_error)
+np.save('Samples_combo_MAE111colek.npy', flattened_samples)
+np.save('Likelihoods_combo_MAE111colek.npy', flattened_likelihoods)
+np.save('Predictions_combo_MAE111colek.npy', flattened_predictions)
+np.save('Predictions_combo_MAE111colek_raw.npy', n_predictions)
+np.save('Error_combo_MAE111colek.npy', flattened_error)
 # np.save('Error_comboz_MAE.npy', flattened_error)
 # np.save('Error_combok_MAE.npy', flattened_error)
