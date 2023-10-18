@@ -25,8 +25,8 @@ def emline_df(path, columns):
     df = df.apply(pd.to_numeric)
     df.columns = columns
 
-    df = df[(df['Mag'] <= -17.67)]
-    df = df[(df['Mag'] >= -25.11)]
+    df = df[(df['Mag'] <= -16.00)]
+    df = df[(df['Mag'] >= -24.00)]
     df.reset_index(drop=True, inplace=True)
     # df['Mag'] = np.log10(df['Mag'].replace(0, np.nan))
     # df['Krdust'] = np.log10(df['Krdust'].replace(0, 1e-20))
@@ -81,13 +81,14 @@ X_test = X_test.reshape(1, -1)
 yhat_all = predict_all_models(n_models=5, X_test=X_test)
 yhat_avg = np.mean(yhat_all, axis=0)
 
-yhatz = yhat_avg[0][0:49]
-yhatk = yhat_avg[0][49:67]
-yhatr = yhat_avg[0][67:85]
+yhatz = yhat_avg[0][0:7]
+yhatk = yhat_avg[0][7:38]
+yhatr = yhat_avg[0][38:58]
 
 # Import the counts bins x axis
-bin_file = 'Data/Data_for_ML/bin_data/bin_full'
+bin_file = 'Data/Data_for_ML/bin_data/bin_full_int_colek'
 bins = genfromtxt(bin_file)
+bins_l = np.load('Lacey_bins.npy')
 
 # Redshift distribution
 path_zlc = "Data/Data_for_ML/Observational/Lacey_16/dndz_Bagley_HaNII_ext"
@@ -96,11 +97,11 @@ dflc = dz_df(path_zlc)
 z_test_lc = dflc['dN(>S)/dz'].values
 
 # Manual MAE score
-maelc_z = mean_absolute_error(z_test_lc, yhatz)
+# maelc_z = mean_absolute_error(z_test_lc, yhatz)
 #
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[0:49], yhatz, 'b--', label=f"Prediction MAE: {maelc_z:.3f}")
+axs.plot(bins[0:7], yhatz, 'b--', label=f"Prediction")  # MAE: {maelc_z:.3f}")
 
 # Original galform data
 dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
@@ -108,7 +109,7 @@ dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
 axs.set_ylabel(r"log$_{10}$(dN(>S)/dz) [deg$^{-2}$]")
 axs.set_xlabel(r"Redshift, z")
 axs.set_xlim(0.7, 2.0)
-axs.set_ylim(3.0, 4.0)
+axs.set_ylim(3.2, 3.8)
 plt.legend()
 plt.show()
 
@@ -140,26 +141,26 @@ k_test_lc_full = df_lflc['Krdust'].values
 k_test_lc_sub = k_test_lc_full
 
 # Ignore the zero truth values
-yhatk_lc_sub = yhatk[k_test_lc_sub != 0]
-binsk_lc_sub = bins[49:67][k_test_lc_sub != 0]
-k_test_lc_sub = k_test_lc_sub[k_test_lc_sub != 0]
+# yhatk_lc_sub = yhatk[k_test_lc_sub != 0]
+# binsk_lc_sub = bins[49:67][k_test_lc_sub != 0]
+# k_test_lc_sub = k_test_lc_sub[k_test_lc_sub != 0]
 
 binsk_full = df_lflc['Mag'][k_test_lc_full != 0]
 k_test_lc_full = k_test_lc_full[k_test_lc_full != 0]
 
 # Manual MAE score
-maelc_k = mean_absolute_error(k_test_lc_sub, yhatk_lc_sub)
+# maelc_k = mean_absolute_error(k_test_lc_sub, yhatk_lc_sub)
 
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[49:67], yhatk, 'b--', label=f"Prediction MAE: {maelc_k:.3f}")
+axs.plot(bins[7:38], yhatk, 'b--', label=f"Prediction")  # MAE: {maelc_k:.3f}")
 
 axs.plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
 # axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
 axs.set_xlabel(r"M$_{K,AB}$ - 5log(h)")
 axs.set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
-axs.set_xlim(-18, -25)
-axs.set_ylim(-6, -1)
+axs.set_xlim(-16, -24.5)
+axs.set_ylim(-5.5, -1)
 plt.legend()
 plt.show()
 
@@ -168,26 +169,26 @@ r_test_lc_full = df_lflc['Rrdust'].values
 r_test_lc_sub = r_test_lc_full
 
 # Ignore the zero truth values
-yhatr_lc_sub = yhatr[r_test_lc_sub != 0]
-binsr_lc_sub = bins[49:67][r_test_lc_sub != 0]
-r_test_lc_sub = r_test_lc_sub[r_test_lc_sub != 0]
+# yhatr_lc_sub = yhatr[r_test_lc_sub != 0]
+# binsr_lc_sub = bins[49:67][r_test_lc_sub != 0]
+# r_test_lc_sub = r_test_lc_sub[r_test_lc_sub != 0]
 
 binsr_full = df_lflc['Mag'][r_test_lc_full != 0]
 r_test_lc_full = r_test_lc_full[r_test_lc_full != 0]
 
 # Manual MAE score
-maelc_r = mean_absolute_error(r_test_lc_sub, yhatr_lc_sub)
+# maelc_r = mean_absolute_error(r_test_lc_sub, yhatr_lc_sub)
 
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[49:67], yhatr, 'b--', label=f"Prediction MAE: {maelc_r:.3f}")
+axs.plot(bins[38:58], yhatr, 'b--', label=f"Prediction")  # MAE: {maelc_r:.3f}")
 
 axs.plot(binsr_full, r_test_lc_full, 'b-', label="Lacey et al. 2016")
 # axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
 axs.set_xlabel(r"M$_{r,AB}$ - 5log(h)")
 axs.set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
-axs.set_xlim(-18, -25)
-axs.set_ylim(-6, -1)
+axs.set_xlim(-16, -24)
+axs.set_ylim(-5.5, -1)
 plt.legend()
 plt.show()
 
@@ -261,5 +262,5 @@ r_test_lc_sub = r_test_lc_sub[r_test_lc_sub != 0]
 
 y_true = np.hstack([z_test_lc, k_test_lc_full, r_test_lc_sub])
 np.save('Lacey_y_true.npy', y_true)
-l_bins = np.hstack([bins[0:49], binsk_full, binsr_full])
+l_bins = np.hstack([bins_l[0:49], binsk_full, binsr_full])
 np.save('Lacey_bins.npy', l_bins)

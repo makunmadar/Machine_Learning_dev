@@ -211,9 +211,9 @@ def likelihood(params, models, obs_y, mae_weighting):
 
     bag = weighted_diff[0:7] / 7
     # bag_i = weighted_diff / 7
-    driv_k = weighted_diff[7:31] / 24
+    driv_k = weighted_diff[7:38] / 31
     # driv_i = weighted_diff / 12
-    driv_r = weighted_diff[31:51] / 20
+    driv_r = weighted_diff[38:58] / 20
 
     weighted_err = (np.sum(bag) + np.sum(driv_k) + np.sum(driv_r)) * (1/3)
 
@@ -269,10 +269,11 @@ df_r['error'] = df_r['error'] * 2  # Same reason
 
 # Import Cole et al. 2001
 cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
-cole_path_k = 'Data/Data_for_ML/Observational/Cole_2001/lfJK_Cole2001.data'
-df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00, mag_high=-18.00)
+cole_path_k = 'Data/Data_for_ML/Observational/Cole_01/lfJK_Cole2001.data'
+df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00-1.87, mag_high=-16.00-1.87)
 df_ck = df_ck[df_ck['PhiK'] != 0]
 df_ck = df_ck.sort_values(['Mag'], ascending=[True])
+df_ck['Mag'] = df_ck['Mag'] + 1.87
 
 # Combine the observational data
 # obs_x = np.hstack([Ha_b['z'].values, df_k['Mag'].values, df_r['Mag'].values])
@@ -291,7 +292,7 @@ obs_y = np.log10(np.hstack([Ha_b['n'].values, df_ck['PhiK'].values, df_r['LF'].v
 
 # # MAE weighting
 # W = [8.0] * 49 + [1.0] * 16
-W = [1.0] * 7 + [1.0] * 24 + [1.0] * 20
+W = [1.0] * 7 + [1.0] * 31 + [1.0] * 20
 param_range = [2.7, 450.0, 450.0, 2.0, 2.0, 1.5]
 b = [i/40 for i in param_range]
 
@@ -305,7 +306,7 @@ print('Loaded %d models' % len(members))
 
 # np.random.seed(42)
 
-num_samples = int(15000)
+num_samples = int(12000)
 burnin = 0.0  # For now testing with zero burn in
 n_walkers = 5
 
@@ -354,7 +355,7 @@ for n in range(n_walkers):
 elapsed = time.perf_counter() - start
 print('Elapsed %.3f seconds' % elapsed, ' for MCMC')
 
-flattened_predictions = np.reshape(n_predictions, (-1, 51))
+flattened_predictions = np.reshape(n_predictions, (-1, 58))
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k')

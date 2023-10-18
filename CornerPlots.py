@@ -131,13 +131,14 @@ df_r['LF'] = np.log10(df_r['LF'])
 
 # Import Cole et al. 2001
 cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
-cole_path_k = 'Data/Data_for_ML/Observational/Cole_2001/lfJK_Cole2001.data'
-df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00, mag_high=-18.00)
+cole_path_k = 'Data/Data_for_ML/Observational/Cole_01/lfJK_Cole2001.data'
+df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00-1.87, mag_high=-16.00-1.87)
 df_ck = df_ck[df_ck['PhiK'] != 0]
 df_ck = df_ck.sort_values(['Mag'], ascending=[True])
 df_ck['errorK_upper'] = np.log10(df_ck['PhiK'] + df_ck['errorK']) - np.log10(df_ck['PhiK'])
 df_ck['errorK_lower'] = np.log10(df_ck['PhiK']) - np.log10(df_ck['PhiK'] - df_ck['errorK'])
 df_ck['PhiK'] = np.log10(df_ck['PhiK'])
+df_ck['Mag'] = df_ck['Mag'] + 1.87
 
 # Fitting to redshift distribution
 # fig, axs = plt.subplots(1, 2, figsize=(10, 10))
@@ -198,8 +199,8 @@ for i in range(len(combo_predictions_raw)):
     for theta in combo_predictions_raw[i]:
         c = next(colour)
         axs[i, 0].plot(bins[0:7], theta[0:7], c=c, alpha=0.1)
-        axs[i, 1].plot(bins[7:31], theta[7:31], c=c, alpha=0.1)
-        axs[i, 2].plot(bins[31:51], theta[31:51], c=c, alpha=0.1)
+        axs[i, 1].plot(bins[7:38], theta[7:38], c=c, alpha=0.1)
+        axs[i, 2].plot(bins[38:58], theta[38:58], c=c, alpha=0.1)
     axs[i, 0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black',
                        capsize=2, fmt='co')
     # axs[i, 1].errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
@@ -211,7 +212,7 @@ for i in range(len(combo_predictions_raw)):
 
     axs[i, 0].set_xlim(0.9, 1.6)
     axs[i, 0].set_ylim(2.5, 4.5)
-    axs[i, 1].set_xlim(-18.0, -24.0)
+    axs[i, 1].set_xlim(-16.0, -24.5)
     axs[i, 1].set_ylim(-6, -1)
     axs[i, 2].set_xlim(-13.0, -24)
     axs[i, 2].set_ylim(-6, -1)

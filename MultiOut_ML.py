@@ -30,10 +30,14 @@ def get_model(input_shape):
     model = Sequential([
 
         normalizer,
-        Dense(512, input_shape=(6,), activation='ReLU'),
-        Dense(512, activation='ReLU'),
-        # Dense(512, activation='LeakyReLU'),
-        Dense(51)
+        Dense(512, input_shape=(6,), activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+        Dense(45)
     ])
 
     model.build(input_shape)
@@ -62,8 +66,8 @@ checkpoint = ModelCheckpoint(
 )
 
 # Import the training datasets
-# feature_file = 'Data/Data_for_ML/training_data/feature'
-# label_file = 'Data/Data_for_ML/training_data/label_full_int_colek'
+# feature_file = 'Data/Data_for_ML/training_data/feature_up'
+# label_file = 'Data/Data_for_ML/training_data/label_fullup_int'
 #
 # # For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
 # X = genfromtxt(feature_file)
@@ -73,23 +77,23 @@ checkpoint = ModelCheckpoint(
 # print('Label data shape: ', y.shape)
 #
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
-#
-# # Save the train and test datasets
+
+# Save the train and test datasets
 # np.save('Data/Data_for_ML/training_data/X_train_900.npy', X_train)
 # np.save('Data/Data_for_ML/testing_data/X_test_100.npy', X_test)
 # np.save('Data/Data_for_ML/training_data/y_train_900.npy', y_train)
 # np.save('Data/Data_for_ML/testing_data/y_test_100.npy', y_test)
-# np.save('Data/Data_for_ML/training_data/X_train_900_full_int.npy', X_train)
-# np.save('Data/Data_for_ML/testing_data/X_test_100_full_int.npy', X_test)
-# np.save('Data/Data_for_ML/training_data/y_train_900_full_int.npy', y_train)
-# np.save('Data/Data_for_ML/testing_data/y_test_100_full_int.npy', y_test)
+# np.save('Data/Data_for_ML/training_data/X_train_900_fullup_int.npy', X_train)
+# np.save('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy', X_test)
+# np.save('Data/Data_for_ML/training_data/y_train_900_fullup_int.npy', y_train)
+# np.save('Data/Data_for_ML/testing_data/y_test_100_fullup_int.npy', y_test)
 # np.save('Data/Data_for_ML/training_data/X_train_900_full_int_colek.npy', X_train)
 # np.save('Data/Data_for_ML/testing_data/X_test_100_full_int_colek.npy', X_test)
 # np.save('Data/Data_for_ML/training_data/y_train_900_full_int_colek.npy', y_train)
 # np.save('Data/Data_for_ML/testing_data/y_test_100_full_int_colek.npy', y_test)
 
-X_train = np.load('Data/Data_for_ML/training_data/X_train_900_full_int_colek.npy')
-y_train = np.load('Data/Data_for_ML/training_data/y_train_900_full_int_colek.npy')
+X_train = np.load('Data/Data_for_ML/training_data/X_train_900_fullup_int.npy')
+y_train = np.load('Data/Data_for_ML/training_data/y_train_900_fullup_int.npy')
 
 # idx = np.random.choice(np.arange(len(X_train)), 800, replace=False)
 # X_train = X_train[idx]
@@ -105,14 +109,14 @@ print('Label data shape: ', y_train.shape)
 input_shape = X_train.shape
 
 # Fit and save models
-n_members = 5
+n_members = 1
 for i in range(n_members):
 
     # Fit model
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i + 1) + "_555_mask_900_LRELU_int_colek"
+    model_name = "Ensemble_model_" + str(i + 1) + "_5555555_mask_900_LRELU_int_up"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
@@ -120,7 +124,7 @@ for i in range(n_members):
     start = time.perf_counter()
     history = model.fit(X_train, y_train,
                         verbose=0,
-                        validation_split=0.3,
+                        validation_split=0.2,
                         callbacks=[early_stopping, tensorboard_callback],
                         epochs=700)
 
@@ -136,7 +140,7 @@ for i in range(n_members):
 
     model.fit(X_train, y_train,
               verbose=0,
-              validation_split=0.3,
+              validation_split=0.2,
               callbacks=[early_stopping, tensorboard_callback],
               initial_epoch=start_epoch,
               epochs=1000)

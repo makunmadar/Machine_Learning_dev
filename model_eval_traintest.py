@@ -8,8 +8,8 @@ plt.rcParams["font.size"] = 11
 plt.rc('xtick', labelsize=11)
 plt.rc('ytick', labelsize=11)
 
-X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_full_int_colek.npy')
-y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_full_int_colek.npy')
+X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy')
+y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_fullup_int.npy')
 
 # Load all the models and make predictions on the test set
 yhat_all = predict_all_models(n_models=5, X_test=X_test)
@@ -22,11 +22,11 @@ yhat_avg = np.mean(yhat_all, axis=0)
 # yhat_4 = yhat_all[3]
 # yhat_5 = yhat_all[4]
 
-bin_file = 'Data/Data_for_ML/bin_data/bin_full_int_colek'
+bin_file = 'Data/Data_for_ML/bin_data/bin_fullup_int'
 bins = genfromtxt(bin_file)
 bins_z = bins[0:7]
-bins_lfk = bins[7:31]
-bins_lfr = bins[31:51]
+bins_lfk = bins[7:25]
+bins_lfr = bins[25:45]
 
 # Manual redshift distribution MAE score
 y_testz = [i[0:7] for i in y_test]
@@ -45,8 +45,8 @@ for j in range(100):
 print("\n")
 # Manual luminosity function MAE score
 # K-band LF
-y_testk = [i[7:31] for i in y_test]
-yhatk = [i[7:31] for i in yhat_avg]
+y_testk = [i[7:25] for i in y_test]
+yhatk = [i[7:25] for i in yhat_avg]
 # yhatk_1 = [i[13:22] for i in yhat_1]
 yhatk_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk, y_testk)]
 # yhatk_1_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk_1, y_testk)]
@@ -68,8 +68,8 @@ for j in range(100):
     # MAEk1.append(maei1)
 print("\n")
 # R-band LF
-y_testr = [i[31:51] for i in y_test]
-yhatr = [i[31:51] for i in yhat_avg]
+y_testr = [i[25:45] for i in y_test]
+yhatr = [i[25:45] for i in yhat_avg]
 # yhatk_1 = [i[13:22] for i in yhat_1]
 yhatr_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatr, y_testr)]
 # yhatk_1_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk_1, y_testk)]
@@ -116,7 +116,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 0
+m = 74
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -137,7 +137,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 93
+m = 85
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -158,7 +158,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 0
+m = 75
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -169,50 +169,6 @@ for i in range(6):
     axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
     axs[i].legend()
     axs[i].set_xlabel("M$_{K,AB}$ - 5log(h)")
-    axs[i].set_xlim(-18, -25)
-
-axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
-axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
-plt.show()
-
-fig, axs = plt.subplots(2, 3, figsize=(15, 10),
-                        facecolor='w', edgecolor='k', sharey='row')
-fig.subplots_adjust(wspace=0)
-axs = axs.ravel()
-
-m = 40
-for i in range(6):
-    # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_3[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_4[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_5[i+m][13:22], '--', alpha=0.3)
-    axs[i].plot(bins_lfk, yhatk[i+m], 'b--', label=f"Prediction MAE: {MAEk[i+m]:.3f}")
-    axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
-    axs[i].legend()
-    axs[i].set_xlabel("M$_{K,AB}$ - 5log(h)")
-    axs[i].set_xlim(-18, -25)
-
-axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
-axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
-plt.show()
-
-fig, axs = plt.subplots(2, 3, figsize=(15, 10),
-                        facecolor='w', edgecolor='k', sharey='row')
-fig.subplots_adjust(wspace=0)
-axs = axs.ravel()
-
-m = 0
-for i in range(6):
-    # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_3[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_4[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_5[i+m][13:22], '--', alpha=0.3)
-    axs[i].plot(bins_lfr, yhatr[i+m], 'b--', label=f"Prediction MAE: {MAEr[i+m]:.3f}")
-    axs[i].plot(binsr[i+m], y_testr[i+m], 'gx-', label="True model "+str(i+1+m))
-    axs[i].legend()
-    axs[i].set_xlabel("M$_{r,AB}$ - 5log(h)")
     axs[i].set_xlim(-15, -24)
 
 axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
@@ -224,7 +180,29 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 40
+m = 85
+for i in range(6):
+    # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_3[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_4[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_5[i+m][13:22], '--', alpha=0.3)
+    axs[i].plot(bins_lfk, yhatk[i+m], 'b--', label=f"Prediction MAE: {MAEk[i+m]:.3f}")
+    axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
+    axs[i].legend()
+    axs[i].set_xlabel("M$_{K,AB}$ - 5log(h)")
+    axs[i].set_xlim(-15, -24)
+
+axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+plt.show()
+
+fig, axs = plt.subplots(2, 3, figsize=(15, 10),
+                        facecolor='w', edgecolor='k', sharey='row')
+fig.subplots_adjust(wspace=0)
+axs = axs.ravel()
+
+m = 75
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -235,7 +213,29 @@ for i in range(6):
     axs[i].plot(binsr[i+m], y_testr[i+m], 'gx-', label="True model "+str(i+1+m))
     axs[i].legend()
     axs[i].set_xlabel("M$_{r,AB}$ - 5log(h)")
-    axs[i].set_xlim(-15, -24)
+    axs[i].set_xlim(-13.5, -24)
+
+axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+plt.show()
+
+fig, axs = plt.subplots(2, 3, figsize=(15, 10),
+                        facecolor='w', edgecolor='k', sharey='row')
+fig.subplots_adjust(wspace=0)
+axs = axs.ravel()
+
+m = 85
+for i in range(6):
+    # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_3[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_4[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_5[i+m][13:22], '--', alpha=0.3)
+    axs[i].plot(bins_lfr, yhatr[i+m], 'b--', label=f"Prediction MAE: {MAEr[i+m]:.3f}")
+    axs[i].plot(binsr[i+m], y_testr[i+m], 'gx-', label="True model "+str(i+1+m))
+    axs[i].legend()
+    axs[i].set_xlabel("M$_{r,AB}$ - 5log(h)")
+    axs[i].set_xlim(-13.5, -24)
 
 axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
 axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')

@@ -50,13 +50,14 @@ df_r['LF'] = np.log10(df_r['LF'])
 
 # Import Cole et al. 2001
 cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
-cole_path_k = 'Data/Data_for_ML/Observational/Cole_2001/lfJK_Cole2001.data'
-df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00, mag_high=-18.00)
+cole_path_k = 'Data/Data_for_ML/Observational/Cole_01/lfJK_Cole2001.data'
+df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00-1.87, mag_high=-16.00-1.87)
 df_ck = df_ck[df_ck['PhiK'] != 0]
 df_ck = df_ck.sort_values(['Mag'], ascending=[True])
 df_ck['errorK_upper'] = np.log10(df_ck['PhiK'] + df_ck['errorK']) - np.log10(df_ck['PhiK'])
 df_ck['errorK_lower'] = np.log10(df_ck['PhiK']) - np.log10(df_ck['PhiK'] - df_ck['errorK'])
 df_ck['PhiK'] = np.log10(df_ck['PhiK'])
+df_ck['Mag'] = df_ck['Mag'] + 1.87
 
 # Import bin data
 bin_file = 'Data/Data_for_ML/bin_data/bin_full_int_colek'
@@ -71,7 +72,7 @@ bins_l = np.load('Lacey_bins.npy')
 # X_rand_old = np.array([1.80595566e-01, 3.13150522e+02, 4.82625973e+02, 3.46543453e+00, 2.94445793e-05, 1.67638043e+00])
 # ratio_old = "4:1:1"
 # Best fitting non scaling method
-X_rand = np.array([2.24849824e+00, 4.72013031e+02, 1.06094650e+02, 3.49803642e+00, 1.88328839e-01, 3.45516933e-01])
+X_rand = np.array([1.15772899e-01, 2.66441862e+02, 1.06493779e+02, 3.49803138e+00, 6.67243493e-01, 2.04718661e-01])
 ratio = "1:1:1"
 X_rand_old = np.array([4.87305037e-02, 2.31174804e+02, 1.16825859e+02, 3.49499532e+00, 3.45075922e-01, 1.66716602e+00])
 ratio_old = "3.5:1:1"
@@ -104,7 +105,7 @@ print("MAE redshift distribution: ", weighted_maez)
 
 # Try on the Driver et al. 2012 K-band LF data
 # Perform interpolation
-yk1 = y[7:31]
+yk1 = y[7:38]
 xk2 = df_ck['Mag'].values
 yk2 = df_ck['PhiK'].values
 
@@ -112,12 +113,12 @@ yk2 = df_ck['PhiK'].values
 # interp_funck = interp1d(xk1, yk1, kind='linear', fill_value='extrapolate')
 # interp_yk1 = interp_funck(xk2)
 
-weighted_maek = mean_absolute_error(yk2, yk1)
-print("MAE K-band luminosity function: ", weighted_maek)
+# weighted_maek = mean_absolute_error(yk2, yk1)
+# print("MAE K-band luminosity function: ", weighted_maek)
 
 # Try on the Driver et al. 2012 r-band LF data
 # Perform interpolation
-yr1 = y[31:51]
+yr1 = y[38:58]
 xr2 = df_r['Mag'].values
 yr2 = df_r['LF'].values
 
@@ -125,8 +126,8 @@ yr2 = df_r['LF'].values
 # interp_funcr = interp1d(xr1, yr1, kind='linear', fill_value='extrapolate')
 # interp_yr1 = interp_funcr(xr2)
 
-weighted_maer = mean_absolute_error(yr2, yr1)
-print("MAE r-band luminosity function: ", weighted_maer)
+# weighted_maer = mean_absolute_error(yr2, yr1)
+# print("MAE r-band luminosity function: ", weighted_maer)
 
 # Plot to see how this looks
 fig, axs = plt.subplots(1, 3, figsize=(20, 6))
@@ -143,17 +144,17 @@ axs[0].legend()
 #                 markeredgecolor='black', ecolor='black', capsize=2, fmt='co')
 axs[1].errorbar(df_ck['Mag'], df_ck['PhiK'], yerr=(df_ck['errorK_lower'], df_ck['errorK_upper']),
                 markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Cole et al. 2001')
-axs[1].plot(bins[7:31], yk1, 'b--', label='Galform prediction ' + ratio)
+axs[1].plot(bins[7:38], yk1, 'b--', label='Galform prediction ' + ratio)
 axs[1].plot(bins_l[49:69], Lacey_y[49:69], 'r--', label="Lacey et al. 2016")
 # axs[1].plot(xk2, interp_yk1, 'bx', label='Interpolated galform')
 axs[1].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
 axs[1].set_xlabel(r"M$_{AB}$ - 5log(h)")
-axs[1].set_xlim(-18, -24)
-axs[1].set_ylim(-6, -1)
+axs[1].set_xlim(-16, -24.5)
+axs[1].set_ylim(-6.2, -1)
 axs[1].legend()
 axs[2].errorbar(df_r['Mag'], df_r['LF'], yerr=(df_r['error_lower'], df_r['error_upper']),
                 markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
-axs[2].plot(bins[31:51], yr1, 'b--', label='Galform prediction ' + ratio)
+axs[2].plot(bins[38:58], yr1, 'b--', label='Galform prediction ' + ratio)
 axs[2].plot(bins_l[69:91], Lacey_y[69:91], 'r--', label="Lacey et al. 2016")
 # axs[2].plot(xr2, interp_yr1, 'bx', label='Interpolated galform')
 axs[2].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
@@ -206,9 +207,9 @@ abs_diff = np.abs(obs - y)
 
 bag_i = abs_diff[0:7] / 7
 # bag_iold = abs_diff_old[0:7] / 7
-driv_k = abs_diff[7:31] / 24
+driv_k = abs_diff[7:38] / 31
 # driv_kold = abs_diff_old[7:25] / 18
-driv_r = abs_diff[31:51] / 20
+driv_r = abs_diff[38:58] / 20
 # driv_rold = abs_diff_old[25:45] / 20
 
 mae = (1 / 3) * (np.sum(bag_i) + np.sum(driv_k) + np.sum(driv_r))
@@ -216,8 +217,8 @@ mae = (1 / 3) * (np.sum(bag_i) + np.sum(driv_k) + np.sum(driv_r))
 print("\n")
 print("Unweighted MAE: ", mae)
 print("Redshift distribution MAE: ", np.mean(abs_diff[0:7]))
-print("K-band Luminosity function MAE: ", np.mean(abs_diff[7:31]))
-print("r-band Luminosity function MAE: ", np.mean(abs_diff[31:51]))
+print("K-band Luminosity function MAE: ", np.mean(abs_diff[7:38]))
+print("r-band Luminosity function MAE: ", np.mean(abs_diff[38:58]))
 
 # Convert to Lagrangian likelihood
 likelihood = (1/(2*0.05)) * np.exp(-mae / 0.05)
@@ -265,14 +266,14 @@ axs[0].set_ylabel("log$_{10}$(dN(>S)/dz) [deg$^{-2}$]")
 #              ecolor="black", capsize=2, fmt='co', label="Driver et al. 2012")
 axs[1].errorbar(df_ck['Mag'], df_ck['PhiK'], yerr=(df_ck['errorK_lower'], df_ck['errorK_upper']),
                 markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Cole et al. 2001')
-l2k = axs[1].plot(bins[7:31], yk1, '--', color='green', label=ratio + ' Galform prediction')
+l2k = axs[1].plot(bins[7:38], yk1, '--', color='green', label=ratio + ' Galform prediction')
 # l2ko = axs[1].plot(bins[7:25], y_old[7:25], '--', color='red', label=ratio_old + ' Galform prediction')
 axs[1].tick_params(axis='y')
 axs[1].set_xlabel(r"M$_{K,AB}$ - 5log(h)")
 axs[1].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
 axs[2].errorbar(df_r["Mag"], df_r["LF"], yerr=(df_r['error_lower'], df_r['error_upper']), markeredgecolor='black',
              ecolor="black", capsize=2, fmt='co', label="Driver et al. 2012")
-l2r = axs[2].plot(bins[31:51], yr1, '--', color='green', label=ratio + ' Galform prediction')
+l2r = axs[2].plot(bins[38:58], yr1, '--', color='green', label=ratio + ' Galform prediction')
 # l2ro = axs[2].plot(bins[25:45], y_old[25:45], '--', color='red', label=ratio_old + ' Galform prediction')
 axs[2].tick_params(axis='y')
 axs[2].set_xlabel(r"M$_{r,AB}$ - 5log(h)")
