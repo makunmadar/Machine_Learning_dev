@@ -110,7 +110,7 @@ frac_sigma = sigma/obs
 
 # Redshift distribution
 columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
-base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_HaNIIext_1340/dndz_HaNII_ext/"
+base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_HaNIIext_1999/dndz_HaNII_ext/"
 
 base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
@@ -127,7 +127,7 @@ for file in base_filenames:
 
 dndzbins = Ha_b['z'].values
 print('Redshift distribution bins: ', dndzbins)
-print('Example of dn/dz values: ', training_Hadndz[113])
+print('Example of dn/dz values: ', training_Hadndz[1000])
 
 # LF
 columns_lf = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
@@ -151,7 +151,7 @@ columns_lf = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
              'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
              ]
 
-base_path_lf = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/LF_1340/LF/"
+base_path_lf = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/LF_1999/LF/"
 basek_filenames = os.listdir(base_path_lf)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
@@ -165,6 +165,7 @@ for file in basek_filenames:
     interp_funck = interp1d(df_lfk['Mag'].values, df_lfk['Krdust'].values, kind='linear', fill_value='extrapolate',
                             bounds_error=False)
     interp_yk1 = interp_funck(df_k['Mag'].values)
+    interp_yk1[df_k['Mag'].values < min(df_lfk['Mag'].values)] = 0
 
     df_lfr = lf_df(base_path_lf + file, columns_lf, mag_low=-23.36, mag_high=-13.73)
     df_lfr['Rrdust'] = np.log10(df_lfr['Rrdust'].mask(df_lfr['Rrdust'] <= 0)).fillna(0)
@@ -172,30 +173,31 @@ for file in basek_filenames:
     interp_funcr = interp1d(df_lfr['Mag'].values, df_lfr['Rrdust'].values, kind='linear', fill_value='extrapolate',
                             bounds_error=False)
     interp_yr1 = interp_funcr(df_r['Mag'].values)
+    interp_yr1[df_r['Mag'].values < min(df_lfk['Mag'].values)] = 0
 
     # Calculate the amount of padding needed for both arrays
-    paddingk = [(0, 18 - len(interp_yk1))]  # 18 for driver
-    paddingr = [(0, 20 - len(interp_yr1))]
+    # paddingk = [(0, 18 - len(interp_yk1))]  # 18 for driver
+    # paddingr = [(0, 20 - len(interp_yr1))]
 
     # Pad both arrays with zeros
-    padded_arrayk = np.pad(interp_yk1, paddingk, mode='constant', constant_values=0)
-    padded_arrayr = np.pad(interp_yr1, paddingr, mode='constant', constant_values=0)
+    # padded_arrayk = np.pad(interp_yk1, paddingk, mode='constant', constant_values=0)
+    # padded_arrayr = np.pad(interp_yr1, paddingr, mode='constant', constant_values=0)
 
-    lf_vector = np.concatenate((padded_arrayk, padded_arrayr))
+    lf_vector = np.concatenate((interp_yk1, interp_yr1))
     training_lf = np.vstack([training_lf, lf_vector])
 
 # lfbins = np.concatenate((df_k['Mag'].values, df_r['Mag'].values))
 lfbins = np.concatenate((df_k['Mag'].values, df_r['Mag'].values))
 print('LF distribution bins: ', lfbins)
-print('Example of k-band LF values: ', training_lf[113][0:18])
-print('Example of r-band LF values: ', training_lf[113][18:38])
+print('Example of k-band LF values: ', training_lf[1000][0:18])
+print('Example of r-band LF values: ', training_lf[1000][18:38])
 
 # Combine the two data sets with the parameter data
 combo_bins = np.hstack([dndzbins, lfbins])  # This data is not required for the machine learning
 combo_labels = np.hstack([training_Hadndz, training_lf])
-combo_labels = combo_labels[:1340]  # As we only have the first 1340 for definite
+# combo_labels = combo_labels[:1999]  # As we only have the first 1340 for definite
 print('Combo bins: ', combo_bins)
-print('Example of combo labels: ', combo_labels[113])
+print('Example of combo labels: ', combo_labels[1000])
 
 # testing_feature_file1 = 'Data/Data_for_ML/raw_features/test_parameters.csv'
 # testing_features1 = genfromtxt(testing_feature_file1, delimiter=',', skip_header=1)
@@ -213,7 +215,8 @@ training_feature_file = 'Data/Data_for_ML/raw_features/updated_parameters_extend
 training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(11))
 # Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
 training_features = training_features[::30]
-training_features = training_features[:1340]  # As for now we only have the first 1340 features
+training_features = np.delete(training_features, 1470, axis=0)  # As for now we don't have model 1471
+
 training_features = np.vectorize(round_sigfigs)(training_features)
 # combo_labels = np.round(combo_labels, decimals=3)
 # print('Example of rounded combo labels: ', combo_labels[113])

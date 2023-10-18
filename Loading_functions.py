@@ -104,7 +104,7 @@ def load_all_models(n_models):
     all_models = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_55_mask_900_LRELU_int_up'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555555_mask_1899_LRELU_int'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
                                            compile=False)
@@ -130,7 +130,7 @@ def predict_all_models(n_models, X_test):
     all_yhat = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_55_mask_900_LRELU_int_up'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_555555_mask_1899_LRELU_int'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
         print('>loaded %s' % filename)

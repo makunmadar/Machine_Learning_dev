@@ -30,7 +30,8 @@ def get_model(input_shape):
     model = Sequential([
 
         normalizer,
-        Dense(512, input_shape=(6,), activation='LeakyReLU'),
+        Dense(512, input_shape=(11,), activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
@@ -76,7 +77,7 @@ checkpoint = ModelCheckpoint(
 # print('Feature data shape:', X.shape)
 # print('Label data shape: ', y.shape)
 #
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
 
 # Save the train and test datasets
 # np.save('Data/Data_for_ML/training_data/X_train_900.npy', X_train)
@@ -116,7 +117,7 @@ for i in range(n_members):
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i + 1) + "_5555555_mask_900_LRELU_int_up"
+    model_name = "Ensemble_model_" + str(i + 1) + "_8x5_mask_1899_LRELU_int"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
@@ -143,7 +144,7 @@ for i in range(n_members):
               validation_split=0.2,
               callbacks=[early_stopping, tensorboard_callback],
               initial_epoch=start_epoch,
-              epochs=1000)
+              epochs=350)
 
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model ' + str(i + 1))
