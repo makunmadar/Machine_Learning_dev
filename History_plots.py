@@ -22,7 +22,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Validation loss (MAE)")
 plt.ylim([0.1, 0.2])
 plt.xlim([0, 600])
-plt.savefig("Data/Data_for_ML/Model_history/Learning_depth.pdf")
+# plt.savefig("Data/Data_for_ML/Model_history/Learning_depth.pdf")
 plt.show()
 
 # Width
@@ -41,7 +41,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Validation loss (MAE)")
 plt.ylim([0.1, 0.2])
 plt.xlim([0, 600])
-plt.savefig("Data/Data_for_ML/Model_history/Learning_width.pdf")
+# plt.savefig("Data/Data_for_ML/Model_history/Learning_width.pdf")
 plt.show()
 
 # Activation
@@ -61,5 +61,17 @@ plt.xlabel("Epoch")
 plt.ylabel("Validation loss (MAE)")
 plt.ylim([0.1, 0.4])
 plt.xlim([0, 600])
-plt.savefig("Data/Data_for_ML/Model_history/Learning_activation.pdf")
+# plt.savefig("Data/Data_for_ML/Model_history/Learning_activation.pdf")
 plt.show()
+
+modeldndz = pd.read_csv("Data/Data_for_ML/Model_history/run"
+                        "-Ensemble_model_1_6x5_mask_1899dndz_LRELU_int_validation-tag-epoch_loss.csv",
+                        delimiter=",", names=model_headers, skiprows=1)
+plt.plot(modeldndz['epoch'], modeldndz['loss'], label="dndz trained")
+plt.legend()
+plt.xlabel("Epoch")
+plt.ylabel("Validation loss (MAE)")
+plt.ylim([0.1, 0.4])
+plt.xlim([0, 400])
+plt.show()
+

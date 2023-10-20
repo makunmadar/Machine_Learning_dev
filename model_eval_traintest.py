@@ -12,7 +12,7 @@ X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy')
 y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_fullup_int.npy')
 
 # Load all the models and make predictions on the test set
-yhat_all = predict_all_models(n_models=1, X_test=X_test)
+yhat_all = predict_all_models(n_models=5, X_test=X_test)
 yhat_avg = np.mean(yhat_all, axis=0)
 
 # Individual predictions for plotting
@@ -35,7 +35,7 @@ yhatz = [i[0:7] for i in yhat_avg]
 
 MAEz = []
 # MAEz1 = []
-for j in range(100):
+for j in range(len(y_test)):
     maei = mean_absolute_error(y_testz[j], yhatz[j])
     # maei1 = mean_absolute_error(y_testz[j], yhatz_1[j])
     if maei > 0.1:
@@ -52,14 +52,14 @@ yhatk_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk, y_testk)]
 # yhatk_1_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk_1, y_testk)]
 binsk = []
 
-for i in range(100):
+for i in range(len(y_test)):
     bk = bins_lfk[y_testk[i] != 0]
     binsk.append(bk)
 y_testk = [row[row != 0] for row in y_testk]
 
 MAEk = []
 # MAEk1 = []
-for j in range(100):
+for j in range(len(y_test)):
     maei = mean_absolute_error(y_testk[j], yhatk_mae[j])
     # maei1 = mean_absolute_error(y_testk[j], yhatk_1_mae[j])
     if maei > 0.1:
@@ -75,14 +75,14 @@ yhatr_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatr, y_testr)]
 # yhatk_1_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk_1, y_testk)]
 binsr = []
 
-for i in range(100):
+for i in range(len(y_test)):
     br = bins_lfr[y_testr[i] != 0]
     binsr.append(br)
 y_testr = [row[row != 0] for row in y_testr]
 
 MAEr = []
 # MAEk1 = []
-for j in range(100):
+for j in range(len(y_test)):
     maei = mean_absolute_error(y_testr[j], yhatr_mae[j])
     # maei1 = mean_absolute_error(y_testk[j], yhatk_1_mae[j])
     if maei > 0.1:
@@ -243,113 +243,113 @@ plt.show()
 
 # Plotting the MAE per input parameter, focusing on the poor predictions.
 # Manual MAE score
-# N = len(y_test)
-#
-# MAEz_filter = []
-# arz = []
-# vhdz = []
-# vhbz = []
-# ahz = []
-# acz = []
-# nsfz = []
-# MAEk_filter = []
-# ark = []
-# vhdk = []
-# vhbk = []
-# ahk = []
-# ack = []
-# nsfk = []
-# MAEr_filter = []
-# arr = []
-# vhdr = []
-# vhbr = []
-# ahr = []
-# acr = []
-# nsfr = []
-# # X_test = scaler_feat.inverse_transform(X_test)
-#
-# for j in range(N):
-#     maei = MAEk[j]
-#     if maei > 0.0:
-#         # print("Model ", j + 1, "had MAE: ", maei)
-#         MAEk_filter.append(maei)
-#         ark.append(X_test[j][0])
-#         vhdk.append(X_test[j][1])
-#         vhbk.append(X_test[j][2])
-#         ahk.append(X_test[j][3])
-#         ack.append(X_test[j][4])
-#         nsfk.append(X_test[j][5])
-#
-# for j in range(N):
-#     maei = MAEz[j]
-#     if maei > 0.0:
-#         # print("Model ", j + 1, "had MAE: ", maei)
-#         MAEz_filter.append(maei)
-#         arz.append(X_test[j][0])
-#         vhdz.append(X_test[j][1])
-#         vhbz.append(X_test[j][2])
-#         ahz.append(X_test[j][3])
-#         acz.append(X_test[j][4])
-#         nsfz.append(X_test[j][5])
-#
-# for j in range(N):
-#     maei = MAEr[j]
-#     if maei > 0.0:
-#         # print("Model ", j + 1, "had MAE: ", maei)
-#         MAEr_filter.append(maei)
-#         arr.append(X_test[j][0])
-#         vhdr.append(X_test[j][1])
-#         vhbr.append(X_test[j][2])
-#         ahr.append(X_test[j][3])
-#         acr.append(X_test[j][4])
-#         nsfr.append(X_test[j][5])
-#
-# fig, axs = plt.subplots(2, 3, figsize=(15, 10),
-#                         facecolor='w', edgecolor='k', sharey='row')
-# fig.subplots_adjust(wspace=0)
-# axs = axs.ravel()
-#
-# axs[0].plot(arz, MAEz_filter, '.', label='Redshift distribution MAE')
-# axs[0].plot(ark, MAEk_filter, '.', label='K-band Luminosity Function MAE')
-# axs[0].plot(arr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
-# # axs[0].errorbar(binar - dar / 2, medar, stdar, marker='s', color='black', alpha=0.7, label="Median")
-# axs[0].set_ylabel("MAE per test sample", fontsize=16)
-# axs[0].set_xlabel("Alpha reheat", fontsize=16)
-# axs[0].legend()
-# axs[1].plot(vhdz, MAEz_filter, '.', label='Redshift distribution MAE')
-# axs[1].plot(vhdk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
-# axs[1].plot(vhdr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
-# # axs[1].errorbar(binvhd - dvhd / 2, medvhd, stdvhd, marker='s', color='black', alpha=0.7, label="Median")
-# axs[1].set_xlabel("Vhotdisk", fontsize=16)
-# axs[1].legend()
-# axs[2].plot(vhbz, MAEz_filter, '.', label='Redshift distribution MAE')
-# axs[2].plot(vhbk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
-# axs[2].plot(vhbr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
-# # axs[2].errorbar(binvhb - dvhb / 2, medvhb, stdvhb, marker='s', color='black', alpha=0.7, label="Median")
-# axs[2].set_xlabel("Vhotbust", fontsize=16)
-# axs[2].legend()
-#
-# axs[3].plot(ahz, MAEz_filter, '.', label='Redshift distribution MAE')
-# axs[3].plot(ahk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
-# axs[3].plot(ahr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
-# # axs[3].errorbar(binah - dah / 2, medah, stdah, marker='s', color='black', alpha=0.7, label="Median")
-# axs[3].set_ylabel("MAE per test sample", fontsize=16)
-# axs[3].set_xlabel("Alpha hot", fontsize=16)
-# axs[3].legend()
-# axs[4].plot(acz, MAEz_filter, '.', label='Redshift distribution MAE')
-# axs[4].plot(ack, MAEk_filter, '.', label='K-band Luminosity Function MAE')
-# axs[4].plot(acr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
-# # axs[4].errorbar(binac - dac / 2, medac, stdac, marker='s', color='black', alpha=0.7, label="Median")
-# axs[4].set_xlabel("Alpha cool", fontsize=16)
-# axs[4].legend()
-# axs[5].plot(nsfz, MAEz_filter, '.', label='Redshift distribution MAE')
-# axs[5].plot(nsfk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
-# axs[5].plot(nsfr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
-# # axs[5].errorbar(binnsf - dnsf / 2, mednsf, stdnsf, marker='s', color='black', alpha=0.7, label="Median")
-# axs[5].set_xlabel("Nu SF", fontsize=16)
-# axs[5].legend()
-#
-# plt.show()
+N = len(y_test)
+
+MAEz_filter = []
+arz = []
+vhdz = []
+vhbz = []
+ahz = []
+acz = []
+nsfz = []
+MAEk_filter = []
+ark = []
+vhdk = []
+vhbk = []
+ahk = []
+ack = []
+nsfk = []
+MAEr_filter = []
+arr = []
+vhdr = []
+vhbr = []
+ahr = []
+acr = []
+nsfr = []
+# X_test = scaler_feat.inverse_transform(X_test)
+
+for j in range(N):
+    maei = MAEk[j]
+    if maei > 0.0:
+        # print("Model ", j + 1, "had MAE: ", maei)
+        MAEk_filter.append(maei)
+        ark.append(X_test[j][0])
+        vhdk.append(X_test[j][1])
+        vhbk.append(X_test[j][2])
+        ahk.append(X_test[j][3])
+        ack.append(X_test[j][4])
+        nsfk.append(X_test[j][5])
+
+for j in range(N):
+    maei = MAEz[j]
+    if maei > 0.0:
+        # print("Model ", j + 1, "had MAE: ", maei)
+        MAEz_filter.append(maei)
+        arz.append(X_test[j][0])
+        vhdz.append(X_test[j][1])
+        vhbz.append(X_test[j][2])
+        ahz.append(X_test[j][3])
+        acz.append(X_test[j][4])
+        nsfz.append(X_test[j][5])
+
+for j in range(N):
+    maei = MAEr[j]
+    if maei > 0.0:
+        # print("Model ", j + 1, "had MAE: ", maei)
+        MAEr_filter.append(maei)
+        arr.append(X_test[j][0])
+        vhdr.append(X_test[j][1])
+        vhbr.append(X_test[j][2])
+        ahr.append(X_test[j][3])
+        acr.append(X_test[j][4])
+        nsfr.append(X_test[j][5])
+
+fig, axs = plt.subplots(2, 3, figsize=(15, 10),
+                        facecolor='w', edgecolor='k', sharey='row')
+fig.subplots_adjust(wspace=0)
+axs = axs.ravel()
+
+axs[0].plot(arz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[0].plot(ark, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[0].plot(arr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[0].errorbar(binar - dar / 2, medar, stdar, marker='s', color='black', alpha=0.7, label="Median")
+axs[0].set_ylabel("MAE per test sample", fontsize=16)
+axs[0].set_xlabel("Alpha reheat", fontsize=16)
+axs[0].legend()
+axs[1].plot(vhdz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[1].plot(vhdk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[1].plot(vhdr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[1].errorbar(binvhd - dvhd / 2, medvhd, stdvhd, marker='s', color='black', alpha=0.7, label="Median")
+axs[1].set_xlabel("Vhotdisk", fontsize=16)
+axs[1].legend()
+axs[2].plot(vhbz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[2].plot(vhbk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[2].plot(vhbr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[2].errorbar(binvhb - dvhb / 2, medvhb, stdvhb, marker='s', color='black', alpha=0.7, label="Median")
+axs[2].set_xlabel("Vhotbust", fontsize=16)
+axs[2].legend()
+
+axs[3].plot(ahz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[3].plot(ahk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[3].plot(ahr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[3].errorbar(binah - dah / 2, medah, stdah, marker='s', color='black', alpha=0.7, label="Median")
+axs[3].set_ylabel("MAE per test sample", fontsize=16)
+axs[3].set_xlabel("Alpha hot", fontsize=16)
+axs[3].legend()
+axs[4].plot(acz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[4].plot(ack, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[4].plot(acr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[4].errorbar(binac - dac / 2, medac, stdac, marker='s', color='black', alpha=0.7, label="Median")
+axs[4].set_xlabel("Alpha cool", fontsize=16)
+axs[4].legend()
+axs[5].plot(nsfz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[5].plot(nsfk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[5].plot(nsfr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[5].errorbar(binnsf - dnsf / 2, mednsf, stdnsf, marker='s', color='black', alpha=0.7, label="Median")
+axs[5].set_xlabel("Nu SF", fontsize=16)
+axs[5].legend()
+
+plt.show()
 
 yhatz = np.ravel(yhatz)
 y_testz = np.ravel(y_testz)

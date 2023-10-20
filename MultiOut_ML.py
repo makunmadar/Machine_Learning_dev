@@ -5,7 +5,7 @@ At the moment developing a neural network for a multi output regression task.
 import numpy as np
 from numpy import genfromtxt
 import tensorflow as tf
-from tensorflow.keras import Sequential
+from tensorflow.keras import Sequential, Input
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers.experimental import preprocessing
 from tensorflow.keras.optimizers import Adam
@@ -25,14 +25,12 @@ def get_model(input_shape):
     :return: tensorflow model
     '''
 
-    tf.random.set_seed(42)
+    #tf.random.set_seed(42)
 
     model = Sequential([
 
         normalizer,
         Dense(512, input_shape=(11,), activation='LeakyReLU'),
-        Dense(512, activation='LeakyReLU'),
-        Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
@@ -67,8 +65,8 @@ checkpoint = ModelCheckpoint(
 )
 
 # Import the training datasets
-# feature_file = 'Data/Data_for_ML/training_data/feature_up'
-# label_file = 'Data/Data_for_ML/training_data/label_fullup_int'
+# feature_file = 'Data/Data_for_ML/training_data/feature_1999'
+# label_file = 'Data/Data_for_ML/training_data/label_full1999_int'
 #
 # # For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
 # X = genfromtxt(feature_file)
@@ -80,21 +78,17 @@ checkpoint = ModelCheckpoint(
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
 
 # Save the train and test datasets
-# np.save('Data/Data_for_ML/training_data/X_train_900.npy', X_train)
-# np.save('Data/Data_for_ML/testing_data/X_test_100.npy', X_test)
-# np.save('Data/Data_for_ML/training_data/y_train_900.npy', y_train)
-# np.save('Data/Data_for_ML/testing_data/y_test_100.npy', y_test)
-# np.save('Data/Data_for_ML/training_data/X_train_900_fullup_int.npy', X_train)
+# np.save('Data/Data_for_ML/training_data/X_train_1899_fullup_int.npy', X_train)
 # np.save('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy', X_test)
-# np.save('Data/Data_for_ML/training_data/y_train_900_fullup_int.npy', y_train)
+# np.save('Data/Data_for_ML/training_data/y_train_1899_fullup_int.npy', y_train)
 # np.save('Data/Data_for_ML/testing_data/y_test_100_fullup_int.npy', y_test)
-# np.save('Data/Data_for_ML/training_data/X_train_900_full_int_colek.npy', X_train)
-# np.save('Data/Data_for_ML/testing_data/X_test_100_full_int_colek.npy', X_test)
-# np.save('Data/Data_for_ML/training_data/y_train_900_full_int_colek.npy', y_train)
-# np.save('Data/Data_for_ML/testing_data/y_test_100_full_int_colek.npy', y_test)
+# np.save('Data/Data_for_ML/training_data/X_train_1899_dndz_int.npy', X_train)
+# np.save('Data/Data_for_ML/testing_data/X_test_100_dndz_int.npy', X_test)
+# np.save('Data/Data_for_ML/training_data/y_train_1899_dndz_int.npy', y_train)
+# np.save('Data/Data_for_ML/testing_data/y_test_100_dndz_int.npy', y_test)
 
-X_train = np.load('Data/Data_for_ML/training_data/X_train_900_fullup_int.npy')
-y_train = np.load('Data/Data_for_ML/training_data/y_train_900_fullup_int.npy')
+X_train = np.load('Data/Data_for_ML/training_data/X_train_1899_fullup_int.npy')
+y_train = np.load('Data/Data_for_ML/training_data/y_train_1899_fullup_int.npy')
 
 # idx = np.random.choice(np.arange(len(X_train)), 800, replace=False)
 # X_train = X_train[idx]
@@ -110,14 +104,14 @@ print('Label data shape: ', y_train.shape)
 input_shape = X_train.shape
 
 # Fit and save models
-n_members = 1
+n_members = 5
 for i in range(n_members):
 
     # Fit model
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i + 1) + "_8x5_mask_1899_LRELU_int"
+    model_name = "Ensemble_model_" + str(i + 1) + "_6x5_mask_1899_LRELU_int"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 

@@ -71,6 +71,12 @@ def round_sigfigs(x):
     """
     return np.around(x, -int(np.floor(np.log10(abs(x)))) + 2)
 
+
+#################
+training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
+bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
+#################
+
 # Load in the Observational data
 # Import Bagley et al. 2020
 bag_headers = ["z", "n", "+", "-"]
@@ -97,7 +103,7 @@ sigmar = df_r['error'].values
 
 sigma = np.hstack([sigmaz, sigmak, sigmar])
 obs = np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].values])
-frac_sigma = sigma/obs
+frac_sigma = sigma / obs
 
 # Import Cole et al. 2001
 # cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
@@ -122,6 +128,8 @@ for file in base_filenames:
 
     interp_funcz = interp1d(df_z['z'].values, df_z['dN(>S)/dz'].values, kind='linear', fill_value='extrapolate')
     interp_yz1 = interp_funcz(Ha_b['z'].values)
+    interp_yz1[Ha_b['z'].values > max(df_z['z'].values)] = 0
+    interp_yz1[Ha_b['z'].values < min(df_z['z'].values)] = 0
 
     training_Hadndz = np.vstack([training_Hadndz, interp_yz1])
 
@@ -131,25 +139,25 @@ print('Example of dn/dz values: ', training_Hadndz[1000])
 
 # LF
 columns_lf = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
-             'Br', 'Br(error)', 'Brdust', 'Brdust(error)',
-             'Vr', 'Vr(error)', 'Vrdust', 'Vrdust(error)',
-             'Rr', 'Rr(error)', 'Rrdust', 'Rrdust(error)',
-             'Ir', 'Ir(error)', 'Irdust', 'Irdust(error)',
-             'Jr', 'Jr(error)', 'Jrdust', 'Jrdust(error)',
-             'Hr', 'Hr(error)', 'Hrdust', 'Hrdust(error)',
-             'Kr', 'Kr(error)', 'Krdust', 'Krdust(error)',
-             'Bjr', 'Bjr(error)', 'Bjrdust', 'Bjrdust(error)',
-             'Uo', 'Uo(error)', 'Uodust', 'Uodust(error)',
-             'Bo', 'Bo(error)', 'Bodust', 'Bodust(error)',
-             'Vo', 'Vo(error)', 'Vodust', 'Vodust(error)',
-             'Ro', 'Ro(error)', 'Rodust', 'Rodust(error)',
-             'Io', 'Io(error)', 'Iodust', 'Iodust(error)',
-             'Jo', 'Jo(error)', 'Jodust', 'Jodust(error)',
-             'Ho', 'Ho(error)', 'Hodust', 'Hodust(error)',
-             'Ko', 'Ko(error)', 'Kodust', 'Kodust(error)',
-             'Bjo', 'Bjo(error)', 'Bjodust', 'Bjodust(error)',
-             'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
-             ]
+              'Br', 'Br(error)', 'Brdust', 'Brdust(error)',
+              'Vr', 'Vr(error)', 'Vrdust', 'Vrdust(error)',
+              'Rr', 'Rr(error)', 'Rrdust', 'Rrdust(error)',
+              'Ir', 'Ir(error)', 'Irdust', 'Irdust(error)',
+              'Jr', 'Jr(error)', 'Jrdust', 'Jrdust(error)',
+              'Hr', 'Hr(error)', 'Hrdust', 'Hrdust(error)',
+              'Kr', 'Kr(error)', 'Krdust', 'Krdust(error)',
+              'Bjr', 'Bjr(error)', 'Bjrdust', 'Bjrdust(error)',
+              'Uo', 'Uo(error)', 'Uodust', 'Uodust(error)',
+              'Bo', 'Bo(error)', 'Bodust', 'Bodust(error)',
+              'Vo', 'Vo(error)', 'Vodust', 'Vodust(error)',
+              'Ro', 'Ro(error)', 'Rodust', 'Rodust(error)',
+              'Io', 'Io(error)', 'Iodust', 'Iodust(error)',
+              'Jo', 'Jo(error)', 'Jodust', 'Jodust(error)',
+              'Ho', 'Ho(error)', 'Hodust', 'Hodust(error)',
+              'Ko', 'Ko(error)', 'Kodust', 'Kodust(error)',
+              'Bjo', 'Bjo(error)', 'Bjodust', 'Bjodust(error)',
+              'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
+              ]
 
 base_path_lf = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/LF_1999/LF/"
 basek_filenames = os.listdir(base_path_lf)
@@ -217,22 +225,22 @@ training_features = genfromtxt(training_feature_file, delimiter=',', skip_header
 training_features = training_features[::30]
 training_features = np.delete(training_features, 1470, axis=0)  # As for now we don't have model 1471
 
-training_features = np.vectorize(round_sigfigs)(training_features)
+# training_features = np.vectorize(round_sigfigs)(training_features)
 # combo_labels = np.round(combo_labels, decimals=3)
 # print('Example of rounded combo labels: ', combo_labels[113])
 
 # Shuffle the data properly
-training_features, combo_labels = shuffle(training_features, combo_labels)
+# training_features, combo_labels = shuffle(training_features, combo_labels)
 
 # Save the arrays aas a text file
-training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
-testing_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/testing_data/"
-bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
-np.savetxt(training_path + 'label_fullup_int', combo_labels, fmt='%.2f')
-# np.savetxt(testing_path + 'label_full_r', combo_labels, fmt='%.2f')
-np.savetxt(training_path + 'feature_up', training_features, fmt='%.2f')
-# np.savetxt(testing_path + 'feature', testing_features, fmt='%.2f')
-np.savetxt(bin_path + 'bin_fullup_int', combo_bins, fmt='%.2f')
+np.savetxt(training_path + 'label_full1999_int', combo_labels)
+np.savetxt(training_path + 'feature_1999', training_features)
+np.savetxt(bin_path + 'bin_full_int', combo_bins)
+
+# Save individual physics data and bins for testing
+
+# np.savetxt(training_path + 'label_dndz1999_int', training_Hadndz)
+# np.savetxt(bin_path + 'bin_dndz_int', dndzbins)
 
 # plt.plot(kbins, training_kband[0], 'rx')
 # kbins = kbins[0::2]
