@@ -12,7 +12,7 @@ X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy')
 y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_fullup_int.npy')
 
 # Load all the models and make predictions on the test set
-yhat_all = predict_all_models(n_models=5, X_test=X_test)
+yhat_all = predict_all_models(n_models=1, X_test=X_test)
 yhat_avg = np.mean(yhat_all, axis=0)
 
 # Individual predictions for plotting
@@ -116,7 +116,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 50
+m = 35
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -137,7 +137,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 90
+m = 70
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -158,7 +158,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 85
+m = 35
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -180,7 +180,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 58
+m = 70
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -224,7 +224,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 85
+m = 70
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)

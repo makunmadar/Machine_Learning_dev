@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from numpy import genfromtxt
 from sklearn.metrics import mean_absolute_error
-from Loading_functions import predict_all_models, lf_df
+from Loading_functions import predict_all_models, lf_df, dndz_df
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.size"] = 15
 plt.rc('xtick', labelsize=15)
@@ -73,26 +73,27 @@ def dz_df(path):
 
 
 #  Lacey parameters
-X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
+X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74, 0.9, 0.3, 0.05, 0.005, 0.1])
 # X_test = np.array([0.69578677, 330.96668774, 293.5104189, 3.058798, 0.68834065, 0.71530994])
 X_test = X_test.reshape(1, -1)
 
 # Make predictions on the galform set
-yhat_all = predict_all_models(n_models=5, X_test=X_test)
+yhat_all = predict_all_models(n_models=1, X_test=X_test)
 yhat_avg = np.mean(yhat_all, axis=0)
 
 yhatz = yhat_avg[0][0:7]
-yhatk = yhat_avg[0][7:38]
-yhatr = yhat_avg[0][38:58]
+yhatk = yhat_avg[0][7:25]
+yhatr = yhat_avg[0][25:45]
 
 # Import the counts bins x axis
-bin_file = 'Data/Data_for_ML/bin_data/bin_full_int_colek'
+bin_file = 'Data/Data_for_ML/bin_data/bin_fullup_int'
 bins = genfromtxt(bin_file)
 bins_l = np.load('Lacey_bins.npy')
 
 # Redshift distribution
 path_zlc = "Data/Data_for_ML/Observational/Lacey_16/dndz_Bagley_HaNII_ext"
-dflc = dz_df(path_zlc)
+columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
+dflc = dndz_df(path_zlc, columns_Z)
 
 z_test_lc = dflc['dN(>S)/dz'].values
 
@@ -108,8 +109,8 @@ dflc.plot(ax=axs, x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
 # axs.scatter(bins[0:49], z_test_lc, color='blue', marker='x', label="Evaluation bins")
 axs.set_ylabel(r"log$_{10}$(dN(>S)/dz) [deg$^{-2}$]")
 axs.set_xlabel(r"Redshift, z")
-axs.set_xlim(0.7, 2.0)
-axs.set_ylim(3.2, 3.8)
+axs.set_xlim(0.9, 1.6)
+axs.set_ylim(3.1, 3.8)
 plt.legend()
 plt.show()
 
@@ -153,7 +154,7 @@ k_test_lc_full = k_test_lc_full[k_test_lc_full != 0]
 
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[7:38], yhatk, 'b--', label=f"Prediction")  # MAE: {maelc_k:.3f}")
+axs.plot(bins[7:25], yhatk, 'b--', label=f"Prediction")  # MAE: {maelc_k:.3f}")
 
 axs.plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
 # axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
@@ -181,7 +182,7 @@ r_test_lc_full = r_test_lc_full[r_test_lc_full != 0]
 
 fig, axs = plt.subplots(1, 1, figsize=(10, 8))
 
-axs.plot(bins[38:58], yhatr, 'b--', label=f"Prediction")  # MAE: {maelc_r:.3f}")
+axs.plot(bins[25:45], yhatr, 'b--', label=f"Prediction")  # MAE: {maelc_r:.3f}")
 
 axs.plot(binsr_full, r_test_lc_full, 'b-', label="Lacey et al. 2016")
 # axs.scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
@@ -190,6 +191,35 @@ axs.set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
 axs.set_xlim(-16, -24)
 axs.set_ylim(-5.5, -1)
 plt.legend()
+plt.show()
+
+fig, axs = plt.subplots(1, 3, figsize=(22, 6))
+axs[0].plot(bins[0:7], yhatz, 'b--', label=f"Prediction")  # MAE: {maelc_z:.3f}")
+dflc.plot(ax=axs[0], x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
+# axs[0].scatter(bins[0:7], z_test_lc, color='blue', marker='x', label="Evaluation bins")
+axs[0].set_ylabel(r"log$_{10}$(dN(>S)/dz) [deg$^{-2}$]")
+axs[0].set_xlabel(r"Redshift, z")
+axs[0].set_xlim(0.9, 1.6)
+axs[0].set_ylim(3.1, 3.8)
+
+axs[1].plot(bins[7:25], yhatk, 'b--', label=f"Prediction")  # MAE: {maelc_k:.3f}")
+axs[1].plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
+# axs[2].scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
+axs[1].set_xlabel(r"M$_{K,AB}$ - 5log(h)")
+axs[1].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
+axs[1].set_xlim(-16, -24.5)
+axs[1].set_ylim(-5, -1)
+
+axs[2].plot(bins[7:25], yhatk, 'b--', label=f"Prediction")  # MAE: {maelc_k:.3f}")
+axs[2].plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
+# axs[2].scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
+axs[2].set_xlabel(r"M$_{K,AB}$ - 5log(h)")
+axs[2].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
+axs[2].set_xlim(-16, -24.5)
+axs[2].set_ylim(-5, -1)
+
+plt.legend()
+plt.savefig('Lacey2016_galform_comparison.pdf')
 plt.show()
 
 # MCMC_params = np.array([2.33, 545.51, 227.26, 2.93, 0.69, 0.59])

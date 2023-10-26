@@ -65,8 +65,8 @@ checkpoint = ModelCheckpoint(
 )
 
 # Import the training datasets
-# feature_file = 'Data/Data_for_ML/training_data/feature_1999'
-# label_file = 'Data/Data_for_ML/training_data/label_full1999_int'
+# feature_file = 'Data/Data_for_ML/training_data/feature_2497'
+# label_file = 'Data/Data_for_ML/training_data/label_full2497_int'
 #
 # # For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
 # X = genfromtxt(feature_file)
@@ -75,20 +75,20 @@ checkpoint = ModelCheckpoint(
 # print('Feature data shape:', X.shape)
 # print('Label data shape: ', y.shape)
 #
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.05, random_state=42)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.04, random_state=42)
 
 # Save the train and test datasets
-# np.save('Data/Data_for_ML/training_data/X_train_1899_fullup_int.npy', X_train)
+# np.save('Data/Data_for_ML/training_data/X_train_2397_fullup_int.npy', X_train)
 # np.save('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy', X_test)
-# np.save('Data/Data_for_ML/training_data/y_train_1899_fullup_int.npy', y_train)
+# np.save('Data/Data_for_ML/training_data/y_train_2397_fullup_int.npy', y_train)
 # np.save('Data/Data_for_ML/testing_data/y_test_100_fullup_int.npy', y_test)
 # np.save('Data/Data_for_ML/training_data/X_train_1899_dndz_int.npy', X_train)
 # np.save('Data/Data_for_ML/testing_data/X_test_100_dndz_int.npy', X_test)
 # np.save('Data/Data_for_ML/training_data/y_train_1899_dndz_int.npy', y_train)
 # np.save('Data/Data_for_ML/testing_data/y_test_100_dndz_int.npy', y_test)
 
-X_train = np.load('Data/Data_for_ML/training_data/X_train_1899_fullup_int.npy')
-y_train = np.load('Data/Data_for_ML/training_data/y_train_1899_fullup_int.npy')
+X_train = np.load('Data/Data_for_ML/training_data/X_train_2397_fullup_int.npy')
+y_train = np.load('Data/Data_for_ML/training_data/y_train_2397_fullup_int.npy')
 
 # idx = np.random.choice(np.arange(len(X_train)), 800, replace=False)
 # X_train = X_train[idx]
@@ -111,7 +111,7 @@ for i in range(n_members):
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i + 1) + "_6x5_mask_1899_LRELU_int"
+    model_name = "Ensemble_model_" + str(i + 1) + "_6x5_mask_2397_LRELU_int"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 

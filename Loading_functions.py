@@ -1,6 +1,45 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from scipy.interpolate import interp1d
+import re
+
+
+def dndz_df(path, columns):
+    """
+    This function extracts the redshift distribution data and saves it in a dataframe.
+
+    :param path: path to the distribution file
+    :param columns: names of the redshift distribution columns
+    :return: dataframe
+    """
+
+    data = []
+    flist = open(path).readlines()
+    parsing = False
+    for line in flist:
+        if line.startswith('# S_nu/Jy=   2.1049E+07'):
+            parsing = True
+        elif line.startswith('# S_nu/Jy=   2.3645E+07'):
+            parsing = False
+        if parsing:
+            if line.startswith('#'):
+                header = line
+            else:
+                row = line.strip().split()
+                data.append(row)
+
+    data = np.vstack(data)
+    df = pd.DataFrame(data=data, columns=columns)
+    df = df.apply(pd.to_numeric)
+
+    # Don't want to include potential zero values at z=0.692
+    df = df[(df['z'] < 2.1)]
+    df = df[(df['z'] > 0.7)]
+
+    df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].mask(df['dN(>S)/dz'] <= 0)).fillna(0)
+
+    return df
 
 
 def lf_df(path, columns, mag_low, mag_high):
@@ -104,7 +143,7 @@ def load_all_models(n_models):
     all_models = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_525_mask_1899_LRELU_int'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_6x5_mask_2397_LRELU_int'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
                                            compile=False)
@@ -130,7 +169,7 @@ def predict_all_models(n_models, X_test):
     all_yhat = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_6x5_mask_1899_LRELU_int'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_6x5_mask_2397_LRELU_int'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
         print('>loaded %s' % filename)
@@ -139,3 +178,92 @@ def predict_all_models(n_models, X_test):
         all_yhat.append(yhat)
 
     return all_yhat
+
+
+def find_number(text, c):
+    '''
+    Identify the model number of a path string
+
+    :param text: model name as string
+    :param c: after what string symbol does the number reside
+    :return: the model number
+    '''
+
+    return [int(s) for s in re.findall(r'%s(\d+)' % c, text)]
+
+
+def dndz_generation(galform_filenames, galform_filepath, O_df, column_headers):
+    """
+
+    Args:
+        galform_filenames:
+        observable_dataframe:
+        column_headers:
+
+    Returns:
+
+    """
+
+    list_dndz = np.empty((0, 7))
+    model_list = []
+
+    for file in galform_filenames:
+        model_number = find_number(file, '.')
+        model_list.append(model_number[0])
+        df_z = dndz_df(galform_filepath + file, column_headers)
+
+        interp_funcz = interp1d(df_z['z'].values, df_z['dN(>S)/dz'].values, kind='linear', fill_value='extrapolate')
+        interp_yz1 = interp_funcz(O_df['z'].values)
+        interp_yz1[O_df['z'].values > max(df_z['z'].values)] = 0
+        interp_yz1[O_df['z'].values < min(df_z['z'].values)] = 0
+
+        list_dndz = np.vstack([list_dndz, interp_yz1])
+
+    return list_dndz, model_list
+
+
+def LF_generation(galform_filenames, galform_filepath, O_dfk, O_dfr, column_headers):
+    """
+
+    Args:
+        galform_filenames:
+        galform_filepath:
+        O_dfk:
+        O_dfr:
+        column_headers:
+
+    Returns:
+
+    """
+    list_lf = np.empty((0, 38))
+    for file in galform_filenames:
+        model_number = find_number(file, '.')
+
+        df_lfk = lf_df(galform_filepath + file, column_headers, mag_low=-23.80, mag_high=-15.04)  # -23.80, -15.04 for Driver
+        df_lfk['Krdust'] = np.log10(df_lfk['Krdust'].mask(df_lfk['Krdust'] <= 0)).fillna(0)
+        df_lfk = df_lfk[df_lfk['Krdust'] != 0]
+        interp_funck = interp1d(df_lfk['Mag'].values, df_lfk['Krdust'].values, kind='linear', fill_value='extrapolate',
+                                bounds_error=False)
+        interp_yk1 = interp_funck(O_dfk['Mag'].values)
+        interp_yk1[O_dfk['Mag'].values < min(df_lfk['Mag'].values)] = 0
+
+        df_lfr = lf_df(galform_filepath + file, column_headers, mag_low=-23.36, mag_high=-13.73)  # -23.36, -13.73 for Driver
+        df_lfr['Rrdust'] = np.log10(df_lfr['Rrdust'].mask(df_lfr['Rrdust'] <= 0)).fillna(0)
+        df_lfr = df_lfr[df_lfr['Rrdust'] != 0]
+        interp_funcr = interp1d(df_lfr['Mag'].values, df_lfr['Rrdust'].values, kind='linear', fill_value='extrapolate',
+                                bounds_error=False)
+        interp_yr1 = interp_funcr(O_dfr['Mag'].values)
+        interp_yr1[O_dfr['Mag'].values < min(df_lfk['Mag'].values)] = 0
+
+        # Calculate the amount of padding needed for both arrays
+        # paddingk = [(0, 18 - len(interp_yk1))]  # 18 for driver
+        # paddingr = [(0, 20 - len(interp_yr1))]
+
+        # Pad both arrays with zeros
+        # padded_arrayk = np.pad(interp_yk1, paddingk, mode='constant', constant_values=0)
+        # padded_arrayr = np.pad(interp_yr1, paddingr, mode='constant', constant_values=0)
+
+        lf_vector = np.concatenate((interp_yk1, interp_yr1))
+        list_lf = np.vstack([list_lf, lf_vector])
+
+    return list_lf

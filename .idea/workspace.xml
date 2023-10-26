@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a7acc9b9-fa9e-44a1-badd-1ebbdfbf4728" name="Changes" comment="Updated network to handle the extra models">
+    <list default="true" id="a7acc9b9-fa9e-44a1-badd-1ebbdfbf4728" name="Changes" comment="Small updates">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Data_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/Data_generation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/History_plots.py" beforeDir="false" afterPath="$PROJECT_DIR$/History_plots.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Galform_comparison.py" beforeDir="false" afterPath="$PROJECT_DIR$/Galform_comparison.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Loading_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Loading_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MultiOut_ML.py" beforeDir="false" afterPath="$PROJECT_DIR$/MultiOut_ML.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model_eval_traintest.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_eval_traintest.py" afterDir="false" />
@@ -79,7 +79,7 @@
       <recent name="$PROJECT_DIR$/Plots" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.History_plots">
+  <component name="RunManager" selected="Python.Galform_comparison">
     <configuration name="Check_LF" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="ML" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -684,7 +684,12 @@
       <workItem from="1697189942202" duration="15086000" />
       <workItem from="1697627177996" duration="11609000" />
       <workItem from="1697661169134" duration="13696000" />
-      <workItem from="1697804263247" duration="6980000" />
+      <workItem from="1697804263247" duration="6998000" />
+      <workItem from="1697824988233" duration="7170000" />
+      <workItem from="1698238902746" duration="5459000" />
+      <workItem from="1698262199339" duration="45000" />
+      <workItem from="1698312986883" duration="324000" />
+      <workItem from="1698319125693" duration="1554000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1681723311518</created>
@@ -975,7 +980,15 @@
       <option name="project" value="LOCAL" />
       <updated>1697663336936</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="Small updates">
+      <option name="closed" value="true" />
+      <created>1697814502465</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1697814502465</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -993,7 +1006,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Added a script to test fitting a schechter function" />
     <MESSAGE value="Update on schechter function fit implamentation" />
     <MESSAGE value="Current save works well for the test predictions but I can't use the standard scaler for the unseen predictions." />
     <MESSAGE value="Training and testing data coming from the same 1000 training distribution" />
@@ -1018,7 +1030,8 @@
     <MESSAGE value="Replacing Driver et al. 2012 K-band LF with Cole et al. 2001 K-band LF." />
     <MESSAGE value="Added history plots script" />
     <MESSAGE value="Updated network to handle the extra models" />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated network to handle the extra models" />
+    <MESSAGE value="Small updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="Small updates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1034,12 +1047,12 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/ML$Optimization.coverage" NAME="Optimization Coverage Results" MODIFIED="1694783661456" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$ML_training.coverage" NAME="ML_training Coverage Results" MODIFIED="1675945401450" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$MultiOut_ML.coverage" NAME="MultiOut_ML Coverage Results" MODIFIED="1697808648761" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$MultiOut_ML.coverage" NAME="MultiOut_ML Coverage Results" MODIFIED="1698246420557" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Parameter_perturb.coverage" NAME="Parameter_perturb Coverage Results" MODIFIED="1691489617485" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Testing_schec.coverage" NAME="Testing_schec Coverage Results" MODIFIED="1688406504550" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$model_eval_ensemble.coverage" NAME="model_eval_ensemble Coverage Results" MODIFIED="1690451856810" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$FAPI_ML.coverage" NAME="FAPI_ML Coverage Results" MODIFIED="1692200819977" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/ML$model_eval_traintest.coverage" NAME="model_eval_traintest Coverage Results" MODIFIED="1697813063735" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$model_eval_traintest.coverage" NAME="model_eval_traintest Coverage Results" MODIFIED="1698320053919" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Interpolation_check.coverage" NAME="Interpolation_check Coverage Results" MODIFIED="1694790228212" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Testing.coverage" NAME="Testing Coverage Results" MODIFIED="1675269804182" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Outliers_eval.coverage" NAME="Outliers_eval Coverage Results" MODIFIED="1689777805097" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -1051,7 +1064,7 @@
     <SUITE FILE_PATH="coverage/ML$model_eval.coverage" NAME="model_eval Coverage Results" MODIFIED="1683234853239" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Optimization_2.coverage" NAME="CornerPlots Coverage Results" MODIFIED="1691408879178" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Check_normalisation.coverage" NAME="Check_normalisation Coverage Results" MODIFIED="1680623218204" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Galform_comparison.coverage" NAME="Galform_comparison Coverage Results" MODIFIED="1694788571785" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Data_generation.coverage" NAME="Data_generation Coverage Results" MODIFIED="1697808484714" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Data_generation.coverage" NAME="Data_generation Coverage Results" MODIFIED="1698246181476" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Galform_comparison.coverage" NAME="Galform_comparison Coverage Results" MODIFIED="1698320626304" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
