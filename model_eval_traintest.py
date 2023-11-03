@@ -12,7 +12,7 @@ X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy')
 y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_fullup_int.npy')
 
 # Load all the models and make predictions on the test set
-yhat_all = predict_all_models(n_models=1, X_test=X_test)
+yhat_all = predict_all_models(n_models=5, X_test=X_test, variant='_6x5_mask_2899_LRELU_int')
 yhat_avg = np.mean(yhat_all, axis=0)
 
 # Individual predictions for plotting
@@ -116,7 +116,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 35
+m = 5
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -137,7 +137,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 70
+m = 75
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -158,7 +158,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 35
+m = 66
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -180,7 +180,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 70
+m = 90
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -202,7 +202,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 35
+m = 30
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -224,7 +224,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 70
+m = 66
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -321,7 +321,7 @@ axs[1].plot(vhdk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
 axs[1].plot(vhdr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
 # axs[1].errorbar(binvhd - dvhd / 2, medvhd, stdvhd, marker='s', color='black', alpha=0.7, label="Median")
 axs[1].set_xlabel("Vhotdisk", fontsize=16)
-axs[1].legend()
+# axs[1].legend()
 axs[2].plot(vhbz, MAEz_filter, '.', label='Redshift distribution MAE')
 axs[2].plot(vhbk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
 axs[2].plot(vhbr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
@@ -335,19 +335,19 @@ axs[3].plot(ahr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
 # axs[3].errorbar(binah - dah / 2, medah, stdah, marker='s', color='black', alpha=0.7, label="Median")
 axs[3].set_ylabel("MAE per test sample", fontsize=16)
 axs[3].set_xlabel("Alpha hot", fontsize=16)
-axs[3].legend()
+# axs[3].legend()
 axs[4].plot(acz, MAEz_filter, '.', label='Redshift distribution MAE')
 axs[4].plot(ack, MAEk_filter, '.', label='K-band Luminosity Function MAE')
 axs[4].plot(acr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
 # axs[4].errorbar(binac - dac / 2, medac, stdac, marker='s', color='black', alpha=0.7, label="Median")
 axs[4].set_xlabel("Alpha cool", fontsize=16)
-axs[4].legend()
+# axs[4].legend()
 axs[5].plot(nsfz, MAEz_filter, '.', label='Redshift distribution MAE')
 axs[5].plot(nsfk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
 axs[5].plot(nsfr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
 # axs[5].errorbar(binnsf - dnsf / 2, mednsf, stdnsf, marker='s', color='black', alpha=0.7, label="Median")
 axs[5].set_xlabel("Nu SF", fontsize=16)
-axs[5].legend()
+# axs[5].legend()
 
 plt.show()
 

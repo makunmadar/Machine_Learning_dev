@@ -69,7 +69,7 @@ frac_sigma = sigma / obs
 
 # Redshift distribution
 columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
-base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_HaNIIext_2497/dndz_HaNII_ext/"
+base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_HaNIIext_2999/dndz_HaNII_ext/"
 
 base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
@@ -104,7 +104,7 @@ columns_lf = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
               'LCr', 'LCr(error)', 'LCrdust', 'LCrdust(error)'
               ]
 
-base_path_lf = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/LF_2497/LF/"
+base_path_lf = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_training/LF_2999/LF/"
 basek_filenames = os.listdir(base_path_lf)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
@@ -139,8 +139,8 @@ print('Length of features: ', len(training_features))
 # training_features, combo_labels = shuffle(training_features, combo_labels)
 
 # Save the arrays as a text file
-np.savetxt(training_path + 'label_full2497_int', combo_labels)
-np.savetxt(training_path + 'feature_2497', training_features)
+np.savetxt(training_path + 'label_full2999_int', combo_labels)
+np.savetxt(training_path + 'feature_2999', training_features)
 np.savetxt(bin_path + 'bin_full_int', combo_bins)
 
 # Save individual physics data and bins for testing
