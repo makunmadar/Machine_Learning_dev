@@ -12,7 +12,7 @@ X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy')
 y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_fullup_int.npy')
 
 # Load all the models and make predictions on the test set
-yhat_all = predict_all_models(n_models=5, X_test=X_test, variant='_6x5_mask_2899_LRELU_int')
+yhat_all = predict_all_models(n_models=10, X_test=X_test, variant='_9x5_mask_2899_LRELU_int')
 yhat_avg = np.mean(yhat_all, axis=0)
 
 # Individual predictions for plotting
@@ -116,7 +116,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 5
+m = 59
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -137,7 +137,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 75
+m = 94
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -151,50 +151,6 @@ for i in range(6):
 
 axs[0].set_ylabel('log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
 axs[3].set_ylabel('log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
-plt.show()
-
-fig, axs = plt.subplots(2, 3, figsize=(15, 10),
-                        facecolor='w', edgecolor='k', sharey='row')
-fig.subplots_adjust(wspace=0)
-axs = axs.ravel()
-
-m = 66
-for i in range(6):
-    # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_3[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_4[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_5[i+m][13:22], '--', alpha=0.3)
-    axs[i].plot(bins_lfk, yhatk[i+m], 'b--', label=f"Prediction MAE: {MAEk[i+m]:.3f}")
-    axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
-    axs[i].legend()
-    axs[i].set_xlabel("M$_{K,AB}$ - 5log(h)")
-    axs[i].set_xlim(-15, -24)
-
-axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
-axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
-plt.show()
-
-fig, axs = plt.subplots(2, 3, figsize=(15, 10),
-                        facecolor='w', edgecolor='k', sharey='row')
-fig.subplots_adjust(wspace=0)
-axs = axs.ravel()
-
-m = 90
-for i in range(6):
-    # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_3[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_4[i+m][13:22], '--', alpha=0.3)
-    # axs[i].plot(bins[13:22], yhat_5[i+m][13:22], '--', alpha=0.3)
-    axs[i].plot(bins_lfk, yhatk[i+m], 'b--', label=f"Prediction MAE: {MAEk[i+m]:.3f}")
-    axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
-    axs[i].legend()
-    axs[i].set_xlabel("M$_{K,AB}$ - 5log(h)")
-    axs[i].set_xlim(-15, -24)
-
-axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
-axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
 plt.show()
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
@@ -203,6 +159,50 @@ fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
 m = 30
+for i in range(6):
+    # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_3[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_4[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_5[i+m][13:22], '--', alpha=0.3)
+    axs[i].plot(bins_lfk, yhatk[i+m], 'b--', label=f"Prediction MAE: {MAEk[i+m]:.3f}")
+    axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
+    axs[i].legend()
+    axs[i].set_xlabel("M$_{K,AB}$ - 5log(h)")
+    axs[i].set_xlim(-15, -24)
+
+axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+plt.show()
+
+fig, axs = plt.subplots(2, 3, figsize=(15, 10),
+                        facecolor='w', edgecolor='k', sharey='row')
+fig.subplots_adjust(wspace=0)
+axs = axs.ravel()
+
+m = 67
+for i in range(6):
+    # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_3[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_4[i+m][13:22], '--', alpha=0.3)
+    # axs[i].plot(bins[13:22], yhat_5[i+m][13:22], '--', alpha=0.3)
+    axs[i].plot(bins_lfk, yhatk[i+m], 'b--', label=f"Prediction MAE: {MAEk[i+m]:.3f}")
+    axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
+    axs[i].legend()
+    axs[i].set_xlabel("M$_{K,AB}$ - 5log(h)")
+    axs[i].set_xlim(-15, -24)
+
+axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+plt.show()
+
+fig, axs = plt.subplots(2, 3, figsize=(15, 10),
+                        facecolor='w', edgecolor='k', sharey='row')
+fig.subplots_adjust(wspace=0)
+axs = axs.ravel()
+
+m = 32
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -252,6 +252,11 @@ vhbz = []
 ahz = []
 acz = []
 nsfz = []
+Fsz = []
+fez = []
+fbz = []
+fSz = []
+tbz = []
 MAEk_filter = []
 ark = []
 vhdk = []
@@ -259,6 +264,11 @@ vhbk = []
 ahk = []
 ack = []
 nsfk = []
+Fsk = []
+fek = []
+fbk = []
+fSk = []
+tbk = []
 MAEr_filter = []
 arr = []
 vhdr = []
@@ -266,6 +276,11 @@ vhbr = []
 ahr = []
 acr = []
 nsfr = []
+Fsr = []
+fer = []
+fbr = []
+fSr = []
+tbr = []
 # X_test = scaler_feat.inverse_transform(X_test)
 
 for j in range(N):
@@ -279,6 +294,11 @@ for j in range(N):
         ahk.append(X_test[j][3])
         ack.append(X_test[j][4])
         nsfk.append(X_test[j][5])
+        Fsk.append(X_test[j][6])
+        fek.append(X_test[j][7])
+        fbk.append(X_test[j][8])
+        fSk.append(X_test[j][9])
+        tbk.append(X_test[j][10])
 
 for j in range(N):
     maei = MAEz[j]
@@ -291,6 +311,11 @@ for j in range(N):
         ahz.append(X_test[j][3])
         acz.append(X_test[j][4])
         nsfz.append(X_test[j][5])
+        Fsz.append(X_test[j][6])
+        fez.append(X_test[j][7])
+        fbz.append(X_test[j][8])
+        fSz.append(X_test[j][9])
+        tbz.append(X_test[j][10])
 
 for j in range(N):
     maei = MAEr[j]
@@ -303,6 +328,11 @@ for j in range(N):
         ahr.append(X_test[j][3])
         acr.append(X_test[j][4])
         nsfr.append(X_test[j][5])
+        Fsr.append(X_test[j][6])
+        fer.append(X_test[j][7])
+        fbr.append(X_test[j][8])
+        fSr.append(X_test[j][9])
+        tbr.append(X_test[j][10])
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k', sharey='row')
@@ -348,6 +378,47 @@ axs[5].plot(nsfr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
 # axs[5].errorbar(binnsf - dnsf / 2, mednsf, stdnsf, marker='s', color='black', alpha=0.7, label="Median")
 axs[5].set_xlabel("Nu SF", fontsize=16)
 # axs[5].legend()
+
+plt.show()
+
+fig, axs = plt.subplots(2, 3, figsize=(15, 10),
+                        facecolor='w', edgecolor='k', sharey='row')
+fig.subplots_adjust(wspace=0)
+axs = axs.ravel()
+
+axs[0].plot(Fsz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[0].plot(Fsk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[0].plot(Fsr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[0].errorbar(binar - dar / 2, medar, stdar, marker='s', color='black', alpha=0.7, label="Median")
+axs[0].set_ylabel("MAE per test sample", fontsize=16)
+axs[0].set_xlabel("F stab", fontsize=16)
+axs[0].legend()
+axs[1].plot(fez, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[1].plot(fek, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[1].plot(fer, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[1].errorbar(binvhd - dvhd / 2, medvhd, stdvhd, marker='s', color='black', alpha=0.7, label="Median")
+axs[1].set_xlabel("f ellip", fontsize=16)
+# axs[1].legend()
+axs[2].plot(fbz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[2].plot(fbk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[2].plot(fbr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[2].errorbar(binvhb - dvhb / 2, medvhb, stdvhb, marker='s', color='black', alpha=0.7, label="Median")
+axs[2].set_xlabel("f burst", fontsize=16)
+axs[2].legend()
+
+axs[3].plot(fSz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[3].plot(fSk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[3].plot(fSr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[3].errorbar(binah - dah / 2, medah, stdah, marker='s', color='black', alpha=0.7, label="Median")
+axs[3].set_ylabel("MAE per test sample", fontsize=16)
+axs[3].set_xlabel("f SMBH", fontsize=16)
+# axs[3].legend()
+axs[4].plot(tbz, MAEz_filter, '.', label='Redshift distribution MAE')
+axs[4].plot(tbk, MAEk_filter, '.', label='K-band Luminosity Function MAE')
+axs[4].plot(tbr, MAEr_filter, '.', label='r-band Luminosity Function MAE')
+# axs[4].errorbar(binac - dac / 2, medac, stdac, marker='s', color='black', alpha=0.7, label="Median")
+axs[4].set_xlabel("tau burst", fontsize=16)
+# axs[4].legend()
 
 plt.show()
 

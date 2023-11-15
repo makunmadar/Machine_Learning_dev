@@ -36,6 +36,10 @@ def get_model(input_shape):
         Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+        Dense(512, activation='LeakyReLU'),
+
         Dense(45)
     ])
 
@@ -67,8 +71,8 @@ checkpoint = ModelCheckpoint(
 # Import the training datasets
 # feature_file = 'Data/Data_for_ML/training_data/feature_2999'
 # label_file = 'Data/Data_for_ML/training_data/label_full2999_int'
-
-# For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
+#
+# # For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
 # X = genfromtxt(feature_file)
 # y = genfromtxt(label_file)
 #
@@ -78,8 +82,8 @@ checkpoint = ModelCheckpoint(
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.0333, random_state=42)
 # print('Testing shape: ', X_test.shape)
 # print('Training shape: ', X_train.shape)
-
-# Save the train and test datasets
+#
+# # Save the train and test datasets
 # np.save('Data/Data_for_ML/training_data/X_train_2899_fullup_int.npy', X_train)
 # np.save('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy', X_test)
 # np.save('Data/Data_for_ML/training_data/y_train_2899_fullup_int.npy', y_train)
@@ -113,7 +117,7 @@ for i in range(n_members):
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i + 1) + "_6x5_mask_2899_LRELU_int"
+    model_name = "Ensemble_model_" + str(i + 6) + "_9x5_mask_2899_LRELU_int"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
@@ -140,7 +144,7 @@ for i in range(n_members):
               validation_split=0.2,
               callbacks=[early_stopping, tensorboard_callback],
               initial_epoch=start_epoch,
-              epochs=350)
+              epochs=1000)
 
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model ' + str(i + 1))

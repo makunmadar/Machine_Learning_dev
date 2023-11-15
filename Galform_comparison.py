@@ -79,7 +79,7 @@ X_test_old = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
 X_test = X_test.reshape(1, -1)
 
 # Make predictions on the galform set
-yhat_all = predict_all_models(n_models=5, X_test=X_test, variant='_6x5_mask_2899_LRELU_int')
+yhat_all = predict_all_models(n_models=5, X_test=X_test, variant='_9x5_mask_2899_LRELU_int')
 yhat_avg = np.mean(yhat_all, axis=0)
 # yhat_all_old = predict_all_models(n_models=1, X_test=X_test, variant='_6x5_mask_1000_LRELU_int')
 # yhat_avg_old = np.mean(yhat_all_old, axis=0)

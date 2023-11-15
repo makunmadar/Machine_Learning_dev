@@ -79,8 +79,9 @@ training_Hadndz, model_numbers = dndz_generation(galform_filenames=base_filename
 model_numbers = [x - 1 for x in model_numbers]
 
 dndzbins = Ha_b['z'].values
+# dndzbins = dndz_bins
 print('Redshift distribution bins: ', dndzbins)
-print('Example of dn/dz values: ', training_Hadndz[1000])
+print('Example of dn/dz values: ', training_Hadndz[1671])
 
 # LF
 columns_lf = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
@@ -108,20 +109,21 @@ base_path_lf = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_train
 basek_filenames = os.listdir(base_path_lf)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
-training_lf = LF_generation(galform_filenames=basek_filenames, galform_filepath=base_path_lf,
+training_lf= LF_generation(galform_filenames=basek_filenames, galform_filepath=base_path_lf,
                             O_dfk=df_k, O_dfr=df_r, column_headers=columns_lf)
 
 lfbins = np.concatenate((df_k['Mag'].values, df_r['Mag'].values))
+# lfbins = lf_bins
 print('LF distribution bins: ', lfbins)
-print('Example of k-band LF values: ', training_lf[1000][0:18])
-print('Example of r-band LF values: ', training_lf[1000][18:38])
+print('Example of k-band LF values: ', training_lf[1671][0:18])
+print('Example of r-band LF values: ', training_lf[1671][18:38])
 
 # Combine the two data sets with the parameter data
 combo_bins = np.hstack([dndzbins, lfbins])  # This data is not required for the machine learning
 combo_labels = np.hstack([training_Hadndz, training_lf])
 # combo_labels = combo_labels[:1999]  # As we only have the first 1340 for definite
 print('Combo bins: ', combo_bins)
-print('Example of combo labels: ', combo_labels[1000])
+print('Example of combo labels: ', combo_labels[1671])
 
 training_feature_file = 'Data/Data_for_ML/raw_features/updated_parameters_extended_3000v4.csv'
 training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(11))

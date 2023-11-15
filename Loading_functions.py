@@ -34,7 +34,7 @@ def dndz_df(path, columns):
     df = df.apply(pd.to_numeric)
 
     # Don't want to include potential zero values at z=0.692
-    df = df[(df['z'] < 2.1)]
+    # df = df[(df['z'] < 2.1)]
     df = df[(df['z'] > 0.7)]
 
     df['dN(>S)/dz'] = np.log10(df['dN(>S)/dz'].mask(df['dN(>S)/dz'] <= 0)).fillna(0)
@@ -67,8 +67,9 @@ def lf_df(path, columns, mag_low, mag_high):
     df = df[(df['Mag'] >= mag_low)]
     return df
 
+
 def masked_mae(y_true, y_pred):
-    mask = tf.not_equal(y_true, 0) # Create a mask where non-zero values are True
+    mask = tf.not_equal(y_true, 0)  # Create a mask where non-zero values are True
     masked_y_true = tf.boolean_mask(y_true, mask)
     masked_y_pred = tf.boolean_mask(y_pred, mask)
     loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
@@ -143,7 +144,7 @@ def load_all_models(n_models):
     all_models = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_6x5_mask_2397_LRELU_int'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_9x5_mask_2899_LRELU_int'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
                                            compile=False)
@@ -168,9 +169,12 @@ def predict_all_models(n_models, X_test, variant):
     """
 
     all_yhat = list()
+    #model_no = [10, 1, 5, 7, 6]
     for i in range(n_models):
+    #for i in model_no:
         # Define filename for this ensemble
         filename = 'Models/Ensemble_model_' + str(i + 1) + variant
+        #filename = 'Models/Ensemble_model_' + str(i) + variant
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={"masked_mae": masked_mae}, compile=False)
         print('>loaded %s' % filename)
@@ -219,8 +223,10 @@ def dndz_generation(galform_filenames, galform_filepath, O_df, column_headers):
         interp_yz1[O_df['z'].values < min(df_z['z'].values)] = 0
 
         list_dndz = np.vstack([list_dndz, interp_yz1])
+        # list_dndz = np.vstack(([list_dndz, df_z['dN(>S)/dz']]))
+        # dndz_bins = df_z['z'].values
 
-    return list_dndz, model_list
+    return list_dndz, model_list  # , dndz_bins
 
 
 def LF_generation(galform_filenames, galform_filepath, O_dfk, O_dfr, column_headers):
@@ -240,7 +246,8 @@ def LF_generation(galform_filenames, galform_filepath, O_dfk, O_dfr, column_head
     for file in galform_filenames:
         model_number = find_number(file, '.')
 
-        df_lfk = lf_df(galform_filepath + file, column_headers, mag_low=-23.80, mag_high=-15.04)  # -23.80, -15.04 for Driver
+        df_lfk = lf_df(galform_filepath + file, column_headers, mag_low=-23.80,
+                       mag_high=-15.04)  # -23.80, -15.04 for Driver
         df_lfk['Krdust'] = np.log10(df_lfk['Krdust'].mask(df_lfk['Krdust'] <= 0)).fillna(0)
         df_lfk = df_lfk[df_lfk['Krdust'] != 0]
         interp_funck = interp1d(df_lfk['Mag'].values, df_lfk['Krdust'].values, kind='linear', fill_value='extrapolate',
@@ -248,7 +255,8 @@ def LF_generation(galform_filenames, galform_filepath, O_dfk, O_dfr, column_head
         interp_yk1 = interp_funck(O_dfk['Mag'].values)
         interp_yk1[O_dfk['Mag'].values < min(df_lfk['Mag'].values)] = 0
 
-        df_lfr = lf_df(galform_filepath + file, column_headers, mag_low=-23.36, mag_high=-13.73)  # -23.36, -13.73 for Driver
+        df_lfr = lf_df(galform_filepath + file, column_headers, mag_low=-23.36,
+                       mag_high=-13.73)  # -23.36, -13.73 for Driver
         df_lfr['Rrdust'] = np.log10(df_lfr['Rrdust'].mask(df_lfr['Rrdust'] <= 0)).fillna(0)
         df_lfr = df_lfr[df_lfr['Rrdust'] != 0]
         interp_funcr = interp1d(df_lfr['Mag'].values, df_lfr['Rrdust'].values, kind='linear', fill_value='extrapolate',
@@ -265,6 +273,9 @@ def LF_generation(galform_filenames, galform_filepath, O_dfk, O_dfr, column_head
         # padded_arrayr = np.pad(interp_yr1, paddingr, mode='constant', constant_values=0)
 
         lf_vector = np.concatenate((interp_yk1, interp_yr1))
+        # lf_vector = np.concatenate((df_lfk['Krdust'], df_lfr['Rrdust']))
         list_lf = np.vstack([list_lf, lf_vector])
 
-    return list_lf
+        # lf_bins = np.concatenate((df_lfk['Mag'].values, df_lfr['Mag'].values))
+
+    return list_lf  # , lf_bins

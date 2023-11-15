@@ -10,19 +10,21 @@ plt.rcParams["font.size"] = 11
 plt.rc('xtick', labelsize=11)
 plt.rc('ytick', labelsize=11)
 
-ratio = "111colek"
+ratio = "411_6"
 # redshift_samples = np.load("Samples_redshiftdist.npy")
 # KLF_samples = np.load("Samples_KLF.npy")
 combo_samples = np.load(f"Samples_combo_MAE{ratio}.npy")
 
 # Corner plot
 labels = [r"$\alpha_{ret}$", r"$V_{SN, disk}$", r"$V_{SN, burst}$",
-          r"$\gamma_{SN}$", r"$\alpha_{cool}$", r"$\nu_{SF}$ [Gyr$^{-1}$]"]
+          r"$\gamma_{SN}$", r"$\alpha_{cool}$", r"$\nu_{SF}$]",
+          r"$F_{stab}$", r"$f_{ellip}$", r"$f_{burst}$", r"$f_{SMBH}$", r"$\tau_{*burst,min}$"]
 # For multiple walkers the shape of "samples" should have the shape (num_walkers, num_samples, num_parameters)
 
 # flattened_samples = scaler_feat.inverse_transform(flattened_samples)
 # Create the corner plot
-p_range = [(0, 3.0), (100, 550), (100, 550), (1.5, 3.5), (0.0, 2.0), (0.2, 1.7)]
+p_range = [(0.2, 3.0), (10, 800), (10, 800), (1.0, 4.0), (0.0, 4.0), (0.1, 4.0),
+           (0.5, 1.2), (0.2, 0.5), (0.001, 0.3), (0.001, 0.05), (0.01, 0.2)]
 #
 # fig = corner.corner(flattened_zsamples, labels=labels, color='gray',
 #                     plot_datapoints=True, levels=[0.68,0.95],
@@ -47,7 +49,7 @@ figc = corner.corner(combo_samples, show_titles=True, labels=labels, color='gree
                      plot_datapoints=True, levels=[0.68, 0.95],
                      smooth=0.0, bins=50, range=p_range, fill_contours=True)
 figc.show()
-figc.savefig(f"corner_combo_MAE{ratio}.png")
+#figc.savefig(f"corner_combo_MAE{ratio}.png")
 
 #
 # redshift_likelihoods = np.load("Likelihoods_redshiftdist.npy")
@@ -95,7 +97,7 @@ print("Best parameters combo: ", combo_samples[min_cerror_idx])
 # KLF_predictions = np.load("Predictions_KLF.npy")
 
 # Load the Galform bins
-bin_file = 'Data/Data_for_ML/bin_data/bin_full_int_colek'
+bin_file = 'Data/Data_for_ML/bin_data/bin_full_int'
 bins = genfromtxt(bin_file)
 
 # Load in the Observational data
@@ -130,15 +132,15 @@ df_r['error_lower'] = np.log10(df_r['LF']) - np.log10(df_r['LF'] - df_r['error']
 df_r['LF'] = np.log10(df_r['LF'])
 
 # Import Cole et al. 2001
-cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
-cole_path_k = 'Data/Data_for_ML/Observational/Cole_01/lfJK_Cole2001.data'
-df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00-1.87, mag_high=-16.00-1.87)
-df_ck = df_ck[df_ck['PhiK'] != 0]
-df_ck = df_ck.sort_values(['Mag'], ascending=[True])
-df_ck['errorK_upper'] = np.log10(df_ck['PhiK'] + df_ck['errorK']) - np.log10(df_ck['PhiK'])
-df_ck['errorK_lower'] = np.log10(df_ck['PhiK']) - np.log10(df_ck['PhiK'] - df_ck['errorK'])
-df_ck['PhiK'] = np.log10(df_ck['PhiK'])
-df_ck['Mag'] = df_ck['Mag'] + 1.87
+# cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
+# cole_path_k = 'Data/Data_for_ML/Observational/Cole_01/lfJK_Cole2001.data'
+# df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00-1.87, mag_high=-16.00-1.87)
+# df_ck = df_ck[df_ck['PhiK'] != 0]
+# df_ck = df_ck.sort_values(['Mag'], ascending=[True])
+# df_ck['errorK_upper'] = np.log10(df_ck['PhiK'] + df_ck['errorK']) - np.log10(df_ck['PhiK'])
+# df_ck['errorK_lower'] = np.log10(df_ck['PhiK']) - np.log10(df_ck['PhiK'] - df_ck['errorK'])
+# df_ck['PhiK'] = np.log10(df_ck['PhiK'])
+# df_ck['Mag'] = df_ck['Mag'] + 1.87
 
 # Fitting to redshift distribution
 # fig, axs = plt.subplots(1, 2, figsize=(10, 10))
@@ -189,7 +191,7 @@ df_ck['Mag'] = df_ck['Mag'] + 1.87
 combo_predictions_raw = np.load(f"Predictions_combo_MAE{ratio}_raw.npy")
 
 # Combination plots
-fig, axs = plt.subplots(5, 3, figsize=(23, 15))
+fig, axs = plt.subplots(6, 3, figsize=(23, 15))
 plt.subplots_adjust(hspace=0)
 
 for i in range(len(combo_predictions_raw)):
@@ -199,30 +201,30 @@ for i in range(len(combo_predictions_raw)):
     for theta in combo_predictions_raw[i]:
         c = next(colour)
         axs[i, 0].plot(bins[0:7], theta[0:7], c=c, alpha=0.1)
-        axs[i, 1].plot(bins[7:38], theta[7:38], c=c, alpha=0.1)
-        axs[i, 2].plot(bins[38:58], theta[38:58], c=c, alpha=0.1)
+        axs[i, 1].plot(bins[7:25], theta[7:25], c=c, alpha=0.1)
+        axs[i, 2].plot(bins[25:45], theta[25:45], c=c, alpha=0.1)
     axs[i, 0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black',
                        capsize=2, fmt='co')
     # axs[i, 1].errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
     #                    markeredgecolor='black', ecolor='black', capsize=2, fmt='co')
-    axs[i, 1].errorbar(df_ck['Mag'], df_ck['PhiK'], yerr=(df_ck['errorK_lower'], df_ck['errorK_upper']),
+    axs[i, 1].errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
                    markeredgecolor='black', ecolor='black', capsize=2, fmt='co')
     axs[i, 2].errorbar(df_r['Mag'], df_r['LF'], yerr=(df_r['error_lower'], df_r['error_upper']),
                        markeredgecolor='black', ecolor='black', capsize=2, fmt='co')
 
     axs[i, 0].set_xlim(0.9, 1.6)
     axs[i, 0].set_ylim(2.5, 4.5)
-    axs[i, 1].set_xlim(-16.0, -24.5)
+    axs[i, 1].set_xlim(-15.0, -24)
     axs[i, 1].set_ylim(-6, -1)
     axs[i, 2].set_xlim(-13.0, -24)
     axs[i, 2].set_ylim(-6, -1)
 
 axs[0, 0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black',
                    capsize=2, fmt='co', label='Bagley et al. 2020')
+axs[0, 1].errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
+                   markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
 # axs[0, 1].errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
-#                    markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
-axs[0, 1].errorbar(df_ck['Mag'], df_ck['PhiK'], yerr=(df_ck['errorK_lower'], df_ck['errorK_upper']),
-                   markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Cole et al. 2001')
+#                    markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Cole et al. 2001')
 axs[0, 2].errorbar(df_r['Mag'], df_r['LF'], yerr=(df_r['error_lower'], df_r['error_upper']),
                    markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
 axs[0, 0].legend()

@@ -211,9 +211,9 @@ def likelihood(params, models, obs_y, mae_weighting):
 
     bag = weighted_diff[0:7] / 7
     # bag_i = weighted_diff / 7
-    driv_k = weighted_diff[7:38] / 31
+    driv_k = weighted_diff[7:25] / 18
     # driv_i = weighted_diff / 12
-    driv_r = weighted_diff[38:58] / 20
+    driv_r = weighted_diff[25:45] / 20
 
     weighted_err = (np.sum(bag) + np.sum(driv_k) + np.sum(driv_r)) * (1/3)
 
@@ -230,8 +230,8 @@ def likelihood(params, models, obs_y, mae_weighting):
 def proposal_distribution(x, stepsize):
     # Select the proposed state (new guess) from a Laplacian distribution
     # centered at the current state, using scale parameter equal to 1/20th the parameter range
-    min_bound = np.array([0.0, 100, 100, 1.5, 0.0, 0.2])
-    max_bound = np.array([3.0, 550, 550, 3.5, 2.0, 1.7])
+    min_bound = np.array([0.2, 10, 10, 1.0, 0.0, 0.1, 0.5, 0.2, 0.01, 0.001, 0.01])
+    max_bound = np.array([3.0, 800, 800, 4.0, 4.0, 4.0, 1.2, 0.5, 0.3, 0.05, 0.2])
 
     # Making sure the proposed values are within the minmax boundary
     while True:
@@ -254,32 +254,32 @@ Ha_b = Ha_b.astype(float)
 # # Try on the Driver et al. 2012 LF data
 driv_headers = ['Mag', 'LF', 'error', 'Freq']
 drive_pathk = 'Data/Data_for_ML/Observational/Driver_12/lfk_z0_driver12.data'
-df_k = lf_df(drive_pathk, driv_headers, mag_high=-15.25, mag_low=-23.75)
+df_k = lf_df(drive_pathk, driv_headers, mag_low=-23.75, mag_high=-15.25)
 df_k = df_k[(df_k != 0).all(1)]
 df_k['LF'] = df_k['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
 df_k['error'] = df_k['error'] * 2  # Same reason
 # sigmak = df_k['error'].values
 #
 drive_pathr = 'Data/Data_for_ML/Observational/Driver_12/lfr_z0_driver12.data'
-df_r = lf_df(drive_pathr, driv_headers, mag_high=-13.75, mag_low=-23.25)
+df_r = lf_df(drive_pathr, driv_headers, mag_low=-23.25, mag_high=-13.75)
 df_r = df_r[(df_r != 0).all(1)]
 df_r['LF'] = df_r['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
 df_r['error'] = df_r['error'] * 2  # Same reason
 # sigmar = df_r['error'].values
 
 # Import Cole et al. 2001
-cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
-cole_path_k = 'Data/Data_for_ML/Observational/Cole_01/lfJK_Cole2001.data'
-df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00-1.87, mag_high=-16.00-1.87)
-df_ck = df_ck[df_ck['PhiK'] != 0]
-df_ck = df_ck.sort_values(['Mag'], ascending=[True])
-df_ck['Mag'] = df_ck['Mag'] + 1.87
+# cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
+# cole_path_k = 'Data/Data_for_ML/Observational/Cole_01/lfJK_Cole2001.data'
+# df_ck = lf_df(cole_path_k, cole_headers, mag_low=-24.00-1.87, mag_high=-16.00-1.87)
+# df_ck = df_ck[df_ck['PhiK'] != 0]
+# df_ck = df_ck.sort_values(['Mag'], ascending=[True])
+# df_ck['Mag'] = df_ck['Mag'] + 1.87
 
 # Combine the observational data
 # obs_x = np.hstack([Ha_b['z'].values, df_k['Mag'].values, df_r['Mag'].values])
 # obs_x = df_k['Mag'].values
 # obs_x = Ha_b['z'].values
-obs_y = np.log10(np.hstack([Ha_b['n'].values, df_ck['PhiK'].values, df_r['LF'].values]))
+obs_y = np.log10(np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].values]))
 # obs_y = df_k['LF'].values
 # obs_y = Ha_b['n']
 # sigma = np.hstack([sigmaz, sigmak, sigmar])
@@ -292,9 +292,9 @@ obs_y = np.log10(np.hstack([Ha_b['n'].values, df_ck['PhiK'].values, df_r['LF'].v
 
 # # MAE weighting
 # W = [8.0] * 49 + [1.0] * 16
-W = [1.0] * 7 + [1.0] * 31 + [1.0] * 20
-param_range = [2.7, 450.0, 450.0, 2.0, 2.0, 1.5]
-b = [i/40 for i in param_range]
+W = [4.0] * 7 + [1.0] * 18 + [1.0] * 20
+param_range = [2.8, 790.0, 790.0, 3.0, 4.0, 3.0, 0.7, 0.3, 0.29, 0.049, 0.19]
+b = [i/60 for i in param_range]
 
 # Load the Galform bins
 # bin_file = 'Data/Data_for_ML/bin_data/bin_full_int'
@@ -306,9 +306,9 @@ print('Loaded %d models' % len(members))
 
 # np.random.seed(42)
 
-num_samples = int(12000)
-burnin = 0.0  # For now testing with zero burn in
-n_walkers = 5
+num_samples = int(15000)
+burnin = 0.5  # For now testing with zero burn in
+n_walkers = 10
 
 n_samples = []
 n_predictions = []
@@ -321,13 +321,19 @@ for n in range(n_walkers):
     # Initial state is the random starting point of the input parameters.
     # The prior is tophat uniform between the parameter bounds so initial
     # states are uniformly chosen at random between these bounds.
-    initial_ar = np.random.uniform(0.3, 3.0)
-    initial_vd = np.random.uniform(100, 550)
-    initial_vb = np.random.uniform(100, 550)
-    initial_ah = np.random.uniform(1.5, 3.5)
-    initial_ac = np.random.uniform(0.0, 2.0)
-    initial_ns = np.random.uniform(0.2, 1.7)
-    initial_state = np.array([initial_ar, initial_vd, initial_vb, initial_ah, initial_ac, initial_ns])
+    initial_ar = np.random.uniform(0.2, 3.0)
+    initial_vd = np.random.uniform(10, 800)
+    initial_vb = np.random.uniform(10, 800)
+    initial_ah = np.random.uniform(1.0, 4.0)
+    initial_ac = np.random.uniform(0.0, 4.0)
+    initial_ns = np.random.uniform(0.1, 4.0)
+    initial_Fs = np.random.uniform(0.5, 1.2)
+    initial_fe = np.random.uniform(0.2, 0.5)
+    initial_fb = np.random.uniform(0.01, 0.3)
+    initial_fS = np.random.uniform(0.001, 0.05)
+    initial_tb = np.random.uniform(0.01, 0.2)
+    initial_state = np.array([initial_ar, initial_vd, initial_vb, initial_ah, initial_ac, initial_ns,
+                              initial_Fs, initial_fe, initial_fb, initial_fS, initial_tb])
     initial_state = initial_state.reshape(1, -1)
 
     # Generate samples over the posterior distribution using the metropolis_hastings function
@@ -355,7 +361,7 @@ for n in range(n_walkers):
 elapsed = time.perf_counter() - start
 print('Elapsed %.3f seconds' % elapsed, ' for MCMC')
 
-flattened_predictions = np.reshape(n_predictions, (-1, 58))
+flattened_predictions = np.reshape(n_predictions, (-1, 45))
 
 fig, axs = plt.subplots(2, 3, figsize=(15, 10),
                         facecolor='w', edgecolor='k')
@@ -365,7 +371,7 @@ axs = axs.ravel()
 for n in range(n_walkers):
     samples = np.array(n_samples[n])
     first_dim_size = samples.shape[0]
-    samples_reshape = samples.reshape(first_dim_size, 6)
+    samples_reshape = samples.reshape(first_dim_size, 11)
 
     alpha_reheat = [i[0] for i in samples_reshape]
     vhotdisk = [i[1] for i in samples_reshape]
@@ -376,36 +382,77 @@ for n in range(n_walkers):
     axs[0].plot(range(first_dim_size), alpha_reheat, label=f'Walker: {n+1}')
     # axs[0].axhline(y=1.0, c="red")
     axs[0].set_ylabel(r"$\alpha_{ret}$")
-    axs[0].set_ylim(0.0, 3.0)
+    axs[0].set_ylim(0.2, 3.0)
     # axs[1].axhline(y=320, c="red")
     axs[1].plot(range(first_dim_size), vhotdisk)
     axs[1].set_ylabel(r"$V_{SN, disk}$")
-    axs[1].set_ylim(100, 550)
+    axs[1].set_ylim(10, 800)
     axs[2].plot(range(first_dim_size), vhotburst)
     # axs[2].axhline(y=320, c="red")
     axs[2].set_ylabel(r"$V_{SN, burst}$")
-    axs[2].set_ylim(100, 550)
+    axs[2].set_ylim(10, 800)
     axs[3].plot(range(first_dim_size), alpha_hot)
     # axs[3].axhline(y=3.4, c="red")
     axs[3].set_ylabel(r"$\gamma_{SN}$")
     axs[3].set_xlabel("Iteration")
-    axs[3].set_ylim(1.5, 3.5)
+    axs[3].set_ylim(1.0, 4.0)
     axs[4].plot(range(first_dim_size), alpha_cool)
     # axs[4].axhline(y=0.8, c="red")
     axs[4].set_ylabel(r"$\alpha_{cool}$")
     axs[4].set_xlabel("Iteration")
-    axs[4].set_ylim(0.0, 2.0)
+    axs[4].set_ylim(0.0, 4.0)
     axs[5].plot(range(first_dim_size), nu_sf)
     # axs[5].axhline(y=0.74, c="red")
     axs[5].set_ylabel(r"$\nu_{SF}$ [Gyr$^{-1}$]")
     axs[5].set_xlabel("Iteration")
-    axs[5].set_ylim(0.2, 1.7)
+    axs[5].set_ylim(0.1, 4.0)
+
+fig.legend(loc=7)
+plt.show()
+
+fig, axs = plt.subplots(2, 3, figsize=(15, 10),
+                        facecolor='w', edgecolor='k')
+fig.subplots_adjust(hspace=0)
+axs = axs.ravel()
+
+for n in range(n_walkers):
+    samples = np.array(n_samples[n])
+    first_dim_size = samples.shape[0]
+    samples_reshape = samples.reshape(first_dim_size, 11)
+
+    Fstab = [i[6] for i in samples_reshape]
+    fellip = [i[7] for i in samples_reshape]
+    fburst = [i[8] for i in samples_reshape]
+    fSMBH = [i[9] for i in samples_reshape]
+    tau_burst = [i[10] for i in samples_reshape]
+    axs[0].plot(range(first_dim_size), Fstab, label=f'Walker: {n+1}')
+    # axs[0].axhline(y=1.0, c="red")
+    axs[0].set_ylabel(r"Fstab")
+    axs[0].set_ylim(0.5, 1.2)
+    # axs[1].axhline(y=320, c="red")
+    axs[1].plot(range(first_dim_size), fellip)
+    axs[1].set_ylabel(r"fellip")
+    axs[1].set_ylim(0.2, 0.5)
+    axs[2].plot(range(first_dim_size), fburst)
+    # axs[2].axhline(y=320, c="red")
+    axs[2].set_ylabel(r"fburst$")
+    axs[2].set_ylim(0.01, 0.3)
+    axs[3].plot(range(first_dim_size), fSMBH)
+    # axs[3].axhline(y=3.4, c="red")
+    axs[3].set_ylabel(r"fSMBH")
+    axs[3].set_xlabel("Iteration")
+    axs[3].set_ylim(0.001, 0.05)
+    axs[4].plot(range(first_dim_size), tau_burst)
+    # axs[4].axhline(y=0.8, c="red")
+    axs[4].set_ylabel(r"tau_burst")
+    axs[4].set_xlabel("Iteration")
+    axs[4].set_ylim(0.01, 0.2)
 
 fig.legend(loc=7)
 plt.show()
 
 # Flatten the samples
-flattened_samples = np.reshape(n_samples, (-1, 6))
+flattened_samples = np.reshape(n_samples, (-1, 11))
 flattened_likelihoods = np.reshape(n_likelihoods, (-1, 1))
 flattened_error = np.reshape(n_error, (-1, 1))
 
@@ -415,10 +462,10 @@ flattened_error = np.reshape(n_error, (-1, 1))
 # np.save('Samples_KLF.npy', flattened_samples)
 # np.save('Likelihoods_KLF.npy', flattened_likelihoods)
 # np.save('Predictions_KLF.npy', flattened_predictions)
-np.save('Samples_combo_MAE111colek.npy', flattened_samples)
-np.save('Likelihoods_combo_MAE111colek.npy', flattened_likelihoods)
-np.save('Predictions_combo_MAE111colek.npy', flattened_predictions)
-np.save('Predictions_combo_MAE111colek_raw.npy', n_predictions)
-np.save('Error_combo_MAE111colek.npy', flattened_error)
+np.save('Samples_combo_MAE411_10.npy', flattened_samples)
+np.save('Likelihoods_combo_MAE411_10.npy', flattened_likelihoods)
+np.save('Predictions_combo_MAE411_10.npy', flattened_predictions)
+np.save('Predictions_combo_MAE411_10_raw.npy', n_predictions)
+np.save('Error_combo_MAE411_10.npy', flattened_error)
 # np.save('Error_comboz_MAE.npy', flattened_error)
 # np.save('Error_combok_MAE.npy', flattened_error)
