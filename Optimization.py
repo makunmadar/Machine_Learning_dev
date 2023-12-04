@@ -199,25 +199,42 @@ def likelihood(params, models, obs_y, mae_weighting):
         raise ValueError("Observation length and predictions length must be identical")
 
     # Need to apply scaling:
-    # scaled_predz = (pred[0:7] * scaling[0]) + offset[0]
-    # scaled_predk = (pred[7:25] * scaling[1]) + offset[1]
-    # scaled_predr = (pred[25:45] * scaling[2]) + offset[2]
-    # scaled_pred = np.hstack([scaled_predz, scaled_predk, scaled_predr])
+    obs_yz = obs_y[0:7]
+    obs_yk = obs_y[7:25]
+    obs_yr = obs_y[25:45]
+    pred_yz = predictions[0:7]
+    pred_yk = predictions[7:25]
+    pred_yr = predictions[25:45]
+
+    # n(z)
+    obs_yz_min = min(obs_yz)
+    obs_yz_max = max(obs_yz)
+    obs_yz_scaled = (obs_yz - obs_yz_min) / (obs_yz_max - obs_yz_min)
+    pred_yz_scaled = (pred_yz - obs_yz_min) / (obs_yz_max - obs_yz_min)
+    # LFk
+    obs_yk_min = min(obs_yk)
+    obs_yk_max = max(obs_yk)
+    obs_yk_scaled = (obs_yk - obs_yk_min) / (obs_yk_max - obs_yk_min)
+    pred_yk_scaled = (pred_yk - obs_yk_min) / (obs_yk_max - obs_yk_min)
+    # LFr
+    obs_yr_min = min(obs_yr)
+    obs_yr_max = max(obs_yr)
+    obs_yr_scaled = (obs_yr - obs_yr_min) / (obs_yr_max - obs_yr_min)
+    pred_yr_scaled = (pred_yr - obs_yr_min) / (obs_yr_max - obs_yr_min)
+
+    obs_y_scaled = np.concatenate([obs_yz_scaled, obs_yk_scaled, obs_yr_scaled], axis=0)
+    pred_y_scaled = np.concatenate([pred_yz_scaled, pred_yk_scaled, pred_yr_scaled], axis=0)
 
     # Manually calculate the weighted MAE
-    abs_diff = np.abs(obs_y - predictions) # / sigma # L1 norm
+    abs_diff = np.abs(obs_y_scaled - pred_y_scaled)  # / sigma # L1 norm
     # sqr_diff = ((pred-obs_y)**2)/sigma**2 # L2 norm
     weighted_diff = mae_weighting * abs_diff
 
     bag = weighted_diff[0:7] / 7
-    # bag_i = weighted_diff / 7
     driv_k = weighted_diff[7:25] / 18
-    # driv_i = weighted_diff / 12
     driv_r = weighted_diff[25:45] / 20
 
     weighted_err = (np.sum(bag) + np.sum(driv_k) + np.sum(driv_r)) * (1/3)
-
-    # weighted_mae =  np.sum(driv_i)
 
     # Convert to Laplacian likelihood
     b = 0.005
@@ -294,7 +311,7 @@ obs_y = np.log10(np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].valu
 # W = [8.0] * 49 + [1.0] * 16
 W = [4.0] * 7 + [1.0] * 18 + [1.0] * 20
 param_range = [2.8, 790.0, 790.0, 3.0, 4.0, 3.0, 0.7, 0.3, 0.29, 0.049, 0.19]
-b = [i/60 for i in param_range]
+b = [i/50 for i in param_range]
 
 # Load the Galform bins
 # bin_file = 'Data/Data_for_ML/bin_data/bin_full_int'
@@ -306,9 +323,9 @@ print('Loaded %d models' % len(members))
 
 # np.random.seed(42)
 
-num_samples = int(15000)
-burnin = 0.5  # For now testing with zero burn in
-n_walkers = 10
+num_samples = int(5000)
+burnin = 0.0  # For now testing with zero burn in
+n_walkers = 5
 
 n_samples = []
 n_predictions = []
@@ -462,10 +479,13 @@ flattened_error = np.reshape(n_error, (-1, 1))
 # np.save('Samples_KLF.npy', flattened_samples)
 # np.save('Likelihoods_KLF.npy', flattened_likelihoods)
 # np.save('Predictions_KLF.npy', flattened_predictions)
-np.save('Samples_combo_MAE411_10.npy', flattened_samples)
-np.save('Likelihoods_combo_MAE411_10.npy', flattened_likelihoods)
-np.save('Predictions_combo_MAE411_10.npy', flattened_predictions)
-np.save('Predictions_combo_MAE411_10_raw.npy', n_predictions)
-np.save('Error_combo_MAE411_10.npy', flattened_error)
+
+np.save('Samples_combo_MAEup411_5.npy', flattened_samples)
+np.save('Likelihoods_combo_MAEup411_5.npy', flattened_likelihoods)
+np.save('Predictions_combo_MAEup411_5.npy', flattened_predictions)
+np.save('Predictions_combo_MAEup411_5_raw.npy', n_predictions)
+np.save('Error_combo_MAEup411_5.npy', flattened_error)
+np.save('Error_combo_up411_5_raw.npy', n_error)  # For the future
+
 # np.save('Error_comboz_MAE.npy', flattened_error)
 # np.save('Error_combok_MAE.npy', flattened_error)

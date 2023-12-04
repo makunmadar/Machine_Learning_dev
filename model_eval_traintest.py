@@ -1,27 +1,37 @@
+"""
+Scripts for testing the emulator against the testing datasets
+This can be modified to include or not the scaling
+"""
 import numpy as np
 from numpy import genfromtxt
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error
 from Loading_functions import predict_all_models
+from sklearn.preprocessing import MinMaxScaler
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.size"] = 11
 plt.rc('xtick', labelsize=11)
 plt.rc('ytick', labelsize=11)
 
-X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_fullup_int.npy')
-y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_fullup_int.npy')
+
+# Load in the testing datasets
+X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_fullup_int_scaled.npy')
+y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_fullup_int_scaled.npy')
+# y_test = [[val] for val in y_test]
 
 # Load all the models and make predictions on the test set
-yhat_all = predict_all_models(n_models=10, X_test=X_test, variant='_9x5_mask_2899_LRELU_int')
+yhat_all = predict_all_models(n_models=1, X_test=X_test, variant='_9x5_scaledmask_2899_LRELU_int')
 yhat_avg = np.mean(yhat_all, axis=0)
 
-# Individual predictions for plotting
-# yhat_1 = yhat_all[0]
-# yhat_2 = yhat_all[1]
-# yhat_3 = yhat_all[2]
-# yhat_4 = yhat_all[3]
-# yhat_5 = yhat_all[4]
+# Scaling values
+nzmin = np.load('Data/Data_for_ML/min_nz_scale.npy')
+nzmax = np.load('Data/Data_for_ML/max_nz_scale.npy')
+kmin = np.load('Data/Data_for_ML/min_k_scale.npy')
+kmax = np.load('Data/Data_for_ML/max_k_scale.npy')
+rmin = np.load('Data/Data_for_ML/min_r_scale.npy')
+rmax = np.load('Data/Data_for_ML/max_r_scale.npy')
 
+# Load in the bins and split them into their statistics
 bin_file = 'Data/Data_for_ML/bin_data/bin_fullup_int'
 bins = genfromtxt(bin_file)
 bins_z = bins[0:7]
@@ -31,69 +41,66 @@ bins_lfr = bins[25:45]
 # Manual redshift distribution MAE score
 y_testz = [i[0:7] for i in y_test]
 yhatz = [i[0:7] for i in yhat_avg]
-# yhatz_1 = [i[0:13] for i in yhat_1]
-
 MAEz = []
-# MAEz1 = []
-for j in range(len(y_test)):
+for j in range(len(y_testz)):
+    # Find the MAE using the scaled values
+    # y_testz_min = min(y_testz[j])
+    # y_testz_max = max(y_testz[j])
+    # y_test_scaled_z = (y_testz[j] - y_testz_min) / (y_testz_max - y_testz_min)
+    # yhat_scaled_z = (yhatz[j] - y_testz_min) / (y_testz_max - y_testz_min)
+    # maei = mean_absolute_error(y_test_scaled_z, yhat_scaled_z)
     maei = mean_absolute_error(y_testz[j], yhatz[j])
-    # maei1 = mean_absolute_error(y_testz[j], yhatz_1[j])
     if maei > 0.1:
         print("Model ", j + 1, "had dn/dz MAE: ", maei)
     MAEz.append(maei)
-    # MAEz1.append(maei1)
 print("\n")
+
 # Manual luminosity function MAE score
 # K-band LF
 y_testk = [i[7:25] for i in y_test]
 yhatk = [i[7:25] for i in yhat_avg]
-# yhatk_1 = [i[13:22] for i in yhat_1]
-yhatk_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk, y_testk)]
-# yhatk_1_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk_1, y_testk)]
+# Filter the datasets, so we don't calculate the MAE when K-band TRUE is zero
+yhatk_mae = [row_a[row_b != -100] for row_a, row_b in zip(yhatk, y_testk)]
 binsk = []
-
-for i in range(len(y_test)):
-    bk = bins_lfk[y_testk[i] != 0]
+for i in range(len(y_testk)):
+    bk = bins_lfk[y_testk[i] != -100]
     binsk.append(bk)
-y_testk = [row[row != 0] for row in y_testk]
-
+y_testk = [row[row != -100] for row in y_testk]
 MAEk = []
-# MAEk1 = []
-for j in range(len(y_test)):
+for j in range(len(y_testk)):
+    # y_testk_min = min(y_testk[j])
+    # y_testk_max = max(y_testk[j])
+    # y_test_scaled_k = (y_testk[j] - y_testk_min) / (y_testk_max - y_testk_min)
+    # yhat_scaled_k = (yhatk_mae[j] - y_testk_min) / (y_testk_max - y_testk_min)
+    # maei = mean_absolute_error(y_test_scaled_k, yhat_scaled_k)
     maei = mean_absolute_error(y_testk[j], yhatk_mae[j])
-    # maei1 = mean_absolute_error(y_testk[j], yhatk_1_mae[j])
     if maei > 0.1:
         print("Model ", j + 1, "had LF_K MAE: ", maei)
     MAEk.append(maei)
-    # MAEk1.append(maei1)
 print("\n")
+
 # R-band LF
 y_testr = [i[25:45] for i in y_test]
 yhatr = [i[25:45] for i in yhat_avg]
-# yhatk_1 = [i[13:22] for i in yhat_1]
-yhatr_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatr, y_testr)]
-# yhatk_1_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk_1, y_testk)]
+# Filter the datasets, so we don't calculate the MAE when r-band TRUE is zero
+yhatr_mae = [row_a[row_b != -100] for row_a, row_b in zip(yhatr, y_testr)]
 binsr = []
-
-for i in range(len(y_test)):
-    br = bins_lfr[y_testr[i] != 0]
+for i in range(len(y_testr)):
+    br = bins_lfr[y_testr[i] != -100]
     binsr.append(br)
-y_testr = [row[row != 0] for row in y_testr]
-
+y_testr = [row[row != -100] for row in y_testr]
 MAEr = []
-# MAEk1 = []
-for j in range(len(y_test)):
+for j in range(len(y_testr)):
+    # y_testr_min = min(y_testr[j])
+    # y_testr_max = max(y_testr[j])
+    # y_test_scaled_r = (y_testr[j] - y_testr_min) / (y_testr_max - y_testr_min)
+    # yhat_scaled_r = (yhatr_mae[j] - y_testr_min) / (y_testr_max - y_testr_min)
+    # maei = mean_absolute_error(y_test_scaled_r, yhat_scaled_r)
     maei = mean_absolute_error(y_testr[j], yhatr_mae[j])
-    # maei1 = mean_absolute_error(y_testk[j], yhatk_1_mae[j])
     if maei > 0.1:
         print("Model ", j + 1, "had LF_R MAE: ", maei)
     MAEr.append(maei)
-    # MAEk1.append(maei1)
 
-# print("\n")
-# print("MAE of dn/dz for single model: ", np.mean(MAEz1))
-# print("MAE of K-LF for single model: ", np.mean(MAEk1))
-# print("MAE of both for single model: ", np.mean(np.vstack([MAEz1, MAEk1])))
 print("\n")
 print("MAE of dn/dz for average model: ", np.mean(MAEz))
 print("MAE of K-LF for average model: ", np.mean(MAEk))
@@ -101,7 +108,19 @@ print("MAE of R-LF for average model: ", np.mean(MAEr))
 print("MAE of all for average model: ", np.mean(np.vstack([MAEz, MAEk, MAEr])))
 print("\n")
 
-hist_bins = np.linspace(0, 0.25, 50)
+# Inverse scale for plotting:
+for i in range(len(y_test)):
+    y_testz[i] = y_testz[i] * (nzmax - nzmin) + nzmin
+    yhatz[i] = yhatz[i] * (nzmax - nzmin) + nzmin
+    y_testk[i] = y_testk[i] * (kmax - kmin) + kmin
+    yhatk[i] = yhatk[i] * (kmax - kmin) + kmin
+    yhatk_mae[i] = yhatk_mae[i] * (kmax - kmin) + kmin
+    y_testr[i] = y_testr[i] * (rmax - rmin) + rmin
+    yhatr[i] = yhatr[i] * (rmax - rmin) + rmin
+    yhatr_mae[i] = yhatr_mae[i] * (rmax - rmin) + rmin
+
+# Create a plot that shows the histogram of MAE for each statistics
+hist_bins = np.linspace(0, 0.1, 50)
 plt.hist(MAEz, bins=hist_bins, label='Redshift distribution')
 plt.hist(MAEk, bins=hist_bins, histtype='step', label='K-band LF')
 plt.hist(MAEr, bins=hist_bins, histtype='step', label='R-band LF')
@@ -116,6 +135,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
+# Test model index to start the plots from
 m = 59
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
@@ -137,7 +157,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 94
+m = 28
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -158,7 +178,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 30
+m = 9
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -202,7 +222,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 32
+m = 9
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -422,6 +442,8 @@ axs[4].set_xlabel("tau burst", fontsize=16)
 
 plt.show()
 
+# Plotting the y_pred vs y_true along the diagonal.
+# Trying to fit error bars that shows the sigma range but currently can't get them to work
 yhatz = np.ravel(yhatz)
 y_testz = np.ravel(y_testz)
 yhatk = np.concatenate(yhatk_mae).ravel().tolist()
@@ -457,7 +479,7 @@ stdr = [yhatr[idxr == k].std() for k in range(nbins)]
 # running_prc25r = [np.percentile(yhatk[idxr==k], 32) for k in range(nbins)]
 # running_prc75r = [np.percentile(yhatk[idxr==k], 68) for k in range(nbins)]
 
-fig, axs = plt.subplots(1, 3, figsize=(15, 10))
+fig, axs = plt.subplots(1, 3, figsize=(15, 5))
 axs[0].plot(y_testz, yhatz, '.', markersize=1)
 axs[0].axline((2, 2), slope=1, color='black', linestyle='dotted')
 axs[0].errorbar(binz - dz / 2, medz, stdz, fmt='', ecolor="black", capsize=2, alpha=0.7, linestyle='')
@@ -473,8 +495,8 @@ axs[1].axline((-0.5, -0.5), slope=1, color='black', linestyle='dotted')
 axs[1].errorbar(bink - dk / 2, medk, stdk, fmt='', ecolor="black", capsize=2, alpha=0.7, linestyle='')
 # axs[1].plot(bink-dk/2,running_prc25,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
 # axs[1].plot(bink-dk/2,running_prc75,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
-axs[1].set_xlabel(r"log$_{10}$(L$_{H\alpha}$) [10$^{40}$ h$^{-2}$ erg/s] True")
-axs[1].set_ylabel(r"log$_{10}$(L$_{H\alpha}$) [10$^{40}$ h$^{-2}$ erg/s] Predict")
+axs[1].set_xlabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{k,AB}$)$^{-1}$) True")
+axs[1].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{k,AB}$)$^{-1}$) Predict")
 axs[1].set_aspect('equal', 'box')
 axs[1].set_xlim([-5.9, -0.3])
 axs[1].set_ylim([-5.9, -0.3])
@@ -483,8 +505,8 @@ axs[2].axline((-0.5, -0.5), slope=1, color='black', linestyle='dotted')
 axs[2].errorbar(binr - dr / 2, medr, stdr, fmt='', ecolor="black", capsize=2, alpha=0.7, linestyle='')
 # axs[2].plot(binr-dr/2,running_prc25r,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
 # axs[2].plot(binr-dr/2,running_prc75r,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
-axs[2].set_xlabel(r"log$_{10}$(L$_{H\alpha}$) [10$^{40}$ h$^{-2}$ erg/s] True")
-axs[2].set_ylabel(r"log$_{10}$(L$_{H\alpha}$) [10$^{40}$ h$^{-2}$ erg/s] Predict")
+axs[2].set_xlabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{r,AB}$)$^{-1}$) True")
+axs[2].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{r,AB}$)$^{-1}$) Predict")
 axs[2].set_aspect('equal', 'box')
 axs[2].set_xlim([-5.9, -0.3])
 axs[2].set_ylim([-5.9, -0.3])

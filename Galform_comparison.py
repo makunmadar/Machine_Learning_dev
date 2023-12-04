@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from numpy import genfromtxt
+from scipy.interpolate import interp1d
 from sklearn.metrics import mean_absolute_error
 from Loading_functions import predict_all_models, lf_df, dndz_df
 plt.rcParams["font.family"] = "serif"
@@ -81,6 +82,7 @@ X_test = X_test.reshape(1, -1)
 # Make predictions on the galform set
 yhat_all = predict_all_models(n_models=5, X_test=X_test, variant='_9x5_mask_2899_LRELU_int')
 yhat_avg = np.mean(yhat_all, axis=0)
+np.save('Data/Data_for_ML/Observational/Lacey_16/Lacey_y_pred.npy', yhat_avg[0])
 # yhat_all_old = predict_all_models(n_models=1, X_test=X_test, variant='_6x5_mask_1000_LRELU_int')
 # yhat_avg_old = np.mean(yhat_all_old, axis=0)
 # yhat_all_old1 = predict_all_models(n_models=1, X_test=X_test, variant='_6x5_mask_2899_LRELU_int')
@@ -313,6 +315,27 @@ binsr_full = binsr_full[r_test_lc_sub != 0]
 r_test_lc_sub = r_test_lc_sub[r_test_lc_sub != 0]
 
 y_true = np.hstack([z_test_lc, k_test_lc_full, r_test_lc_sub])
-np.save('Lacey_y_true.npy', y_true)
+# np.save('Lacey_y_true.npy', y_true)
 l_bins = np.hstack([bins_l[0:49], binsk_full, binsr_full])
-np.save('Lacey_bins.npy', l_bins)
+# np.save('Lacey_bins.npy', l_bins)
+
+interp_funcz = interp1d(bins_l[0:49], z_test_lc, kind='linear', fill_value='extrapolate')
+interp_yz1 = interp_funcz(bins[0:7])
+interp_yz1[bins[0:7] > max(bins_l[0:49])] = 0
+interp_yz1[bins[0:7] < min(bins_l[0:49])] = 0
+
+df_lck = df_lck[df_lck['Krdust'] != 0]
+interp_funck = interp1d(df_lck['Mag'].values, df_lck['Krdust'].values, kind='linear', fill_value='extrapolate',
+                        bounds_error=False)
+interp_yk1 = interp_funck(bins[7:25])
+interp_yk1[bins[7:25] < min(df_lck['Mag'].values)] = 0
+df_lcr = df_lcr[df_lcr['Rrdust'] != 0]
+interp_funcr = interp1d(df_lcr['Mag'].values, df_lcr['Rrdust'].values, kind='linear', fill_value='extrapolate',
+                        bounds_error=False)
+interp_yr1 = interp_funcr(bins[25:45])
+interp_yr1[bins[25:45] < min(df_lck['Mag'].values)] = 0
+
+y_true_int = np.hstack([interp_yz1, interp_yk1, interp_yr1])
+np.save('Data/Data_for_ML/Observational/Lacey_16/Lacey_y_true_int.npy', y_true_int)
+
+

@@ -1,8 +1,6 @@
 """
-Taking in the raw number counts and redshift distribution outputs and formatting them appropriately for
+Taking in the raw redshift distribution and LF outputs and formatting them appropriately for
 machine learning training and evaluation.
-
-For now only saving the redshift distribution outputs for training.
 """
 import numpy as np
 import pandas as pd
@@ -24,11 +22,13 @@ def round_sigfigs(x):
 
 
 #################
+# Define the path to save the training data
 training_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/training_data/"
 bin_path = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/bin_data/"
 #################
 
 # Load in the Observational data
+
 # Import Bagley et al. 2020
 bag_headers = ["z", "n", "+", "-"]
 Ha_b = pd.read_csv("Data/Data_for_ML/Observational/Bagley_20/Ha_Bagley_dndz.csv",
@@ -83,6 +83,22 @@ dndzbins = Ha_b['z'].values
 print('Redshift distribution bins: ', dndzbins)
 print('Example of dn/dz values: ', training_Hadndz[1671])
 
+# The following saves the min and max values from the entire n(z) dataset for scaling.
+training_Hadndz = np.array(training_Hadndz)
+nzmin = np.min(training_Hadndz)
+nzmax = np.max(training_Hadndz)
+np.save('Data/Data_for_ML/min_nz_scale.npy', nzmin)
+np.save('Data/Data_for_ML/max_nz_scale.npy', nzmax)
+
+# Scaling the n(z) data if required. This can be commented out.
+for i in range(len(training_Hadndz)):
+    training_Hadndz[i][training_Hadndz[i] == 0] = -100
+    non_zero_mask = training_Hadndz[i] != -100
+    # Manual scaling
+    training_Hadndz[i][non_zero_mask] = (training_Hadndz[i][non_zero_mask] - nzmin) / (nzmax - nzmin)
+
+print("Scaled labels", training_Hadndz[1671])
+
 # LF
 columns_lf = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
               'Br', 'Br(error)', 'Brdust', 'Brdust(error)',
@@ -118,19 +134,45 @@ print('LF distribution bins: ', lfbins)
 print('Example of k-band LF values: ', training_lf[1671][0:18])
 print('Example of r-band LF values: ', training_lf[1671][18:38])
 
+# The following saves the min and max from the K-band and r-band datasets
+training_lfk = [i[0:18] for i in training_lf]
+training_lfr = [i[18:38] for i in training_lf]
+training_lfk = np.array(training_lfk)
+training_lfr = np.array(training_lfr)
+kmin = np.min(training_lfk)
+kmax = np.max(training_lfk)
+np.save('Data/Data_for_ML/min_k_scale.npy', kmin)
+np.save('Data/Data_for_ML/max_k_scale.npy', kmax)
+rmin = np.min(training_lfr)
+rmax = np.max(training_lfr)
+np.save('Data/Data_for_ML/min_r_scale.npy', rmin)
+np.save('Data/Data_for_ML/max_r_scale.npy', rmax)
+
+# Applying the scaling to our data. This can be commented out if required.
+for i in range(len(training_lfk)):
+    training_lfk[i][training_lfk[i] == 0] = -100
+    non_zero_mask = training_lfk[i] != -100
+    training_lfk[i][non_zero_mask] = (training_lfk[i][non_zero_mask] - kmin) / (kmax - kmin)
+    training_lfr[i][training_lfr[i] == 0] = -100
+    non_zero_mask = training_lfr[i] != -100
+    training_lfr[i][non_zero_mask] = (training_lfr[i][non_zero_mask] - rmin) / (kmax - rmin)
+training_lf = np.hstack([training_lfk, training_lfr])
+print("Scaled labels", training_lf[1671])
+
 # Combine the two data sets with the parameter data
 combo_bins = np.hstack([dndzbins, lfbins])  # This data is not required for the machine learning
 combo_labels = np.hstack([training_Hadndz, training_lf])
-# combo_labels = combo_labels[:1999]  # As we only have the first 1340 for definite
+
 print('Combo bins: ', combo_bins)
 print('Example of combo labels: ', combo_labels[1671])
 
+# Load and process the input feature data from my parameters file used for generating the GALFORM runs
 training_feature_file = 'Data/Data_for_ML/raw_features/updated_parameters_extended_3000v4.csv'
 training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(11))
 # Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
 training_features = training_features[::30]
-#training_features = np.delete(training_features, 1470, axis=0)  # As for now we don't have model 1471
-training_features = np.take(training_features, model_numbers, axis=0)  # As we don't have some models
+
+training_features = np.take(training_features, model_numbers, axis=0)  # As we don't have some models (1471)
 print('Length of features: ', len(training_features))
 
 # training_features = np.vectorize(round_sigfigs)(training_features)
@@ -140,12 +182,13 @@ print('Length of features: ', len(training_features))
 # Shuffle the data properly
 # training_features, combo_labels = shuffle(training_features, combo_labels)
 
+
 # Save the arrays as a text file
-np.savetxt(training_path + 'label_full2999_int', combo_labels)
-np.savetxt(training_path + 'feature_2999', training_features)
-np.savetxt(bin_path + 'bin_full_int', combo_bins)
+# np.savetxt(training_path + 'label_full2999_int_scaled', combo_labels)
+np.savetxt(training_path + 'feature_2999_scaled', training_features)
+# np.savetxt(bin_path + 'bin_full_int', combo_bins)
 
 # Save individual physics data and bins for testing
-# np.savetxt(training_path + 'label_dndz1999_int', training_Hadndz)
-# np.savetxt(bin_path + 'bin_dndz_int', dndzbins)
+np.savetxt(training_path + 'label_dndz2999_int_scaled', training_Hadndz)
+np.savetxt(bin_path + 'bin_dndz_int', dndzbins)
 
