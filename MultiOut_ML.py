@@ -36,11 +36,11 @@ def get_model(input_shape):
         Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
         Dense(512, activation='LeakyReLU'),
-        Dense(512, activation='LeakyReLU'),
-        Dense(512, activation='LeakyReLU'),
-        Dense(512, activation='LeakyReLU'),
+        # Dense(512, activation='relu'),
+        # Dense(512, activation='relu'),
+        # Dense(512, activation='LeakyReLU'),
 
-        Dense(7)
+        Dense(102)
     ])
 
     model.build(input_shape)
@@ -71,8 +71,8 @@ checkpoint = ModelCheckpoint(
 # Import the training datasets: Uncomment everything below including the exit statement for safety.
 # Load in the relevant data to be split up into training and testing data.
 
-# feature_file = 'Data/Data_for_ML/training_data/feature_2999_scaled'
-# label_file = 'Data/Data_for_ML/training_data/label_dndz2999_int_scaled'
+# feature_file = 'Data/Data_for_ML/training_data/feature_2999'
+# label_file = 'Data/Data_for_ML/training_data/label_full2999'
 #
 # # For subsampling, but if using all 1000 training samples set X_tot and y_tot as X, Y_tot_.
 # X = genfromtxt(feature_file)
@@ -84,23 +84,23 @@ checkpoint = ModelCheckpoint(
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.0333, random_state=42)
 # print('Testing shape: ', X_test.shape)
 # print('Training shape: ', X_train.shape)
-# #
-# # # Save the train and test datasets
-# # np.save('Data/Data_for_ML/training_data/X_train_2899_fullup_int_scaled.npy', X_train)
-# # np.save('Data/Data_for_ML/testing_data/X_test_100_fullup_int_scaled.npy', X_test)
-# # np.save('Data/Data_for_ML/training_data/y_train_2899_fullup_int_scaled.npy', y_train)
-# # np.save('Data/Data_for_ML/testing_data/y_test_100_fullup_int_scaled.npy', y_test)
-# np.save('Data/Data_for_ML/training_data/X_train_2899_dndzup_int_scaled.npy', X_train)
-# np.save('Data/Data_for_ML/testing_data/X_test_100_dndzup_int_scaled.npy', X_test)
-# np.save('Data/Data_for_ML/training_data/y_train_2899_dndzup_int_scaled.npy', y_train)
-# np.save('Data/Data_for_ML/testing_data/y_test_100_dndzup_int_scaled.npy', y_test)
+#
+# # Save the train and test datasets
+# np.save('Data/Data_for_ML/training_data/X_train_2899_full.npy', X_train)
+# np.save('Data/Data_for_ML/testing_data/X_test_100_full.npy', X_test)
+# np.save('Data/Data_for_ML/training_data/y_train_2899_full.npy', y_train)
+# np.save('Data/Data_for_ML/testing_data/y_test_100_full.npy', y_test)
+# # np.save('Data/Data_for_ML/training_data/X_train_2899_dndzup_int_scaled.npy', X_train)
+# # np.save('Data/Data_for_ML/testing_data/X_test_100_dndzup_int_scaled.npy', X_test)
+# # np.save('Data/Data_for_ML/training_data/y_train_2899_dndzup_int_scaled.npy', y_train)
+# # np.save('Data/Data_for_ML/testing_data/y_test_100_dndzup_int_scaled.npy', y_test)
 # exit()
-X_train = np.load('Data/Data_for_ML/training_data/X_train_2899_dndzup_int_scaled.npy')
-y_train = np.load('Data/Data_for_ML/training_data/y_train_2899_dndzup_int_scaled.npy')
+X_train = np.load('Data/Data_for_ML/training_data/X_train_2899_full.npy')
+y_train = np.load('Data/Data_for_ML/training_data/y_train_2899_full.npy')
 
-# idx = np.random.choice(np.arange(len(X_train)), 900, replace=False)
-# X_train = X_train[idx]
-# y_train = y_train[idx]
+idx = np.random.choice(np.arange(len(X_train)), 900, replace=False)
+X_train = X_train[idx]
+y_train = y_train[idx]
 
 # Normalize the data to reduce the dynamical range.
 normalizer = preprocessing.Normalization()
@@ -112,14 +112,14 @@ print('Label data shape: ', y_train.shape)
 input_shape = X_train.shape
 
 # Fit and save models
-n_members = 1
+n_members = 5
 for i in range(n_members):
 
     # Fit model
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
-    model_name = "Ensemble_model_" + str(i + 1) + "_9x5_scaledmask_2899dndz_LRELU_int"
+    model_name = "Ensemble_model_" + str(i + 1) + "_6x5_mask_900_LRELU"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
@@ -146,7 +146,7 @@ for i in range(n_members):
               validation_split=0.2,
               callbacks=[early_stopping, tensorboard_callback],
               initial_epoch=start_epoch,
-              epochs=350)
+              epochs=1000)
 
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model ' + str(i + 1))

@@ -9,38 +9,38 @@ from sklearn.metrics import mean_absolute_error
 from Loading_functions import predict_all_models
 from sklearn.preprocessing import MinMaxScaler
 plt.rcParams["font.family"] = "serif"
-plt.rcParams["font.size"] = 11
-plt.rc('xtick', labelsize=11)
-plt.rc('ytick', labelsize=11)
+plt.rcParams["font.size"] = 12
+plt.rc('xtick', labelsize=12)
+plt.rc('ytick', labelsize=12)
 
 
 # Load in the testing datasets
-X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_fullup_int_scaled.npy')
-y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_fullup_int_scaled.npy')
+X_test = np.load('Data/Data_for_ML/testing_data/X_test_100_full.npy')
+y_test = np.load('Data/Data_for_ML/testing_data/y_test_100_full.npy')
 # y_test = [[val] for val in y_test]
 
 # Load all the models and make predictions on the test set
-yhat_all = predict_all_models(n_models=1, X_test=X_test, variant='_9x5_scaledmask_2899_LRELU_int')
+yhat_all = predict_all_models(n_models=1, X_test=X_test, variant='_6x5_mask_900_LRELU')
 yhat_avg = np.mean(yhat_all, axis=0)
 
 # Scaling values
-nzmin = np.load('Data/Data_for_ML/min_nz_scale.npy')
-nzmax = np.load('Data/Data_for_ML/max_nz_scale.npy')
-kmin = np.load('Data/Data_for_ML/min_k_scale.npy')
-kmax = np.load('Data/Data_for_ML/max_k_scale.npy')
-rmin = np.load('Data/Data_for_ML/min_r_scale.npy')
-rmax = np.load('Data/Data_for_ML/max_r_scale.npy')
+# nzmin = np.load('Data/Data_for_ML/min_nz_scale.npy')
+# nzmax = np.load('Data/Data_for_ML/max_nz_scale.npy')
+# kmin = np.load('Data/Data_for_ML/min_k_scale.npy')
+# kmax = np.load('Data/Data_for_ML/max_k_scale.npy')
+# rmin = np.load('Data/Data_for_ML/min_r_scale.npy')
+# rmax = np.load('Data/Data_for_ML/max_r_scale.npy')
 
 # Load in the bins and split them into their statistics
-bin_file = 'Data/Data_for_ML/bin_data/bin_fullup_int'
+bin_file = 'Data/Data_for_ML/bin_data/bin_full'
 bins = genfromtxt(bin_file)
-bins_z = bins[0:7]
-bins_lfk = bins[7:25]
-bins_lfr = bins[25:45]
+bins_z = bins[0:49]
+bins_lfk = bins[49:74]
+bins_lfr = bins[74:102]
 
 # Manual redshift distribution MAE score
-y_testz = [i[0:7] for i in y_test]
-yhatz = [i[0:7] for i in yhat_avg]
+y_testz = [i[0:49] for i in y_test]
+yhatz = [i[0:49] for i in yhat_avg]
 MAEz = []
 for j in range(len(y_testz)):
     # Find the MAE using the scaled values
@@ -55,17 +55,19 @@ for j in range(len(y_testz)):
     MAEz.append(maei)
 print("\n")
 
+print("MAE of dn/dz for average model: ", np.mean(MAEz))
+
 # Manual luminosity function MAE score
 # K-band LF
-y_testk = [i[7:25] for i in y_test]
-yhatk = [i[7:25] for i in yhat_avg]
+y_testk = [i[49:74] for i in y_test]
+yhatk = [i[49:74] for i in yhat_avg]
 # Filter the datasets, so we don't calculate the MAE when K-band TRUE is zero
-yhatk_mae = [row_a[row_b != -100] for row_a, row_b in zip(yhatk, y_testk)]
+yhatk_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatk, y_testk)]
 binsk = []
 for i in range(len(y_testk)):
-    bk = bins_lfk[y_testk[i] != -100]
+    bk = bins_lfk[y_testk[i] != 0]
     binsk.append(bk)
-y_testk = [row[row != -100] for row in y_testk]
+y_testk = [row[row != 0] for row in y_testk]
 MAEk = []
 for j in range(len(y_testk)):
     # y_testk_min = min(y_testk[j])
@@ -80,15 +82,15 @@ for j in range(len(y_testk)):
 print("\n")
 
 # R-band LF
-y_testr = [i[25:45] for i in y_test]
-yhatr = [i[25:45] for i in yhat_avg]
+y_testr = [i[74:102] for i in y_test]
+yhatr = [i[74:102] for i in yhat_avg]
 # Filter the datasets, so we don't calculate the MAE when r-band TRUE is zero
-yhatr_mae = [row_a[row_b != -100] for row_a, row_b in zip(yhatr, y_testr)]
+yhatr_mae = [row_a[row_b != 0] for row_a, row_b in zip(yhatr, y_testr)]
 binsr = []
 for i in range(len(y_testr)):
-    br = bins_lfr[y_testr[i] != -100]
+    br = bins_lfr[y_testr[i] != 0]
     binsr.append(br)
-y_testr = [row[row != -100] for row in y_testr]
+y_testr = [row[row != 0] for row in y_testr]
 MAEr = []
 for j in range(len(y_testr)):
     # y_testr_min = min(y_testr[j])
@@ -109,15 +111,15 @@ print("MAE of all for average model: ", np.mean(np.vstack([MAEz, MAEk, MAEr])))
 print("\n")
 
 # Inverse scale for plotting:
-for i in range(len(y_test)):
-    y_testz[i] = y_testz[i] * (nzmax - nzmin) + nzmin
-    yhatz[i] = yhatz[i] * (nzmax - nzmin) + nzmin
-    y_testk[i] = y_testk[i] * (kmax - kmin) + kmin
-    yhatk[i] = yhatk[i] * (kmax - kmin) + kmin
-    yhatk_mae[i] = yhatk_mae[i] * (kmax - kmin) + kmin
-    y_testr[i] = y_testr[i] * (rmax - rmin) + rmin
-    yhatr[i] = yhatr[i] * (rmax - rmin) + rmin
-    yhatr_mae[i] = yhatr_mae[i] * (rmax - rmin) + rmin
+# for i in range(len(y_test)):
+#     y_testz[i] = y_testz[i] * (nzmax - nzmin) + nzmin
+#     yhatz[i] = yhatz[i] * (nzmax - nzmin) + nzmin
+#     y_testk[i] = y_testk[i] * (kmax - kmin) + kmin
+#     yhatk[i] = yhatk[i] * (kmax - kmin) + kmin
+#     yhatk_mae[i] = yhatk_mae[i] * (kmax - kmin) + kmin
+#     y_testr[i] = y_testr[i] * (rmax - rmin) + rmin
+#     yhatr[i] = yhatr[i] * (rmax - rmin) + rmin
+#     yhatr_mae[i] = yhatr_mae[i] * (rmax - rmin) + rmin
 
 # Create a plot that shows the histogram of MAE for each statistics
 hist_bins = np.linspace(0, 0.1, 50)
@@ -157,7 +159,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 28
+m = 77
 for i in range(6):
     # axs[i].plot(bins[0:13], yhat_1[i+m][0:13], '--', alpha=0.3)
     # axs[i].plot(bins[0:13], yhat_2[i+m][0:13], '--', alpha=0.3)
@@ -178,7 +180,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 9
+m = 1
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -189,7 +191,7 @@ for i in range(6):
     axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
     axs[i].legend()
     axs[i].set_xlabel("M$_{K,AB}$ - 5log(h)")
-    axs[i].set_xlim(-15, -24)
+    axs[i].set_xlim(-15, -25.55)
 
 axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
 axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
@@ -200,7 +202,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 67
+m = 32
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -211,7 +213,7 @@ for i in range(6):
     axs[i].plot(binsk[i+m], y_testk[i+m], 'gx-', label="True model "+str(i+1+m))
     axs[i].legend()
     axs[i].set_xlabel("M$_{K,AB}$ - 5log(h)")
-    axs[i].set_xlim(-15, -24)
+    axs[i].set_xlim(-15, -25.55)
 
 axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
 axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
@@ -222,7 +224,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 9
+m = 1
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -233,7 +235,7 @@ for i in range(6):
     axs[i].plot(binsr[i+m], y_testr[i+m], 'gx-', label="True model "+str(i+1+m))
     axs[i].legend()
     axs[i].set_xlabel("M$_{r,AB}$ - 5log(h)")
-    axs[i].set_xlim(-13.5, -24)
+    axs[i].set_xlim(-13.5, -25.55)
 
 axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
 axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
@@ -244,7 +246,7 @@ fig, axs = plt.subplots(2, 3, figsize=(15, 10),
 fig.subplots_adjust(wspace=0)
 axs = axs.ravel()
 
-m = 66
+m = 32
 for i in range(6):
     # axs[i].plot(bins[13:22], yhat_1[i+m][13:22], '--', alpha=0.3)
     # axs[i].plot(bins[13:22], yhat_2[i+m][13:22], '--', alpha=0.3)
@@ -255,7 +257,7 @@ for i in range(6):
     axs[i].plot(binsr[i+m], y_testr[i+m], 'gx-', label="True model "+str(i+1+m))
     axs[i].legend()
     axs[i].set_xlabel("M$_{r,AB}$ - 5log(h)")
-    axs[i].set_xlim(-13.5, -24)
+    axs[i].set_xlim(-13.5, -25.55)
 
 axs[0].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
 axs[3].set_ylabel('log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
@@ -444,71 +446,133 @@ plt.show()
 
 # Plotting the y_pred vs y_true along the diagonal.
 # Trying to fit error bars that shows the sigma range but currently can't get them to work
-yhatz = np.ravel(yhatz)
-y_testz = np.ravel(y_testz)
-yhatk = np.concatenate(yhatk_mae).ravel().tolist()
-y_testk = np.concatenate(y_testk).ravel().tolist()
-yhatr = np.concatenate(yhatr_mae).ravel().tolist()
-y_testr = np.concatenate(y_testr).ravel().tolist()
+yhatz_ = np.ravel(yhatz)
+y_testz_ = np.ravel(y_testz)
+yhatk_ = np.concatenate(yhatk_mae).ravel().tolist()
+y_testk_ = np.concatenate(y_testk).ravel().tolist()
+yhatr_ = np.concatenate(yhatr_mae).ravel().tolist()
+y_testr_ = np.concatenate(y_testr).ravel().tolist()
 
 nbins = 50
-yhatz = np.array(yhatz)
-binz = np.linspace(2, max(y_testz), nbins)
+yhatz_ = np.array(yhatz_)
+binz = np.linspace(1.5, max(y_testz_), nbins)
 dz = binz[1] - binz[0]
-idxz = np.digitize(y_testz, binz)
-medz = [np.median(yhatz[idxz == k]) for k in range(nbins)]
-stdz = [yhatz[idxz == k].std() for k in range(nbins)]
-# running25 = [np.percentile(yhatz[idxz==k], 32) for k in range(nbins)]
-# running75 = [np.percentile(yhatz[idxz==k], 68) for k in range(nbins)]
+idxz = np.digitize(y_testz_, binz)
+medz = [np.median(yhatz_[idxz == k]) for k in range(nbins)]
+stdz = [yhatz_[idxz == k].std() for k in range(nbins)]
+# running25 = [np.percentile(yhatz_[idxz==k], 10) for k in range(nbins)]
+# running75 = [np.percentile(yhatz_[idxz==k], 90) for k in range(nbins)]
 
-yhatk = np.array(yhatk)
-bink = np.linspace(-5.2, max(y_testk), nbins)
+yhatk_ = np.array(yhatk_)
+bink = np.linspace(-5.2, max(y_testk_), nbins)
 dk = bink[1] - bink[0]
-idxk = np.digitize(y_testk, bink)
-medk = [np.median(yhatk[idxk == k]) for k in range(nbins)]
-stdk = [yhatk[idxk == k].std() for k in range(nbins)]
+idxk = np.digitize(y_testk_, bink)
+medk = [np.median(yhatk_[idxk == k]) for k in range(nbins)]
+stdk = [yhatk_[idxk == k].std() for k in range(nbins)]
 # running_prc25 = [np.percentile(yhatk[idxk==k], 32) for k in range(nbins)]
 # running_prc75 = [np.percentile(yhatk[idxk==k], 68) for k in range(nbins)]
 
-yhatr = np.array(yhatr)
-binr = np.linspace(-5.2, max(y_testr), nbins)
+yhatr_ = np.array(yhatr_)
+binr = np.linspace(-5.2, max(y_testr_), nbins)
 dr = binr[1] - binr[0]
-idxr = np.digitize(y_testr, binr)
-medr = [np.median(yhatr[idxr == k]) for k in range(nbins)]
-stdr = [yhatr[idxr == k].std() for k in range(nbins)]
+idxr = np.digitize(y_testr_, binr)
+medr = [np.median(yhatr_[idxr == k]) for k in range(nbins)]
+stdr = [yhatr_[idxr == k].std() for k in range(nbins)]
 # running_prc25r = [np.percentile(yhatk[idxr==k], 32) for k in range(nbins)]
 # running_prc75r = [np.percentile(yhatk[idxr==k], 68) for k in range(nbins)]
 
-fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-axs[0].plot(y_testz, yhatz, '.', markersize=1)
+fig, axs = plt.subplots(2, 3,  figsize=(16, 9))
+fig.subplots_adjust(wspace=0.9, hspace=0.9)
+axs = axs.ravel()
+axs[0].plot(y_testz_, yhatz_, '.', markersize=1, alpha=0.7)
 axs[0].axline((2, 2), slope=1, color='black', linestyle='dotted')
-axs[0].errorbar(binz - dz / 2, medz, stdz, fmt='', ecolor="black", capsize=2, alpha=0.7, linestyle='')
+axs[0].errorbar((binz - dz / 2)[::5], medz[::5], stdz[::5], fmt='', ecolor="black", capsize=5, linestyle='')
 # axs[0].plot(binz-dz/2,running25,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
 # axs[0].plot(binz-dz/2,running75,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
-axs[0].set_xlabel("log$_{10}$(dN(>S)/dz) [deg$^{-2}$] True")
-axs[0].set_ylabel("log$_{10}$(dN(>S)/dz) [deg$^{-2}$] Predict")
-axs[0].set_aspect('equal', 'box')
-axs[0].set_xlim([1.6, 4.6])
-axs[0].set_ylim([1.6, 4.6])
-axs[1].plot(y_testk, yhatk, '.', markersize=1)
+axs[0].set_xlabel("log$_{10}$(dN(>S)/dz [deg$^{-2}$]) True")
+axs[0].set_ylabel("log$_{10}$(dN(>S)/dz [deg$^{-2}$]) Predict")
+axs[0].text(0.05, 0.93, r'H$\alpha$ redshift distribution', horizontalalignment='left', verticalalignment='center',
+            transform=axs[0].transAxes)
+# axs[0].set_aspect('equal')
+axs[0].set_xlim([1, 4.7])
+axs[0].set_ylim([1, 4.7])
+axs[1].plot(y_testk_, yhatk_, '.', markersize=1, alpha=0.7)
 axs[1].axline((-0.5, -0.5), slope=1, color='black', linestyle='dotted')
-axs[1].errorbar(bink - dk / 2, medk, stdk, fmt='', ecolor="black", capsize=2, alpha=0.7, linestyle='')
+axs[1].errorbar((bink - dk / 2)[::5], medk[::5], stdk[::5], fmt='', ecolor="black", capsize=5,  linestyle='')
 # axs[1].plot(bink-dk/2,running_prc25,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
 # axs[1].plot(bink-dk/2,running_prc75,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
-axs[1].set_xlabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{k,AB}$)$^{-1}$) True")
-axs[1].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{k,AB}$)$^{-1}$) Predict")
-axs[1].set_aspect('equal', 'box')
-axs[1].set_xlim([-5.9, -0.3])
-axs[1].set_ylim([-5.9, -0.3])
-axs[2].plot(y_testr, yhatr, '.', markersize=1)
+axs[1].set_xlabel(r"log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{k,AB}$)$^{-1}$) True")
+axs[1].set_ylabel(r"log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{k,AB}$)$^{-1}$) Predict")
+axs[1].text(0.05, 0.93, 'K-band luminosity function', horizontalalignment='left', verticalalignment='center',
+            transform=axs[1].transAxes)
+# axs[1].set_aspect('equal')
+axs[1].set_xlim([-6.1, -0.3])
+axs[1].set_ylim([-6.1, -0.3])
+axs[2].plot(y_testr_, yhatr_, '.', markersize=1, alpha=0.7)
 axs[2].axline((-0.5, -0.5), slope=1, color='black', linestyle='dotted')
-axs[2].errorbar(binr - dr / 2, medr, stdr, fmt='', ecolor="black", capsize=2, alpha=0.7, linestyle='')
+axs[2].errorbar((binr - dr / 2)[::5], medr[::5], stdr[::5], fmt='', ecolor="black", capsize=5,  linestyle='')
 # axs[2].plot(binr-dr/2,running_prc25r,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
 # axs[2].plot(binr-dr/2,running_prc75r,'--r',marker=None,fillstyle='none',markersize=20,alpha=1)
-axs[2].set_xlabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{r,AB}$)$^{-1}$) True")
-axs[2].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{r,AB}$)$^{-1}$) Predict")
-axs[2].set_aspect('equal', 'box')
-axs[2].set_xlim([-5.9, -0.3])
-axs[2].set_ylim([-5.9, -0.3])
+axs[2].set_xlabel(r"log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{r,AB}$)$^{-1}$) True")
+axs[2].set_ylabel(r"log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{r,AB}$)$^{-1}$) Predict")
+axs[2].text(0.05, 0.93, 'r-band luminosity function', horizontalalignment='left', verticalalignment='center',
+            transform=axs[2].transAxes)
+# axs[2].set_aspect('equal')
+axs[2].set_xlim([-6.1, -0.3])
+axs[2].set_ylim([-6.1, -0.3])
+
+axs[3].plot(bins_z, yhatz[59], linestyle='--', color='tab:orange')
+axs[3].plot(bins_z, y_testz[59], linestyle='-', color='tab:orange')
+axs[3].plot(bins_z, yhatz[32], linestyle='--', color='tab:blue')
+axs[3].plot(bins_z, y_testz[32], linestyle='-', color='tab:blue')
+axs[3].plot(bins_z, yhatz[67], linestyle='--', color='tab:green')
+axs[3].plot(bins_z, y_testz[67], linestyle='-', color='tab:green')
+axs[3].plot(bins_z, yhatz[60], linestyle='--', color='tab:red')
+axs[3].plot(bins_z, y_testz[60], linestyle='-', color='tab:red')
+axs[3].plot(bins_z, yhatz[61], linestyle='--', color='tab:purple')
+axs[3].plot(bins_z, y_testz[61], linestyle='-', color='tab:purple')
+axs[3].set_xlabel("Redshift, z")
+axs[3].set_ylabel('log$_{10}$(dN(>S)/dz [deg$^{-2}$])')
+axs[3].text(0.95, 0.93, r'H$\alpha$ redshift distribution', horizontalalignment='right', verticalalignment='center',
+            transform=axs[3].transAxes)
+#axs[3].set_aspect('equal')
+
+axs[4].plot(bins_lfk, yhatk[59], linestyle='--', color='tab:orange')
+axs[4].plot(binsk[59], y_testk[59], linestyle='-', color='tab:orange')
+axs[4].plot(bins_lfk, yhatk[32], linestyle='--', color='tab:blue')
+axs[4].plot(binsk[32], y_testk[32], linestyle='-', color='tab:blue')
+axs[4].plot(bins_lfk, yhatk[67], linestyle='--', color='tab:green')
+axs[4].plot(binsk[67], y_testk[67], linestyle='-', color='tab:green')
+axs[4].plot(bins_lfk, yhatk[60], linestyle='--', color='tab:red')
+axs[4].plot(binsk[60], y_testk[60], linestyle='-', color='tab:red')
+axs[4].plot(bins_lfk, yhatk[61], linestyle='--', color='tab:purple')
+axs[4].plot(binsk[61], y_testk[61], linestyle='-', color='tab:purple')
+axs[4].set_xlabel("M$_{K,AB}$ - 5log(h)")
+axs[4].set_xlim(-16, -25.9)
+axs[4].set_ylabel('log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+axs[4].text(0.95, 0.93, 'K-band luminosity function', horizontalalignment='right', verticalalignment='center',
+            transform=axs[4].transAxes)
+#axs[4].set_aspect('equal')
+
+axs[5].plot(bins_lfr, yhatr[59], linestyle='--', color='tab:orange')
+axs[5].plot(binsr[59], y_testr[59], linestyle='-', color='tab:orange')
+axs[5].plot(bins_lfr, yhatr[32], linestyle='--', color='tab:blue')
+axs[5].plot(binsr[32], y_testr[32], linestyle='-', color='tab:blue')
+axs[5].plot(bins_lfr, yhatr[67], linestyle='--', color='tab:green')
+axs[5].plot(binsr[67], y_testr[67], linestyle='-', color='tab:green')
+axs[5].plot(bins_lfr, yhatr[60], linestyle='--', color='tab:red')
+axs[5].plot(binsr[60], y_testr[60], linestyle='-', color='tab:red')
+axs[5].plot(bins_lfr, yhatr[61], linestyle='--', color='tab:purple')
+axs[5].plot(binsr[61], y_testr[61], linestyle='-', color='tab:purple')
+axs[5].set_xlabel("M$_{r,AB}$ - 5log(h)")
+axs[5].set_xlim(-16, -25.9)
+axs[5].set_ylabel('log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)')
+axs[5].text(0.95, 0.93, 'r-band luminosity function', horizontalalignment='right', verticalalignment='center',
+            transform=axs[5].transAxes)
+#axs[5].set_aspect('equal')
+
+plt.tight_layout()
+plt.savefig("Plots/PredvsTrue.pdf")
+
 plt.show()
 

@@ -26,8 +26,8 @@ def emline_df(path, columns):
     df = df.apply(pd.to_numeric)
     df.columns = columns
 
-    df = df[(df['Mag'] <= -16.00)]
-    df = df[(df['Mag'] >= -24.00)]
+    df = df[(df['Mag'] <= -15.00)]
+    df = df[(df['Mag'] >= -24.50)]
     df.reset_index(drop=True, inplace=True)
     # df['Mag'] = np.log10(df['Mag'].replace(0, np.nan))
     # df['Krdust'] = np.log10(df['Krdust'].replace(0, 1e-20))
@@ -75,33 +75,33 @@ def dz_df(path):
 
 #  Lacey parameters
 X_test = np.array([1.0, 320, 320, 3.4, 0.8, 0.74, 0.9, 0.3, 0.05, 0.005, 0.1])
-X_test_old = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
+# X_test_old = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
 
 X_test = X_test.reshape(1, -1)
 
 # Make predictions on the galform set
-yhat_all = predict_all_models(n_models=5, X_test=X_test, variant='_9x5_mask_2899_LRELU_int')
+yhat_all = predict_all_models(n_models=5, X_test=X_test, variant='_6x5_mask_2899_LRELU')
 yhat_avg = np.mean(yhat_all, axis=0)
-np.save('Data/Data_for_ML/Observational/Lacey_16/Lacey_y_pred.npy', yhat_avg[0])
+#np.save('Data/Data_for_ML/Observational/Lacey_16/Lacey_y_pred.npy', yhat_avg[0])
 # yhat_all_old = predict_all_models(n_models=1, X_test=X_test, variant='_6x5_mask_1000_LRELU_int')
 # yhat_avg_old = np.mean(yhat_all_old, axis=0)
 # yhat_all_old1 = predict_all_models(n_models=1, X_test=X_test, variant='_6x5_mask_2899_LRELU_int')
 # yhat_avg_old1 = np.mean(yhat_all_old1, axis=0)
 
-yhatz = yhat_avg[0][0:7]
+yhatz = yhat_avg[0][0:49]
 # yhatz_old = yhat_avg_old[0][0:7]
 # yhatz_old1 = yhat_avg_old1[0][0:7]
-yhatk = yhat_avg[0][7:25]
+yhatk = yhat_avg[0][49:74]
 # yhatk_old = yhat_avg_old[0][7:25]
 # yhatk_old1 = yhat_avg_old1[0][7:25]
-yhatr = yhat_avg[0][25:45]
+yhatr = yhat_avg[0][74:102]
 # yhatr_old = yhat_avg_old[0][25:45]
 # yhatr_old1 = yhat_avg_old1[0][25:45]
 
 # Predict using the old set and old model here...
 
 # Import the counts bins x axis
-bin_file = 'Data/Data_for_ML/bin_data/bin_fullup_int'
+bin_file = 'Data/Data_for_ML/bin_data/bin_full'
 bins = genfromtxt(bin_file)
 bins_l = np.load('Lacey_bins.npy')
 
@@ -207,43 +207,44 @@ r_test_lc_full = r_test_lc_full[r_test_lc_full != 0]
 # plt.legend()
 # plt.show()
 
-fig, axs = plt.subplots(1, 3, figsize=(22, 6))
-axs[0].plot(bins[0:7], yhatz, 'b--', label=f"Prediction")  # MAE: {maelc_z:.3f}")
+fig, axs = plt.subplots(1, 3, figsize=(18, 5))
+axs[0].plot(bins[0:49], yhatz, 'b--', label=f"Prediction")  # MAE: {maelc_z:.3f}")
 # axs[0].plot(bins[0:7], yhatz_old, 'r--', label=f"1000 prediction")  # MAE: {maelc_z:.3f}")
 # axs[0].plot(bins[0:7], yhatz_old1, 'g--', label=f"2899 prediction")  # MAE: {maelc_z:.3f}")
 
 # dflc.plot(ax=axs[0], x="z", y="dN(>S)/dz", color='blue', label="Lacey et al. 2016")
 axs[0].plot(dflc['z'], dflc['dN(>S)/dz'], 'b-', label="Lacey et al. 2016")
 # axs[0].scatter(bins[0:7], z_test_lc, color='blue', marker='x', label="Evaluation bins")
-axs[0].set_ylabel(r"log$_{10}$(dN(>S)/dz) [deg$^{-2}$]")
+axs[0].set_ylabel(r"log$_{10}$(dN(>S)/dz [deg$^{-2}$])")
 axs[0].set_xlabel(r"Redshift, z")
-axs[0].set_xlim(0.9, 1.6)
-axs[0].set_ylim(3.1, 3.8)
+axs[0].set_xlim(0.7, 2.02)
+axs[0].set_ylim(2.5, 4.0)
 
-axs[1].plot(bins[7:25], yhatk, 'b--', label=f"Prediction")  # MAE: {maelc_k:.3f}")
+axs[1].plot(bins[49:74], yhatk, 'b--', label=f"Prediction")  # MAE: {maelc_k:.3f}")
 # axs[1].plot(bins[7:25], yhatk_old, 'r--', label=f"1000 prediction")  # MAE: {maelc_k:.3f}")
 # axs[1].plot(bins[7:25], yhatk_old1, 'g--', label=f"2899 prediction")  # MAE: {maelc_k:.3f}")
 
 axs[1].plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
 # axs[2].scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
 axs[1].set_xlabel(r"M$_{K,AB}$ - 5log(h)")
-axs[1].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
+axs[1].set_ylabel(r"log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
 axs[1].set_xlim(-16, -24.5)
-axs[1].set_ylim(-5, -1)
+axs[1].set_ylim(-5.5, -1)
 
-axs[2].plot(bins[7:25], yhatk, 'b--', label=f"Prediction")  # MAE: {maelc_k:.3f}")
+axs[2].plot(bins[74:102], yhatr, 'b--', label=f"Prediction")  # MAE: {maelc_k:.3f}")
 # axs[2].plot(bins[7:25], yhatk_old, 'r--', label=f"1000 prediction")  # MAE: {maelc_k:.3f}")
 # axs[2].plot(bins[7:25], yhatk_old1, 'g--', label=f"2899 prediction")  # MAE: {maelc_k:.3f}")
 
-axs[2].plot(binsk_full, k_test_lc_full, 'b-', label="Lacey et al. 2016")
+axs[2].plot(binsr_full, r_test_lc_full, 'b-', label="Lacey et al. 2016")
 # axs[2].scatter(binsk_lc_sub, k_test_lc_sub, color='blue', marker='x', label="Evaluation bins")
-axs[2].set_xlabel(r"M$_{K,AB}$ - 5log(h)")
-axs[2].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
+axs[2].set_xlabel(r"M$_{r,AB}$ - 5log(h)")
+axs[2].set_ylabel(r"log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
 axs[2].set_xlim(-16, -24.5)
-axs[2].set_ylim(-5, -1)
+axs[2].set_ylim(-5.5, -1)
 
-plt.legend()
-# plt.savefig('Lacey2016_galform_comparison.pdf')
+plt.tight_layout()
+# plt.legend()
+plt.savefig('Plots/galform_comparison.pdf')
 plt.show()
 
 # MCMC_params = np.array([2.33, 545.51, 227.26, 2.93, 0.69, 0.59])
@@ -300,7 +301,7 @@ plt.show()
 # axs.set_xlim(-18, -25)
 # axs.set_ylim(-6, -1)
 # plt.show()
-
+exit()
 # Save Lacey y values
 df_lck = lf_df(path_lflc, columns_t, mag_high=-15.25, mag_low=-24)
 df_lck['Krdust'] = np.log10(df_lck['Krdust'].mask(df_lck['Krdust'] <=0)).fillna(0)

@@ -97,7 +97,7 @@ def masked_mae(y_true, y_pred):
 
     """
     # # Create a mask where non-zero values are True
-    mask = tf.not_equal(y_true, -100)
+    mask = tf.not_equal(y_true, 0)
     masked_y_true = tf.boolean_mask(y_true, mask)
     masked_y_pred = tf.boolean_mask(y_pred, mask)
     # Calculate the MAE loss
@@ -162,7 +162,7 @@ def load_all_models(n_models):
     all_models = list()
     for i in range(n_models):
         # Define filename for this ensemble
-        filename = 'Models/Ensemble_model_' + str(i + 1) + '_9x5_upmask_2899_LRELU_int'
+        filename = 'Models/Ensemble_model_' + str(i + 1) + '_6x5_mask_2899_LRELU'
         # Load model from file
         model = tf.keras.models.load_model(filename, custom_objects={'masked_mae': masked_mae},
                                            compile=False)
@@ -212,7 +212,7 @@ def find_number(text, c):
     return [int(s) for s in re.findall(r'%s(\d+)' % c, text)]
 
 
-def dndz_generation(galform_filenames, galform_filepath, O_df, column_headers):
+def dndz_generation_int(galform_filenames, galform_filepath, O_df, column_headers):
     """
     Generating the redhisft distribution data for emulator training.
     Reading the GALFORM output files, and interpolating so the bins
@@ -254,7 +254,47 @@ def dndz_generation(galform_filenames, galform_filepath, O_df, column_headers):
     return list_dndz, model_list  # , dndz_bins
 
 
-def LF_generation(galform_filenames, galform_filepath, O_dfk, O_dfr, column_headers):
+def dndz_generation(galform_filenames, galform_filepath, column_headers):
+    """
+    Generating the redhisft distribution data for emulator training.
+    Reading the GALFORM output files.
+    Output the associated model numbers for sanity check.
+
+    Args:
+        galform_filenames: List of GALFORM output redshift distribution file names
+        galform_filepath: Path to GALFORM output n(z) data files
+        column_headers: Column names used for dndz_df function
+
+    Returns: List of generated n(z) values, list of model numbers
+
+    """
+
+    # Define empty array for storing training n(z) into
+    list_dndz = np.empty((0, 49))
+    model_list = []
+
+    # Go through each n(z) file in list
+    for file in galform_filenames:
+        model_number = find_number(file, '.')
+        model_list.append(model_number[0])
+
+        # Extract the relevant n(z) data with custom function
+        df_z = dndz_df(galform_filepath + file, column_headers)
+
+        # Use the interpolation package to transform the data into observable bin frame
+        # interp_funcz = interp1d(df_z['z'].values, df_z['dN(>S)/dz'].values, kind='linear', fill_value='extrapolate')
+        # interp_yz1 = interp_funcz(O_df['z'].values)
+        # interp_yz1[O_df['z'].values > max(df_z['z'].values)] = 0
+        # interp_yz1[O_df['z'].values < min(df_z['z'].values)] = 0
+        #
+        # list_dndz = np.vstack([list_dndz, interp_yz1])
+        list_dndz = np.vstack(([list_dndz, df_z['dN(>S)/dz']]))
+    dndz_bins = df_z['z'].values
+
+    return list_dndz, model_list, dndz_bins
+
+
+def LF_generation_int(galform_filenames, galform_filepath, O_dfk, O_dfr, column_headers):
     """
     Generating the luminosity function data for emulator training.
     Reading the Galform output files and interpolating so the bins
@@ -317,3 +357,62 @@ def LF_generation(galform_filenames, galform_filepath, O_dfk, O_dfr, column_head
         # lf_bins = np.concatenate((df_lfk['Mag'].values, df_lfr['Mag'].values))
 
     return list_lf  # , lf_bins
+
+
+def LF_generation(galform_filenames, galform_filepath, column_headers):
+    """
+    Generating the luminosity function data for emulator training.
+    Reading the Galform output files.
+    This is repeated for the K-band and r-band.
+
+    Args:
+        galform_filenames: List of GALFORM gal.lf filenames
+        galform_filepath: Path to GALFORM output gal.lf data files
+        column_headers:
+
+    Returns: List of K-band and r-band values concatenated
+
+    """
+
+    # Define empty array for storing training LF data
+    list_lf = np.empty((0, 53))
+
+    # Go through each gal.lf file in list
+    for file in galform_filenames:
+
+        # Extract LF data using custom function
+        df_lfk = lf_df(galform_filepath + file, column_headers, mag_low=-25.55,
+                       mag_high=-15.04)  # -23.80, -15.04 for Driver
+        # Process the K-band values
+        df_lfk['Krdust'] = np.log10(df_lfk['Krdust'].mask(df_lfk['Krdust'] <= 0)).fillna(0)
+        # df_lfk = df_lfk[df_lfk['Krdust'] != 0]
+
+        # Interpolate into the observable reference frame interp_funck = interp1d(df_lfk['Mag'].values,
+        # df_lfk['Krdust'].values, kind='linear', fill_value='extrapolate', bounds_error=False) interp_yk1 =
+        # interp_funck(O_dfk['Mag'].values) interp_yk1[O_dfk['Mag'].values < min(df_lfk['Mag'].values)] = 0
+
+        df_lfr = lf_df(galform_filepath + file, column_headers, mag_low=-25.55,
+                       mag_high=-13.73)  # -23.36, -13.73 for Driver
+        df_lfr['Rrdust'] = np.log10(df_lfr['Rrdust'].mask(df_lfr['Rrdust'] <= 0)).fillna(0)
+        # df_lfr = df_lfr[df_lfr['Rrdust'] != 0]
+        # interp_funcr = interp1d(df_lfr['Mag'].values, df_lfr['Rrdust'].values, kind='linear',
+        # fill_value='extrapolate', bounds_error=False) interp_yr1 = interp_funcr(O_dfr['Mag'].values) interp_yr1[
+        # O_dfr['Mag'].values < min(df_lfk['Mag'].values)] = 0
+
+        # Calculate the amount of padding needed for both arrays
+        # paddingk = [(0, 18 - len(interp_yk1))]  # 18 for driver
+        # paddingr = [(0, 20 - len(interp_yr1))]
+
+        # Pad both arrays with zeros
+        # padded_arrayk = np.pad(interp_yk1, paddingk, mode='constant', constant_values=0)
+        # padded_arrayr = np.pad(interp_yr1, paddingr, mode='constant', constant_values=0)
+
+        # Combine the K-band and r-band training LF values
+        # lf_vector = np.concatenate((interp_yk1, interp_yr1))
+        #lf_vector = np.concatenate((df_lfk['Krdust'].values, df_lfr['Rrdust'].values))
+        lf_vector = np.hstack([df_lfk['Krdust'].values, df_lfr['Rrdust'].values])
+        list_lf = np.vstack([list_lf, lf_vector])
+
+    lf_bins = np.hstack([df_lfk['Mag'].values, df_lfr['Mag'].values])
+
+    return list_lf, lf_bins

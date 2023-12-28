@@ -4,11 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a7acc9b9-fa9e-44a1-badd-1ebbdfbf4728" name="Changes" comment="Currest best, final emulator, optimiser set. Further evaluation code.">
+    <list default="true" id="a7acc9b9-fa9e-44a1-badd-1ebbdfbf4728" name="Changes" comment="Modified to add scaling and comments">
+      <change afterPath="$PROJECT_DIR$/ExtraGalform.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/other.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CornerPlots.py" beforeDir="false" afterPath="$PROJECT_DIR$/CornerPlots.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Data_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/Data_generation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Galform_comparison.py" beforeDir="false" afterPath="$PROJECT_DIR$/Galform_comparison.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/History_plots.py" beforeDir="false" afterPath="$PROJECT_DIR$/History_plots.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Interpolation_check.py" beforeDir="false" afterPath="$PROJECT_DIR$/Interpolation_check.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Loading_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Loading_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MultiOut_ML.py" beforeDir="false" afterPath="$PROJECT_DIR$/MultiOut_ML.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Optimization.py" beforeDir="false" afterPath="$PROJECT_DIR$/Optimization.py" afterDir="false" />
@@ -66,29 +70,43 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "/home/dtsw71/PycharmProjects/pythonProject/Parameter_file_update.py",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "python.debugger.dataview.coloredbydefault": "false",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.CornerPlots.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Data_generation.executor&quot;: &quot;Run&quot;,
+    &quot;Python.ExtraGalform.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Galform_comparison.executor&quot;: &quot;Run&quot;,
+    &quot;Python.History_plots.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Interpolation_check.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Loading_functions.executor&quot;: &quot;Run&quot;,
+    &quot;Python.MultiOut_ML.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Optimization.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Outliers_eval.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Predict_true.executor&quot;: &quot;Run&quot;,
+    &quot;Python.model_eval_traintest.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/dtsw71/Downloads&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;python.debugger.dataview.coloredbydefault&quot;: &quot;false&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.completion&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/Plots" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.model_eval_traintest">
+  <component name="RunManager" selected="Python.Interpolation_check">
     <configuration name="Check_LF" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -111,6 +129,7 @@
     </configuration>
     <configuration name="Check_normalisation" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -133,6 +152,7 @@
     </configuration>
     <configuration name="CornerPlots" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -156,6 +176,7 @@
     </configuration>
     <configuration name="Data_generation" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -178,6 +199,7 @@
     </configuration>
     <configuration name="Ensemble_ML" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -198,8 +220,32 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="ExtraGalform" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
+      <module name="ML" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ExtraGalform.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="FAPI_ML" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -223,6 +269,7 @@
     </configuration>
     <configuration name="Galform_comparison" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -245,6 +292,7 @@
     </configuration>
     <configuration name="History_plots" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -267,6 +315,7 @@
     </configuration>
     <configuration name="Interpolation_check" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -289,8 +338,12 @@
     </configuration>
     <configuration name="Loading_functions" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -308,6 +361,7 @@
     </configuration>
     <configuration name="MultiOut_ML" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -330,6 +384,7 @@
     </configuration>
     <configuration name="MultiOut_ML_int" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -352,6 +407,7 @@
     </configuration>
     <configuration name="Optimization" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -374,6 +430,7 @@
     </configuration>
     <configuration name="Outliers_eval" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -396,6 +453,7 @@
     </configuration>
     <configuration name="Parameter_perturb" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -418,8 +476,12 @@
     </configuration>
     <configuration name="Predict_true" type="PythonConfigurationType" factoryName="Python" singleton="false" temporary="true" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -437,6 +499,7 @@
     </configuration>
     <configuration name="SingleOut_ML" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -459,6 +522,7 @@
     </configuration>
     <configuration name="Testing_schec" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -481,6 +545,7 @@
     </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -503,6 +568,7 @@
     </configuration>
     <configuration name="model_eval" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -525,6 +591,7 @@
     </configuration>
     <configuration name="model_eval_ensemble" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -547,6 +614,7 @@
     </configuration>
     <configuration name="model_eval_traintest" type="PythonConfigurationType" factoryName="Python" singleton="false" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -569,6 +637,7 @@
     </configuration>
     <configuration name="testing_lossmae" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="ML" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -590,26 +659,27 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.History_plots" />
-      <item itemvalue="Python.MultiOut_ML_int" />
+      <item itemvalue="Python.ExtraGalform" />
+      <item itemvalue="Python.Check_LF" />
+      <item itemvalue="Python.Check_normalisation" />
       <item itemvalue="Python.CornerPlots" />
+      <item itemvalue="Python.Data_generation" />
+      <item itemvalue="Python.Ensemble_ML" />
+      <item itemvalue="Python.FAPI_ML" />
+      <item itemvalue="Python.Galform_comparison" />
+      <item itemvalue="Python.History_plots" />
       <item itemvalue="Python.Interpolation_check" />
+      <item itemvalue="Python.MultiOut_ML" />
+      <item itemvalue="Python.MultiOut_ML_int" />
       <item itemvalue="Python.Optimization" />
       <item itemvalue="Python.Outliers_eval" />
-      <item itemvalue="Python.SingleOut_ML" />
-      <item itemvalue="Python.Data_generation" />
-      <item itemvalue="Python.MultiOut_ML" />
-      <item itemvalue="Python.Check_LF" />
-      <item itemvalue="Python.model_eval" />
-      <item itemvalue="Python.Check_normalisation" />
-      <item itemvalue="Python.model_eval_ensemble" />
-      <item itemvalue="Python.Ensemble_ML" />
-      <item itemvalue="Python.Testing_schec" />
-      <item itemvalue="Python.model_eval_traintest" />
-      <item itemvalue="Python.Galform_comparison" />
-      <item itemvalue="Python.testing_lossmae" />
       <item itemvalue="Python.Parameter_perturb" />
-      <item itemvalue="Python.FAPI_ML" />
+      <item itemvalue="Python.SingleOut_ML" />
+      <item itemvalue="Python.Testing_schec" />
+      <item itemvalue="Python.model_eval" />
+      <item itemvalue="Python.model_eval_ensemble" />
+      <item itemvalue="Python.model_eval_traintest" />
+      <item itemvalue="Python.testing_lossmae" />
       <item itemvalue="Python.Loading_functions" />
       <item itemvalue="Python.Predict_true" />
     </list>
@@ -619,6 +689,13 @@
         <item itemvalue="Python.Loading_functions" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-50da183f06c8-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13135.95" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -723,7 +800,31 @@
       <workItem from="1699523139318" duration="2702000" />
       <workItem from="1699608654031" duration="5064000" />
       <workItem from="1699731134731" duration="425000" />
-      <workItem from="1699779142766" duration="140885000" />
+      <workItem from="1699779142766" duration="143425000" />
+      <workItem from="1702055851988" duration="4648000" />
+      <workItem from="1702118589124" duration="6004000" />
+      <workItem from="1702132768084" duration="14116000" />
+      <workItem from="1702218252626" duration="343000" />
+      <workItem from="1702248509586" duration="656000" />
+      <workItem from="1702285147608" duration="2918000" />
+      <workItem from="1702419651726" duration="1405000" />
+      <workItem from="1702851339375" duration="591000" />
+      <workItem from="1702853164855" duration="617000" />
+      <workItem from="1702921237496" duration="632000" />
+      <workItem from="1702938661451" duration="87000" />
+      <workItem from="1702939211447" duration="471000" />
+      <workItem from="1703000979731" duration="9334000" />
+      <workItem from="1703068457257" duration="41317000" />
+      <workItem from="1703264480531" duration="12799000" />
+      <workItem from="1703290915304" duration="266000" />
+      <workItem from="1703429040079" duration="7886000" />
+      <workItem from="1703498438628" duration="9668000" />
+      <workItem from="1703542902185" duration="3282000" />
+      <workItem from="1703608611717" duration="10293000" />
+      <workItem from="1703673569575" duration="5862000" />
+      <workItem from="1703709172595" duration="2707000" />
+      <workItem from="1703773744191" duration="626000" />
+      <workItem from="1703792954056" duration="1364000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1681723311518</created>
@@ -1046,7 +1147,15 @@
       <option name="project" value="LOCAL" />
       <updated>1700048620781</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="Modified to add scaling and comments">
+      <option name="closed" value="true" />
+      <created>1701718607850</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1701718607850</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1064,7 +1173,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Updating Galform_comparison.py" />
     <MESSAGE value="Predictions ignoring zero truth values" />
     <MESSAGE value="Modifying analysis to ignore zero truth values." />
     <MESSAGE value="Lacey and Elliott predictions" />
@@ -1089,7 +1197,8 @@
     <MESSAGE value="Small updates to galform comparison" />
     <MESSAGE value="Including all training samples" />
     <MESSAGE value="Currest best, final emulator, optimiser set. Further evaluation code." />
-    <option name="LAST_COMMIT_MESSAGE" value="Currest best, final emulator, optimiser set. Further evaluation code." />
+    <MESSAGE value="Modified to add scaling and comments" />
+    <option name="LAST_COMMIT_MESSAGE" value="Modified to add scaling and comments" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1103,27 +1212,28 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ML$Optimization.coverage" NAME="Optimization Coverage Results" MODIFIED="1701120895952" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$ML_training.coverage" NAME="ML_training Coverage Results" MODIFIED="1675945401450" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$MultiOut_ML.coverage" NAME="MultiOut_ML Coverage Results" MODIFIED="1701274267411" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Predict_true.coverage" NAME="Predict_true Coverage Results" MODIFIED="1701261799940" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Parameter_perturb.coverage" NAME="Parameter_perturb Coverage Results" MODIFIED="1691489617485" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Testing_schec.coverage" NAME="Testing_schec Coverage Results" MODIFIED="1688406504550" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$model_eval_ensemble.coverage" NAME="model_eval_ensemble Coverage Results" MODIFIED="1690451856810" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$FAPI_ML.coverage" NAME="FAPI_ML Coverage Results" MODIFIED="1692200819977" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/ML$model_eval_traintest.coverage" NAME="model_eval_traintest Coverage Results" MODIFIED="1701275701432" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Interpolation_check.coverage" NAME="Interpolation_check Coverage Results" MODIFIED="1699993107186" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Testing.coverage" NAME="Testing Coverage Results" MODIFIED="1675269804182" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Outliers_eval.coverage" NAME="Outliers_eval Coverage Results" MODIFIED="1700864671307" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Ensemble_ML.coverage" NAME="Ensemble_ML Coverage Results" MODIFIED="1690224028488" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Check_LF.coverage" NAME="Check_LF Coverage Results" MODIFIED="1678880881527" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$History_plots.coverage" NAME="History_plots Coverage Results" MODIFIED="1697814482576" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$CornerPlots.coverage" NAME="CornerPlots Coverage Results" MODIFIED="1700778731337" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$MultiOut_ML_int.coverage" NAME="MultiOut_ML_int Coverage Results" MODIFIED="1693580932004" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$model_eval.coverage" NAME="model_eval Coverage Results" MODIFIED="1683234853239" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Data_generation.coverage" NAME="Data_generation Coverage Results" MODIFIED="1703079927543" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Optimization_2.coverage" NAME="CornerPlots Coverage Results" MODIFIED="1691408879178" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$MultiOut_ML.coverage" NAME="MultiOut_ML Coverage Results" MODIFIED="1703101639763" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Testing.coverage" NAME="Testing Coverage Results" MODIFIED="1675269804182" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$ML_training.coverage" NAME="ML_training Coverage Results" MODIFIED="1675945401450" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$FAPI_ML.coverage" NAME="FAPI_ML Coverage Results" MODIFIED="1692200819977" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/ML$Optimization.coverage" NAME="Optimization Coverage Results" MODIFIED="1703279720310" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Testing_schec.coverage" NAME="Testing_schec Coverage Results" MODIFIED="1688406504550" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Parameter_perturb.coverage" NAME="Parameter_perturb Coverage Results" MODIFIED="1691489617485" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$MultiOut_ML_int.coverage" NAME="MultiOut_ML_int Coverage Results" MODIFIED="1693580932004" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$model_eval_traintest.coverage" NAME="model_eval_traintest Coverage Results" MODIFIED="1703197640675" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Outliers_eval.coverage" NAME="Outliers_eval Coverage Results" MODIFIED="1703112864704" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$ExtraGalform.coverage" NAME="ExtraGalform Coverage Results" MODIFIED="1703710663378" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$model_eval_ensemble.coverage" NAME="model_eval_ensemble Coverage Results" MODIFIED="1690451856810" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$model_eval.coverage" NAME="model_eval Coverage Results" MODIFIED="1683234853239" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ML$Check_normalisation.coverage" NAME="Check_normalisation Coverage Results" MODIFIED="1680623218204" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Galform_comparison.coverage" NAME="Galform_comparison Coverage Results" MODIFIED="1700054633011" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ML$Data_generation.coverage" NAME="Data_generation Coverage Results" MODIFIED="1701274113194" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Interpolation_check.coverage" NAME="Interpolation_check Coverage Results" MODIFIED="1703793149265" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Ensemble_ML.coverage" NAME="Ensemble_ML Coverage Results" MODIFIED="1690224028488" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$History_plots.coverage" NAME="History_plots Coverage Results" MODIFIED="1702285176520" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$CornerPlots.coverage" NAME="CornerPlots Coverage Results" MODIFIED="1703618966766" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Check_LF.coverage" NAME="Check_LF Coverage Results" MODIFIED="1678880881527" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Galform_comparison.coverage" NAME="Galform_comparison Coverage Results" MODIFIED="1703093598012" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ML$Predict_true.coverage" NAME="Predict_true Coverage Results" MODIFIED="1703710358974" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

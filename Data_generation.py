@@ -74,30 +74,33 @@ base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_HaNI
 base_filenames = os.listdir(base_path_dndz)
 base_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
-training_Hadndz, model_numbers = dndz_generation(galform_filenames=base_filenames, galform_filepath=base_path_dndz,
-                                                 O_df=Ha_b, column_headers=columns_Z)
+training_Hadndz, model_numbers, dndzbins = dndz_generation(galform_filenames=base_filenames,
+                                                           galform_filepath=base_path_dndz,
+                                                           column_headers=columns_Z)
 model_numbers = [x - 1 for x in model_numbers]
 
-dndzbins = Ha_b['z'].values
-# dndzbins = dndz_bins
+# dndzbins = Ha_b['z'].values
 print('Redshift distribution bins: ', dndzbins)
-print('Example of dn/dz values: ', training_Hadndz[1671])
+print('Example of dn/dz values: ', training_Hadndz[1670])
 
 # The following saves the min and max values from the entire n(z) dataset for scaling.
 training_Hadndz = np.array(training_Hadndz)
-nzmin = np.min(training_Hadndz)
-nzmax = np.max(training_Hadndz)
-np.save('Data/Data_for_ML/min_nz_scale.npy', nzmin)
-np.save('Data/Data_for_ML/max_nz_scale.npy', nzmax)
+# nzmin = np.min(training_Hadndz)
+# nzmax = np.max(training_Hadndz)
+# print("Min: ", nzmin)
+# print("Max: ", nzmax)
+#
+# np.save('Data/Data_for_ML/min_nz_scale.npy', nzmin)
+# np.save('Data/Data_for_ML/max_nz_scale.npy', nzmax)
 
 # Scaling the n(z) data if required. This can be commented out.
-for i in range(len(training_Hadndz)):
-    training_Hadndz[i][training_Hadndz[i] == 0] = -100
-    non_zero_mask = training_Hadndz[i] != -100
-    # Manual scaling
-    training_Hadndz[i][non_zero_mask] = (training_Hadndz[i][non_zero_mask] - nzmin) / (nzmax - nzmin)
-
-print("Scaled labels", training_Hadndz[1671])
+# for i in range(len(training_Hadndz)):
+#     training_Hadndz[i][training_Hadndz[i] == 0] = -100
+#     non_zero_mask = training_Hadndz[i] != -100
+#     # Manual scaling
+#     training_Hadndz[i][non_zero_mask] = (training_Hadndz[i][non_zero_mask] - nzmin) / (nzmax - nzmin)
+#
+# print("Scaled labels", training_Hadndz[1671])
 
 # LF
 columns_lf = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
@@ -125,46 +128,45 @@ base_path_lf = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_kband_train
 basek_filenames = os.listdir(base_path_lf)
 basek_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
-training_lf= LF_generation(galform_filenames=basek_filenames, galform_filepath=base_path_lf,
-                            O_dfk=df_k, O_dfr=df_r, column_headers=columns_lf)
+training_lf, lfbins= LF_generation(galform_filenames=basek_filenames, galform_filepath=base_path_lf,
+                                   column_headers=columns_lf)
 
-lfbins = np.concatenate((df_k['Mag'].values, df_r['Mag'].values))
-# lfbins = lf_bins
+# lfbins = np.concatenate((df_k['Mag'].values, df_r['Mag'].values))
 print('LF distribution bins: ', lfbins)
-print('Example of k-band LF values: ', training_lf[1671][0:18])
-print('Example of r-band LF values: ', training_lf[1671][18:38])
+print('Example of k-band LF values: ', training_lf[1670][0:25])
+print('Example of r-band LF values: ', training_lf[1670][25:53])
 
 # The following saves the min and max from the K-band and r-band datasets
-training_lfk = [i[0:18] for i in training_lf]
-training_lfr = [i[18:38] for i in training_lf]
-training_lfk = np.array(training_lfk)
-training_lfr = np.array(training_lfr)
-kmin = np.min(training_lfk)
-kmax = np.max(training_lfk)
-np.save('Data/Data_for_ML/min_k_scale.npy', kmin)
-np.save('Data/Data_for_ML/max_k_scale.npy', kmax)
-rmin = np.min(training_lfr)
-rmax = np.max(training_lfr)
-np.save('Data/Data_for_ML/min_r_scale.npy', rmin)
-np.save('Data/Data_for_ML/max_r_scale.npy', rmax)
+# training_lfk = [i[0:18] for i in training_lf]
+# training_lfr = [i[18:38] for i in training_lf]
+# training_lfk = np.array(training_lfk)
+# training_lfr = np.array(training_lfr)
+# kmin = np.min(training_lfk)
+# kmax = np.max(training_lfk)
+# np.save('Data/Data_for_ML/min_k_scale.npy', kmin)
+# np.save('Data/Data_for_ML/max_k_scale.npy', kmax)
+# rmin = np.min(training_lfr)
+# rmax = np.max(training_lfr)
+# np.save('Data/Data_for_ML/min_r_scale.npy', rmin)
+# np.save('Data/Data_for_ML/max_r_scale.npy', rmax)
 
 # Applying the scaling to our data. This can be commented out if required.
-for i in range(len(training_lfk)):
-    training_lfk[i][training_lfk[i] == 0] = -100
-    non_zero_mask = training_lfk[i] != -100
-    training_lfk[i][non_zero_mask] = (training_lfk[i][non_zero_mask] - kmin) / (kmax - kmin)
-    training_lfr[i][training_lfr[i] == 0] = -100
-    non_zero_mask = training_lfr[i] != -100
-    training_lfr[i][non_zero_mask] = (training_lfr[i][non_zero_mask] - rmin) / (kmax - rmin)
-training_lf = np.hstack([training_lfk, training_lfr])
-print("Scaled labels", training_lf[1671])
+# for i in range(len(training_lfk)):
+#     training_lfk[i][training_lfk[i] == 0] = -100
+#     non_zero_mask = training_lfk[i] != -100
+#     training_lfk[i][non_zero_mask] = (training_lfk[i][non_zero_mask] - kmin) / (kmax - kmin)
+#     training_lfr[i][training_lfr[i] == 0] = -100
+#     non_zero_mask = training_lfr[i] != -100
+#     training_lfr[i][non_zero_mask] = (training_lfr[i][non_zero_mask] - rmin) / (kmax - rmin)
+# training_lf = np.hstack([training_lfk, training_lfr])
+# print("Scaled labels", training_lf[1671])
 
 # Combine the two data sets with the parameter data
 combo_bins = np.hstack([dndzbins, lfbins])  # This data is not required for the machine learning
 combo_labels = np.hstack([training_Hadndz, training_lf])
 
 print('Combo bins: ', combo_bins)
-print('Example of combo labels: ', combo_labels[1671])
+print('Example of combo labels: ', combo_labels[1670])
 
 # Load and process the input feature data from my parameters file used for generating the GALFORM runs
 training_feature_file = 'Data/Data_for_ML/raw_features/updated_parameters_extended_3000v4.csv'
@@ -184,11 +186,10 @@ print('Length of features: ', len(training_features))
 
 
 # Save the arrays as a text file
-# np.savetxt(training_path + 'label_full2999_int_scaled', combo_labels)
-np.savetxt(training_path + 'feature_2999_scaled', training_features)
-# np.savetxt(bin_path + 'bin_full_int', combo_bins)
+np.savetxt(training_path + 'label_full2999', combo_labels)
+np.savetxt(training_path + 'feature_2999', training_features)
+np.savetxt(bin_path + 'bin_full', combo_bins)
 
 # Save individual physics data and bins for testing
-np.savetxt(training_path + 'label_dndz2999_int_scaled', training_Hadndz)
-np.savetxt(bin_path + 'bin_dndz_int', dndzbins)
-
+# np.savetxt(training_path + 'label_dndz2999_int_scaled', training_Hadndz)
+# np.savetxt(bin_path + 'bin_dndz_int', dndzbins)

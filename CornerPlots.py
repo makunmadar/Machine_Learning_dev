@@ -9,25 +9,25 @@ from Loading_functions import lf_df
 import seaborn as sns
 
 plt.rcParams["font.family"] = "serif"
-plt.rcParams["font.size"] = 11
-plt.rc('xtick', labelsize=11)
-plt.rc('ytick', labelsize=11)
+plt.rcParams["font.size"] = 27
+plt.rc('xtick', labelsize=15)
+plt.rc('ytick', labelsize=15)
 
-ratio = "411_10"
+ratio = "411_20"
 # redshift_samples = np.load("Samples_redshiftdist.npy")
 # KLF_samples = np.load("Samples_KLF.npy")
-combo_samples = np.load(f"Samples_combo_MAE{ratio}.npy")
+combo_samples = np.load(f"Samples_combo_MAEup{ratio}.npy")
 
 # Corner plot
-# labels = [r"$\alpha_{ret}$", r"$V_{SN, disk}$", r"$V_{SN, burst}$",
-#           r"$\gamma_{SN}$", r"$\alpha_{cool}$", r"$\nu_{SF}$]",
-#           r"$F_{stab}$", r"$f_{ellip}$", r"$f_{burst}$", r"$f_{SMBH}$", r"$\tau_{*burst,min}$"]
+labels = [r"$\alpha_{ret}$", r"$V_{SN, disk}$", r"$V_{SN, burst}$",
+          r"$\gamma_{SN}$", r"$\alpha_{cool}$", r"$\nu_{SF}$",
+          r"$F_{stab}$", r"$f_{ellip}$", r"$f_{burst}$", r"$f_{SMBH}$", r"$\tau_{*burst,min}$"]
 # For multiple walkers the shape of "samples" should have the shape (num_walkers, num_samples, num_parameters)
 
 # flattened_samples = scaler_feat.inverse_transform(flattened_samples)
 # Create the corner plot
-# p_range = [(0.2, 3.0), (10, 800), (10, 800), (1.0, 4.0), (0.0, 4.0), (0.1, 4.0),
-#            (0.5, 1.2), (0.2, 0.5), (0.001, 0.3), (0.001, 0.05), (0.01, 0.2)]
+p_range = [(0.2, 3.0), (10, 800), (10, 800), (1.0, 4.0), (0.0, 4.0), (0.1, 4.0),
+           (0.5, 1.2), (0.2, 0.5), (0.001, 0.3), (0.001, 0.05), (0.01, 0.2)]
 #
 # fig = corner.corner(flattened_zsamples, labels=labels, color='gray',
 #                     plot_datapoints=True, levels=[0.68,0.95],
@@ -49,16 +49,20 @@ combo_samples = np.load(f"Samples_combo_MAE{ratio}.npy")
 # figk.savefig("corner_LF.png")
 
 # figc = corner.corner(combo_samples, show_titles=True, labels=labels, color='green',
-#                      plot_datapoints=True, levels=[0.68, 0.95],
-#                      smooth=0.0, bins=50, range=p_range, fill_contours=True)
-# figc.show()
-# figc.savefig(f"corner_combo_MAE{ratio}.png")
+#                      plot_datapoints=False, levels=[0.25, 0.50, 0.75],
+#                      smooth=1, bins=50, range=p_range, fill_contours=True)
+figc = corner.corner(combo_samples, bins=50, range=p_range, color='green', smooth=1,
+                     labels=labels, show_titles=False, levels=[0.25, 0.50, 0.75],
+                     plot_datapoints=False, fill_contours=True, hist_kwargs={"density": True})
 
+figc.show()
+figc.savefig(f"corner_combo_MAE{ratio}.png")
+exit()
 #
 # redshift_likelihoods = np.load("Likelihoods_redshiftdist.npy")
 # KLF_likelihoods = np.load("Likelihoods_KLF.npy")
-# combo_likelihoods = np.load(f"Likelihoods_combo_MAE{ratio}.npy")
-# combo_error = np.load(f"Error_combo_MAE{ratio}.npy")
+combo_likelihoods = np.load(f"Likelihoods_combo_MAE{ratio}.npy")
+combo_error = np.load(f"Error_combo_MAE{ratio}.npy")
 
 # Find the best model with the highest likelihood
 # max_zlikeli_idx = np.argmax(redshift_likelihoods)
@@ -76,11 +80,11 @@ combo_samples = np.load(f"Samples_combo_MAE{ratio}.npy")
 # print("Highest likelihood combo: ", combo_likelihoods[max_clikeli_idx])
 # print("Corresponding MAE combo: ", combo_error[max_clikeli_idx])
 # print("Best parameters combo: ", combo_samples[max_clikeli_idx])
-# min_cerror_idx = np.argmin(combo_error)
+min_cerror_idx = np.argmin(combo_error)
 # print("\n")
-# print("Lowest error combo: ", combo_error[min_cerror_idx])
-# print("Corresponding likelihood combo: ", combo_likelihoods[min_cerror_idx])
-# print("Best parameters combo: ", combo_samples[min_cerror_idx])
+print("Lowest error combo: ", combo_error[min_cerror_idx])
+print("Corresponding likelihood combo: ", combo_likelihoods[min_cerror_idx])
+print("Best parameters combo: ", combo_samples[min_cerror_idx])
 
 # Load the individual error data
 # combo_errorz = np.load("Error_comboz_MAE.npy")
@@ -258,81 +262,104 @@ columns = ["MAE", "alpha_reheat", "vhotdisk", "vhotburst", "alphahot", "alpha_co
 minMAE_df = pd.DataFrame(columns=columns)
 best_chain_df = pd.DataFrame(columns=columns[1:12])
 
-walker_no = ['10', '6', '3', '1']
+# walker_no = ['10', '6', '3', '1']
+walker_no = ['20', '20v2', '30v3', '30v4']  # , '20v5']
 count = 0
+
+fig, axs = plt.subplots(1, 3, figsize=(15, 4))
+bin_file = 'Data/Data_for_ML/bin_data/bin_full'
+bins = genfromtxt(bin_file)
 
 ## 10 Walkers ##
 for num in walker_no:
 
-    combo_predictions_raw = np.load(f"Predictions_combo_MAE411_{num}_raw.npy")
-    combo_samples = np.load(f"Samples_combo_MAE411_{num}.npy")
+    combo_predictions_raw = np.load(f"Predictions_combo_MAEup411_{num}_raw.npy")
+    combo_samples = np.load(f"Samples_combo_MAEup411_{num}.npy")
+    combo_WMAE = np.load(f"Error_combo_MAEup411_{num}.npy")
     c = 0  # index for the parameters as they are in one solid array
+
     for i in range(len(combo_predictions_raw)):
         MAE_chain = []
         samples_chain = []
         for theta in combo_predictions_raw[i]:
-            abs_diff = np.abs(obs - theta)
-            bag = abs_diff[0:7] / 7
-            driv_k = abs_diff[7:25] / 18
-            driv_r = abs_diff[25:45] / 20
-            mae_theta = (np.sum(bag) + np.sum(driv_k) + np.sum(driv_r)) * (1 / 3)
-            sample_theta = combo_samples[c]
+            # abs_diff = np.abs(obs - theta)
+            # bag = abs_diff[0:7] / 7
+            # driv_k = abs_diff[7:25] / 18
+            # driv_r = abs_diff[25:45] / 20
+            # mae_theta = (np.sum(bag) + np.sum(driv_k) + np.sum(driv_r)) * (1 / 3)
+            # sample_theta = combo_samples[c]
+            # sample_WMAE = combo_WMAE[c]
 
-            MAE_chain.append(mae_theta)
-            samples_chain.append(sample_theta)
+            MAE_chain.append(combo_WMAE[c])
+            samples_chain.append(combo_samples[c])
             c += 1
 
         min_index = MAE_chain.index(min(MAE_chain))
         minMAE_chain = MAE_chain[min_index]
         minsamples_chain = samples_chain[min_index]
-        minMAE_chain_df = pd.DataFrame([{'MAE': minMAE_chain, 'alpha_reheat': minsamples_chain[0],
+        minMAE_chain_df = pd.DataFrame([{'MAE': minMAE_chain[0], 'alpha_reheat': minsamples_chain[0],
                                          'vhotdisk': minsamples_chain[1], 'vhotburst': minsamples_chain[2],
                                          'alphahot': minsamples_chain[3], 'alpha_cool': minsamples_chain[4],
                                          'nu_sf': minsamples_chain[5], 'Fstab': minsamples_chain[6],
                                          'fellip': minsamples_chain[7], 'fburst': minsamples_chain[8],
                                          'fSMBH': minsamples_chain[9], 'tau_burst': minsamples_chain[10]}])
+        axs[0].plot(bins[0:49], combo_predictions_raw[i][min_index][0:49], alpha=0.1)
+        axs[1].plot(bins[49:74], combo_predictions_raw[i][min_index][49:74], alpha=0.1)
+        axs[2].plot(bins[74:102], combo_predictions_raw[i][min_index][74:102], alpha=0.1)
 
         minMAE_df = pd.concat([minMAE_df, minMAE_chain_df], ignore_index=True)
 
-        if count == 2:
-            for j in samples_chain:
-                best_chain = pd.DataFrame([{'alpha_reheat': j[0],
-                                            'vhotdisk': j[1], 'vhotburst': j[2],
-                                            'alphahot': j[3], 'alpha_cool': j[4],
-                                            'nu_sf': j[5], 'Fstab': j[6],
-                                            'fellip': j[7], 'fburst': j[8],
-                                            'fSMBH': j[9], 'tau_burst': j[10]}])
-                best_chain_df = pd.concat([best_chain_df, best_chain], ignore_index=True)
-        count += 1
-print(minMAE_df)
-print(best_chain_df)
+axs[0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor='black',
+                   capsize=2, fmt='co', label='Bagley et al. 2020')
+axs[1].errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
+                   markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
+axs[2].errorbar(df_r['Mag'], df_r['LF'], yerr=(df_r['error_lower'], df_r['error_upper']),
+                   markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
+axs[1].set_xlim([-15.0, -26])
+axs[2].set_xlim([-15.0, -26])
+plt.tight_layout()
+plt.show()
 
-# iz_list = [271, 194, 182, 169, 152, 142]
-# nvol_list = [1, 2, 3, 4, 5]
-#
-# extra_columns = ['redshift', 'subvolume', 'modelno']
-# columns.extend(extra_columns)
-# data = []
-# model_num = 0
-#
-# for i in range(len(minMAE_df)):
-#     model_num += 1
-#     for j in range(len(iz_list)):
-#         for k in range(len(nvol_list)):
-#
-#             row = minMAE_df.iloc[i].tolist()
-#             row.append(iz_list[j])
-#             row.append(nvol_list[k])
-#             row.append(model_num)
-#             data.append(row)
-#
-# minMAE_df_new = pd.DataFrame(columns=columns, data=data)
+#         if count == 2:
+#             for j in samples_chain:
+#                 best_chain = pd.DataFrame([{'alpha_reheat': j[0],
+#                                             'vhotdisk': j[1], 'vhotburst': j[2],
+#                                             'alphahot': j[3], 'alpha_cool': j[4],
+#                                             'nu_sf': j[5], 'Fstab': j[6],
+#                                             'fellip': j[7], 'fburst': j[8],
+#                                             'fSMBH': j[9], 'tau_burst': j[10]}])
+#                 best_chain_df = pd.concat([best_chain_df, best_chain], ignore_index=True)
+#         count += 1
+# print(minMAE_df)
+# print(best_chain_df)
+
+iz_list = [271, 194, 182, 169, 152, 142]
+nvol_list = [1, 2, 3, 4, 5]
+
+extra_columns = ['redshift', 'subvolume', 'modelno']
+columns.extend(extra_columns)
+data = []
+model_num = 0
+
+for i in range(len(minMAE_df)):
+    model_num += 1
+    for j in range(len(iz_list)):
+        for k in range(len(nvol_list)):
+
+            row = minMAE_df.iloc[i].tolist()
+            row.append(iz_list[j])
+            row.append(nvol_list[k])
+            row.append(model_num)
+            data.append(row)
+
+minMAE_df_new = pd.DataFrame(columns=columns, data=data)
 # print(minMAE_df_new)
-
-# minMAE_df_new.to_csv('minMAE_20MCMC_v1.csv', sep=',', index=False)
-
+print(minMAE_df_new['MAE'].min())
+print(minMAE_df_new['MAE'].max())
+minMAE_df_new.to_csv('minMAE_100MCMC_v1.csv', sep=',', index=False)
+exit()
 # Corner plot
-idx = minMAE_df['MAE'].idxmin()
+# idx = minMAE_df['MAE'].idxmin()
 minMAE_df = minMAE_df.drop(['MAE'], axis=1)
 minMAE_samples = minMAE_df.to_numpy()
 #
@@ -344,16 +371,16 @@ minMAE_samples = minMAE_df.to_numpy()
 # # Create the corner plot
 # scatter_matrix(minMAE_df, alpha=0.8, figsize=(15, 15), diagonal='hist')
 sns.set(style="ticks")
-min_df = pd.DataFrame(minMAE_df.loc[idx]).transpose()
+# min_df = pd.DataFrame(minMAE_df.loc[idx]).transpose()
 pairplot_all = sns.pairplot(minMAE_df, kind="scatter", diag_kind="kde", corner=True, height=1.5)
 
-scatter_kws_overlay = {'s': 30, 'color': 'red', 'alpha': 1}
-for i, col in enumerate(min_df.columns):
-    for j in range(i + 1, len(min_df.columns)):
-        pairplot_all.axes[j, i].scatter(min_df.iloc[:, i], min_df.iloc[:, j], **scatter_kws_overlay)
+# scatter_kws_overlay = {'s': 30, 'color': 'red', 'alpha': 1}
+# for i, col in enumerate(min_df.columns):
+#     for j in range(i + 1, len(min_df.columns)):
+#         pairplot_all.axes[j, i].scatter(min_df.iloc[:, i], min_df.iloc[:, j], **scatter_kws_overlay)
 
-scatter_kws_overlay = {'s': 20, 'color': 'gray', 'alpha': 0.3, 'zorder': 0}
-for i, col in enumerate(best_chain_df.columns):
-    for j in range(i + 1, len(best_chain_df.columns)):
-        pairplot_all.axes[j, i].scatter(best_chain_df.iloc[:, i], best_chain_df.iloc[:, j], **scatter_kws_overlay)
+# scatter_kws_overlay = {'s': 20, 'color': 'gray', 'alpha': 0.3, 'zorder': 0}
+# for i, col in enumerate(best_chain_df.columns):
+#     for j in range(i + 1, len(best_chain_df.columns)):
+#         pairplot_all.axes[j, i].scatter(best_chain_df.iloc[:, i], best_chain_df.iloc[:, j], **scatter_kws_overlay)
 plt.show()

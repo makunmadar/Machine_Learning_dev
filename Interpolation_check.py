@@ -8,9 +8,9 @@ from sklearn.metrics import mean_absolute_error
 from Loading_functions import lf_df, load_all_models
 
 plt.rcParams["font.family"] = "serif"
-plt.rcParams["font.size"] = 12
-plt.rc('xtick', labelsize=12)
-plt.rc('ytick', labelsize=12)
+plt.rcParams["font.size"] = 15
+plt.rc('xtick', labelsize=15)
+plt.rc('ytick', labelsize=15)
 
 # Import the Bagley et al. 2020 data
 bag_headers = ["z", "n", "+", "-"]
@@ -61,7 +61,7 @@ df_r['LF'] = np.log10(df_r['LF'])
 # df_ck['Mag'] = df_ck['Mag'] + 1.87
 
 # Import bin data
-bin_file = 'Data/Data_for_ML/bin_data/bin_full_int'
+bin_file = 'Data/Data_for_ML/bin_data/bin_full'
 bins = genfromtxt(bin_file)
 # Import Lacey et al. 2016 for comparison
 Lacey_y = np.load("Lacey_y_true.npy")
@@ -73,33 +73,44 @@ bins_l = np.load('Lacey_bins.npy')
 # X_rand_old = np.array([1.80595566e-01, 3.13150522e+02, 4.82625973e+02, 3.46543453e+00, 2.94445793e-05, 1.67638043e+00])
 # ratio_old = "4:1:1"
 # Best fitting non scaling method
-X_rand = np.array([3.17167641e-01, 2.01506866e+02, 7.28639155e+02, 3.99424711e+00, 5.50108093e-01, 3.39270935e+00,
-                   1.05001816e+00, 4.14209929e-01, 5.19668090e-02, 3.20625884e-02, 1.73056751e-01])
-ratio = "1 Walker"
-X_rand_old = np.array([3.43724861e-01, 2.04571322e+02, 7.96574935e+02, 3.98908777e+00, 1.01292660e+00, 3.49442166e+00,
-                       8.02899402e-01, 2.57014536e-01, 2.03718937e-02, 2.09555860e-02, 1.57164758e-01])
-ratio_old = "3 Walkers"
-X_rand_6 = np.array([3.61814487e-01, 2.06151736e+02, 7.24779817e+02, 3.99320682e+00, 6.23875493e-01, 3.67976303e+00,
-                     9.79112568e-01, 2.18810180e-01, 2.22115992e-02, 4.32502588e-02, 1.59604685e-01])
-ratio_6 = "6 Walkers"
+X_rand1 = np.array([7.99637597e-01, 2.98758029e+02, 9.25382007e+01, 3.98830512e+00, 8.72572091e-01, 6.94198272e-01,
+                    1.14516611e+00, 2.10853713e-01, 2.01385138e-01, 2.96426914e-02, 1.26986318e-01])
+ratio1 = "1:1:1 ratio"
+X_rand2 = np.array([6.76412161e-01, 3.08220574e+02, 6.41642100e+01, 3.94078882e+00, 6.94554457e-01, 7.02845529e-01,
+                    1.18687776e+00, 3.43773888e-01, 1.17092698e-01, 1.23803658e-02, 1.66454001e-01])
+ratio2 = "2:1:1 ratio"
+X_rand3 = np.array([1.06548467e+00, 2.95916775e+02, 1.45602268e+01, 3.98671662e+00, 8.97507177e-01, 3.79646808e+00,
+                    8.68264990e-01, 3.91806079e-01, 2.69824210e-01,  1.30222411e-02, 7.62827444e-02])
+ratio3 = "3:1:1 ratio"
+X_rand4 = np.array([1.25862247e+00, 2.55638136e+02, 7.80601934e+02, 3.96796948e+00, 6.82960562e-01, 2.78351248e+00,
+                    1.01648796e+00, 3.96383673e-01, 2.50095495e-02, 4.31807698e-02, 5.48705862e-02])
+ratio4 = "4:1:1 ratio"
+X_rand6 = np.array([3.47528918e-01, 1.99275428e+02, 7.03992287e+02, 3.96297958e+00, 7.62162827e-01, 3.84172460e+00,
+                    7.89514160e-01, 3.90781641e-01, 4.98376886e-02, 4.90996882e-02, 6.62545384e-02])
+ratio6 = "6:1:1 ratio"
 # Lacey et al. 2016
 # X_rand = np.array([1.0, 320, 320, 3.4, 0.8, 0.74])
-X_rand = X_rand.reshape(1, -1)
+X_rand1 = X_rand1.reshape(1, -1)
 
 members = load_all_models(n_models=5)
 print('Loaded %d models' % len(members))
 # Load in the array of models and average over the predictions
-y = np.mean([model(X_rand) for model in members], axis=0)
-y_old = np.mean([model(X_rand_old) for model in members], axis=0)
-y_6 = np.mean([model(X_rand_6) for model in members], axis=0)
+y1 = np.mean([model(X_rand1) for model in members], axis=0)
+y2 = np.mean([model(X_rand2) for model in members], axis=0)
+y3 = np.mean([model(X_rand3) for model in members], axis=0)
+y4 = np.mean([model(X_rand4) for model in members], axis=0)
+y6 = np.mean([model(X_rand6) for model in members], axis=0)
 
-y = y[0]
-y_old = y_old[0]
-y_6 = y_6[0]
+y1 = y1[0]
+y2 = y2[0]
+y3 = y3[0]
+y4 = y4[0]
+y6 = y6[0]
+
 
 # Redshift distribution
 # Perform interpolation
-yz1 = y[0:7]
+yz1 = y1[0:49]
 xz2 = Ha_b['z'].values
 yz2 = Ha_b['n'].values
 
@@ -108,12 +119,12 @@ yz2 = Ha_b['n'].values
 # interp_yz1 = interp_funcz(xz2)
 
 # Working out the MAE values
-weighted_maez = mean_absolute_error(yz2, yz1)
-print("MAE redshift distribution: ", weighted_maez)
+# weighted_maez = mean_absolute_error(yz2, yz1)
+# print("MAE redshift distribution: ", weighted_maez)
 
 # Try on the Driver et al. 2012 K-band LF data
 # Perform interpolation
-yk1 = y[7:25]
+yk1 = y1[49:74]
 xk2 = df_k['Mag'].values
 yk2 = df_k['LF'].values
 
@@ -126,7 +137,7 @@ yk2 = df_k['LF'].values
 
 # Try on the Driver et al. 2012 r-band LF data
 # Perform interpolation
-yr1 = y[25:45]
+yr1 = y1[74:102]
 xr2 = df_r['Mag'].values
 yr2 = df_r['LF'].values
 
@@ -138,44 +149,53 @@ yr2 = df_r['LF'].values
 # print("MAE r-band luminosity function: ", weighted_maer)
 
 # Plot to see how this looks
-fig, axs = plt.subplots(1, 3, figsize=(20, 6))
-axs[0].plot(bins[0:7], yz1, 'b--', label="Galform prediction " + ratio)
-axs[0].plot(bins[0:7], y_old[0:7], 'g--', label="Galform prediction " + ratio_old)
-axs[0].plot(bins[0:7], y_6[0:7], 'c--', label="Galform prediction " + ratio_6)
-axs[0].plot(bins_l[0:49], Lacey_y[0:49], 'r--', label="Lacey et al. 2016", alpha=0.5)
+fig, axs = plt.subplots(3, 1, figsize=(8, 14))
+axs[0].plot(bins[0:49], yz1, '--', c='tab:blue', label=ratio1)
+axs[0].plot(bins[0:49], y2[0:49], '--', c='tab:orange', label=ratio2)
+axs[0].plot(bins[0:49], y3[0:49], '--', c='tab:red', label=ratio3)
+axs[0].plot(bins[0:49], y4[0:49], '--', c='tab:green', label=ratio4)
+axs[0].plot(bins[0:49], y6[0:49], '--', c='tab:purple', label=ratio6)
+# axs[0].plot(bins_l[0:49], Lacey_y[0:49], 'r--', label="Lacey et al. 2016", alpha=0.5)
 # axs[0].plot(xz2, interp_yz1, 'bx', label='Interpolated galform')
 axs[0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor="black", capsize=2,
                 fmt='co', label=r"Bagley et al. 2020")
 axs[0].set_xlabel('Redshift')
-axs[0].set_ylabel('log$_{10}$(dN(>S)/dz) [deg$^{-2}$]')
-axs[0].set_xlim(0.9, 1.6)
+axs[0].set_ylabel('log$_{10}$(dN(>S)/dz [deg$^{-2}$])')
+axs[0].set_xlim(0.7, 2.0)
 axs[0].legend()
 axs[1].errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
                 markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
-axs[1].plot(bins[7:25], yk1, 'b--', label='Galform prediction ' + ratio)
-axs[1].plot(bins[7:25], y_old[7:25], 'g--', label="Galform prediction " + ratio_old)
-axs[1].plot(bins[7:25], y_6[7:25], 'c--', label="Galform prediction " + ratio_6)
-axs[1].plot(bins_l[49:69], Lacey_y[49:69], 'r--', label="Lacey et al. 2016", alpha=0.5)
+axs[1].plot(bins[49:74], yk1, '--', c='tab:blue', label='Galform prediction ' + ratio1)
+axs[1].plot(bins[49:74], y2[49:74], '--', c='tab:orange', label="Galform prediction " + ratio2)
+axs[1].plot(bins[49:74], y3[49:74], '--', c='tab:red', label="Galform prediction " + ratio3)
+axs[1].plot(bins[49:74], y4[49:74], '--', c='tab:green', label="Galform prediction " + ratio4)
+axs[1].plot(bins[49:74], y6[49:74], '--', c='tab:purple', label="Galform prediction " + ratio6)
+# axs[1].plot(bins_l[49:69], Lacey_y[49:69], 'r--', label="Lacey et al. 2016", alpha=0.5)
 # axs[1].plot(xk2, interp_yk1, 'bx', label='Interpolated galform')
-axs[1].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
+axs[1].set_ylabel(r"log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
 axs[1].set_xlabel(r"M$_{K,AB}$ - 5log(h)")
-axs[1].set_xlim(-16, -24.5)
+axs[1].set_xlim(-15, -25)
 axs[1].set_ylim(-6.2, -1)
-axs[1].legend()
+#axs[1].legend()
 axs[2].errorbar(df_r['Mag'], df_r['LF'], yerr=(df_r['error_lower'], df_r['error_upper']),
                 markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
-axs[2].plot(bins[25:45], yr1, 'b--', label='Galform prediction ' + ratio)
-axs[2].plot(bins[25:45], y_old[25:45], 'g--', label="Galform prediction " + ratio_old)
-axs[2].plot(bins[25:45], y_6[25:45], 'c--', label="Galform prediction " + ratio_6)
-axs[2].plot(bins_l[69:91], Lacey_y[69:91], 'r--', label="Lacey et al. 2016", alpha=0.5)
+axs[2].plot(bins[74:], yr1, '--', c='tab:blue', label='Galform prediction ' + ratio1)
+axs[2].plot(bins[74:], y2[74:], '--', c='tab:orange', label="Galform prediction " + ratio2)
+axs[2].plot(bins[74:], y3[74:], '--', c='tab:red', label="Galform prediction " + ratio3)
+axs[2].plot(bins[74:], y4[74:], '--', c='tab:green', label="Galform prediction " + ratio4)
+axs[2].plot(bins[74:], y6[74:], '--', c='tab:purple', label="Galform prediction " + ratio6)
+# axs[2].plot(bins_l[69:91], Lacey_y[69:91], 'r--', label="Lacey et al. 2016", alpha=0.5)
 # axs[2].plot(xr2, interp_yr1, 'bx', label='Interpolated galform')
-axs[2].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
+axs[2].set_ylabel(r"log$_{10}$($\phi$ (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
 axs[2].set_xlabel(r"M$_{r,AB}$ - 5log(h)")
-axs[2].set_xlim(-14, -24)
+axs[2].set_xlim(-14, -25)
 axs[2].set_ylim(-6, -1)
-axs[2].legend()
+# axs[2].legend()
+plt.tight_layout()
+plt.savefig('Plots/weighting_bestfits.pdf')
 plt.show()
 
+exit()
 # Working out the MAE values using Lagrangian likelihood:
 # pred = np.hstack([yz1, yk1, yr1])
 obs = np.hstack([yz2, yk2, yr2])
@@ -212,7 +232,7 @@ obs = np.hstack([yz2, yk2, yr2])
 # Manually calculate the weighted MAE
 # abs_diff = np.abs(obs - pred) / sigma
 # fract = np.load("fractional_sigma.npy")
-abs_diff = np.abs(obs - y)
+abs_diff = np.abs(obs - y1)
 # abs_diff_old = np.abs(obs - y_old)
 # print("Abs diff: ", abs_diff)
 # abs_diff = ((pred-obs)**2)/sigma**2
@@ -269,7 +289,7 @@ fig, axs = plt.subplots(3, 1, figsize=(10, 15))
 # color = "tab:blue"
 axs[0].errorbar(Ha_b["z"], Ha_b["n"], yerr=(Ha_ybot, Ha_ytop), markeredgecolor='black', ecolor="black", capsize=2,
                 fmt='co', label="Bagley et al. 2020")
-l2z = axs[0].plot(bins[0:7], yz1, '--', color='green', label=ratio + ' Galform prediction')
+l2z = axs[0].plot(bins[0:7], yz1, '--', color='green', label=ratio1 + ' Galform prediction')
 # l2zo = axs[0].plot(bins[0:7], y_old[0:7], '--', color='red', label=ratio_old + ' Galfom prediction')
 axs[0].tick_params(axis='y')
 axs[0].set_xlabel("Redshift, z")
@@ -278,14 +298,14 @@ axs[0].set_ylabel("log$_{10}$(dN(>S)/dz) [deg$^{-2}$]")
 #              ecolor="black", capsize=2, fmt='co', label="Driver et al. 2012")
 axs[1].errorbar(df_k['Mag'], df_k['LF'], yerr=(df_k['error_lower'], df_k['error_upper']),
                 markeredgecolor='black', ecolor='black', capsize=2, fmt='co', label='Driver et al. 2012')
-l2k = axs[1].plot(bins[7:25], yk1, '--', color='green', label=ratio + ' Galform prediction')
+l2k = axs[1].plot(bins[7:25], yk1, '--', color='green', label=ratio1 + ' Galform prediction')
 # l2ko = axs[1].plot(bins[7:25], y_old[7:25], '--', color='red', label=ratio_old + ' Galform prediction')
 axs[1].tick_params(axis='y')
 axs[1].set_xlabel(r"M$_{K,AB}$ - 5log(h)")
 axs[1].set_ylabel(r"log$_{10}$(LF (Mpc/h)$^{-3}$ (mag$_{AB}$)$^{-1}$)")
 axs[2].errorbar(df_r["Mag"], df_r["LF"], yerr=(df_r['error_lower'], df_r['error_upper']), markeredgecolor='black',
                 ecolor="black", capsize=2, fmt='co', label="Driver et al. 2012")
-l2r = axs[2].plot(bins[25:45], yr1, '--', color='green', label=ratio + ' Galform prediction')
+l2r = axs[2].plot(bins[25:45], yr1, '--', color='green', label=ratio1 + ' Galform prediction')
 # l2ro = axs[2].plot(bins[25:45], y_old[25:45], '--', color='red', label=ratio_old + ' Galform prediction')
 axs[2].tick_params(axis='y')
 axs[2].set_xlabel(r"M$_{r,AB}$ - 5log(h)")
@@ -295,11 +315,11 @@ axsz = axs[0].twinx()
 axsk = axs[1].twinx()
 axsr = axs[2].twinx()
 # color = "tab:red"
-l3z = axsz.step(xz2, cum_error_z, color='green', where='mid', label=ratio + ' cumulative error', alpha=0.5)
+l3z = axsz.step(xz2, cum_error_z, color='green', where='mid', label=ratio1 + ' cumulative error', alpha=0.5)
 # l3zo = axsz.step(xz2, cum_error_z_old, color='red', where='mid', label=ratio_old + ' cumulative error', alpha=0.5)
-l3k = axsk.step(xk2, cum_error_k, color='green', where='mid', label=ratio + " cumulative error", alpha=0.5)
+l3k = axsk.step(xk2, cum_error_k, color='green', where='mid', label=ratio1 + " cumulative error", alpha=0.5)
 # l3ko = axsk.step(xk2, cum_error_k_old, color='red', where='mid', label=ratio_old + " cumulative error", alpha=0.5)
-l3r = axsr.step(xr2, cum_error_r, color='green', where='mid', label=ratio + " cumulative error", alpha=0.5)
+l3r = axsr.step(xr2, cum_error_r, color='green', where='mid', label=ratio1 + " cumulative error", alpha=0.5)
 # l3ro = axsr.step(xr2, cum_error_r_old, color='red', where='mid', label=ratio_old + " cumulative error", alpha=0.5)
 axsz.tick_params(axis='y')
 axsk.tick_params(axis='y')

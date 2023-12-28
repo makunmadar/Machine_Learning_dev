@@ -8,9 +8,9 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import pandas as pd
 from joblib import load
 plt.rcParams["font.family"] = "serif"
-plt.rcParams["font.size"] = 15
-plt.rc('xtick', labelsize=11)
-plt.rc('ytick', labelsize=11)
+plt.rcParams["font.size"] = 12
+plt.rc('xtick', labelsize=12)
+plt.rc('ytick', labelsize=12)
 
 
 def masked_mae(y_true, y_pred):
@@ -194,17 +194,17 @@ def load_all_models(n_models, X_test, sub_no):
 # plt.show()
 
 X = [900, 1900, 2899]
-MAEC_single = [0.0963, 0.0721, 0.0513]
-MAEC_avg = [0.0873, 0.0627, 0.0469]
+MAEC_single = [0.1075, 0.0841, 0.0701]
+MAEC_avg = [0.0999, 0.0741, 0.0617]
 
-MAEz_single = [0.1311, 0.0923, 0.0665]
-MAEz_avg = [0.1169, 0.0811, 0.0599]
+MAEz_single = [0.1292, 0.0915, 0.0749]
+MAEz_avg = [0.1238, 0.0828, 0.0657]
 
-MAEk_single = [0.0828, 0.0644, 0.0456]
-MAEk_avg = [0.0756, 0.0555, 0.0421]
+MAEk_single = [0.1027, 0.0847, 0.0711]
+MAEk_avg = [0.0941, 0.0740, 0.0627]
 
-MAEr_single = [0.0749, 0.0597, 0.0419]
-MAEr_avg = [0.0693, 0.0516, 0.0388]
+MAEr_single = [0.0906, 0.0762, 0.0643]
+MAEr_avg = [0.0818, 0.0656, 0.0565]
 
 # Plot the results
 fig, axs = plt.subplots(4, 1, figsize=(7, 10),
@@ -212,22 +212,23 @@ fig, axs = plt.subplots(4, 1, figsize=(7, 10),
 fig.subplots_adjust(hspace=0)
 
 axs[0].plot(X, MAEC_single, linestyle='dotted', marker='o', color='tab:blue', label="Single network")
-axs[0].plot(X, MAEC_avg, linestyle='dashed', marker='o', color='tab:blue', label="Ensembled networks")
+axs[0].plot(X, MAEC_avg, marker='o', color='tab:blue', label="Ensembled networks")
 axs[0].set_ylabel(r'MAE$_{avg}$')
 axs[0].legend()
 
 axs[1].plot(X, MAEz_single, linestyle='dotted', marker='o', color='tab:blue')
-axs[1].plot(X, MAEz_avg, linestyle='dashed', marker='o', color='tab:blue')
+axs[1].plot(X, MAEz_avg, marker='o', color='tab:blue')
 axs[1].set_ylabel(r'MAE$_{dn/dz}$')
 
 axs[2].plot(X, MAEk_single, linestyle='dotted', marker='o', color='tab:blue')
-axs[2].plot(X, MAEk_avg, linestyle='dashed', marker='o', color='tab:blue')
+axs[2].plot(X, MAEk_avg, marker='o', color='tab:blue')
 axs[2].set_ylabel(r'MAE$_{k-band}$')
 
 axs[3].plot(X, MAEr_single, linestyle='dotted', marker='o', color='tab:blue')
-axs[3].plot(X, MAEr_avg, linestyle='dashed', marker='o', color='tab:blue')
+axs[3].plot(X, MAEr_avg, marker='o', color='tab:blue')
 axs[3].set_ylabel(r'MAE$_{r-band}$')
 
 axs[3].set_xlabel('Training examples')
-plt.savefig("trainingsize_MAE.pdf")
+plt.tight_layout()
+plt.savefig("Plots/trainingsize_MAE.pdf")
 plt.show()
