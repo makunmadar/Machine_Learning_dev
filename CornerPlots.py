@@ -7,27 +7,26 @@ from pandas.plotting import scatter_matrix
 import pandas as pd
 from Loading_functions import lf_df
 import seaborn as sns
-
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.size"] = 27
 plt.rc('xtick', labelsize=15)
 plt.rc('ytick', labelsize=15)
 
-ratio = "411_20"
+# ratio = "411_20"
 # redshift_samples = np.load("Samples_redshiftdist.npy")
 # KLF_samples = np.load("Samples_KLF.npy")
-combo_samples = np.load(f"Samples_combo_MAEup{ratio}.npy")
+# combo_samples = np.load(f"Samples_combo_MAEup{ratio}.npy")
 
 # Corner plot
-labels = [r"$\alpha_{ret}$", r"$V_{SN, disk}$", r"$V_{SN, burst}$",
-          r"$\gamma_{SN}$", r"$\alpha_{cool}$", r"$\nu_{SF}$",
-          r"$F_{stab}$", r"$f_{ellip}$", r"$f_{burst}$", r"$f_{SMBH}$", r"$\tau_{*burst,min}$"]
+# labels = [r"$\alpha_{ret}$", r"$V_{SN, disk}$", r"$V_{SN, burst}$",
+#           r"$\gamma_{SN}$", r"$\alpha_{cool}$", r"$\nu_{SF}$",
+#           r"$F_{stab}$", r"$f_{ellip}$", r"$f_{burst}$", r"$f_{SMBH}$", r"$\tau_{*burst,min}$"]
 # For multiple walkers the shape of "samples" should have the shape (num_walkers, num_samples, num_parameters)
 
 # flattened_samples = scaler_feat.inverse_transform(flattened_samples)
 # Create the corner plot
-p_range = [(0.2, 3.0), (10, 800), (10, 800), (1.0, 4.0), (0.0, 4.0), (0.1, 4.0),
-           (0.5, 1.2), (0.2, 0.5), (0.001, 0.3), (0.001, 0.05), (0.01, 0.2)]
+# p_range = [(0.2, 3.0), (10, 800), (10, 800), (1.0, 4.0), (0.0, 4.0), (0.1, 4.0),
+#            (0.5, 1.2), (0.2, 0.5), (0.001, 0.3), (0.001, 0.05), (0.01, 0.2)]
 #
 # fig = corner.corner(flattened_zsamples, labels=labels, color='gray',
 #                     plot_datapoints=True, levels=[0.68,0.95],
@@ -51,18 +50,18 @@ p_range = [(0.2, 3.0), (10, 800), (10, 800), (1.0, 4.0), (0.0, 4.0), (0.1, 4.0),
 # figc = corner.corner(combo_samples, show_titles=True, labels=labels, color='green',
 #                      plot_datapoints=False, levels=[0.25, 0.50, 0.75],
 #                      smooth=1, bins=50, range=p_range, fill_contours=True)
-figc = corner.corner(combo_samples, bins=50, range=p_range, color='green', smooth=1,
-                     labels=labels, show_titles=False, levels=[0.25, 0.50, 0.75],
-                     plot_datapoints=False, fill_contours=True, hist_kwargs={"density": True})
+# figc = corner.corner(combo_samples, bins=50, range=p_range, color='green', smooth=1,
+#                      labels=labels, show_titles=False, levels=[0.25, 0.50, 0.75],
+#                      plot_datapoints=False, fill_contours=True, hist_kwargs={"density": True})
+#
+# figc.show()
+# figc.savefig(f"corner_combo_MAE{ratio}.png")
 
-figc.show()
-figc.savefig(f"corner_combo_MAE{ratio}.png")
-exit()
 #
 # redshift_likelihoods = np.load("Likelihoods_redshiftdist.npy")
 # KLF_likelihoods = np.load("Likelihoods_KLF.npy")
-combo_likelihoods = np.load(f"Likelihoods_combo_MAE{ratio}.npy")
-combo_error = np.load(f"Error_combo_MAE{ratio}.npy")
+# combo_likelihoods = np.load(f"Likelihoods_combo_MAE{ratio}.npy")
+# combo_error = np.load(f"Error_combo_MAE{ratio}.npy")
 
 # Find the best model with the highest likelihood
 # max_zlikeli_idx = np.argmax(redshift_likelihoods)
@@ -80,11 +79,11 @@ combo_error = np.load(f"Error_combo_MAE{ratio}.npy")
 # print("Highest likelihood combo: ", combo_likelihoods[max_clikeli_idx])
 # print("Corresponding MAE combo: ", combo_error[max_clikeli_idx])
 # print("Best parameters combo: ", combo_samples[max_clikeli_idx])
-min_cerror_idx = np.argmin(combo_error)
-# print("\n")
-print("Lowest error combo: ", combo_error[min_cerror_idx])
-print("Corresponding likelihood combo: ", combo_likelihoods[min_cerror_idx])
-print("Best parameters combo: ", combo_samples[min_cerror_idx])
+# min_cerror_idx = np.argmin(combo_error)
+# # print("\n")
+# print("Lowest error combo: ", combo_error[min_cerror_idx])
+# print("Corresponding likelihood combo: ", combo_likelihoods[min_cerror_idx])
+# print("Best parameters combo: ", combo_samples[min_cerror_idx])
 
 # Load the individual error data
 # combo_errorz = np.load("Error_comboz_MAE.npy")
@@ -333,10 +332,37 @@ plt.show()
 # print(minMAE_df)
 # print(best_chain_df)
 
-iz_list = [271, 194, 182, 169, 152, 142]
+# iz_list = [271, 194, 182, 169, 152, 142]
+# nvol_list = [1, 2, 3, 4, 5]
+#
+# extra_columns = ['redshift', 'subvolume', 'modelno']
+# columns.extend(extra_columns)
+# data = []
+# model_num = 0
+#
+# for i in range(len(minMAE_df)):
+#     model_num += 1
+#     for j in range(len(iz_list)):
+#         for k in range(len(nvol_list)):
+#
+#             row = minMAE_df.iloc[i].tolist()
+#             row.append(iz_list[j])
+#             row.append(nvol_list[k])
+#             row.append(model_num)
+#             data.append(row)
+#
+# minMAE_df_new = pd.DataFrame(columns=columns, data=data)
+# # print(minMAE_df_new)
+# print(minMAE_df_new['MAE'].min())
+# print(minMAE_df_new['MAE'].max())
+# minMAE_df_new.to_csv('minMAE_100MCMC_v1.csv', sep=',', index=False)
+
+# Add luminosity limit
+iz_list = [194, 182, 169, 152, 146, 142]
+lum_lim = [20.589, 38.762, 70.908, 163.088, 227.179, 280.745]
 nvol_list = [1, 2, 3, 4, 5]
 
-extra_columns = ['redshift', 'subvolume', 'modelno']
+extra_columns = ['redshift', 'subvolume', 'modelno', 'lum_lim']
 columns.extend(extra_columns)
 data = []
 model_num = 0
@@ -350,13 +376,12 @@ for i in range(len(minMAE_df)):
             row.append(iz_list[j])
             row.append(nvol_list[k])
             row.append(model_num)
+            row.append(lum_lim[j])
             data.append(row)
 
 minMAE_df_new = pd.DataFrame(columns=columns, data=data)
-# print(minMAE_df_new)
-print(minMAE_df_new['MAE'].min())
-print(minMAE_df_new['MAE'].max())
-minMAE_df_new.to_csv('minMAE_100MCMC_v1.csv', sep=',', index=False)
+minMAE_df_new.to_csv('minMAE_100MCMC_LUMLIM.csv', sep=',', index=False)
+
 exit()
 # Corner plot
 # idx = minMAE_df['MAE'].idxmin()

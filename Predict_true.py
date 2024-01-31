@@ -119,7 +119,7 @@ for i in range(len(gal_y)):
 # print("Range of 100: ", min(list_mae), max(list_mae))
 arr_mae = np.array(list_mae)
 min50 = arr_mae.argsort()[:50]
-
+# np.save("Data/Data_for_ML/MCMC/min50idx.npy", min50)
 # print("Range of Best 50:", min(list_mae), list_mae[41])
 # print("Range of rest 50:", list_mae[42], max(list_mae))
 

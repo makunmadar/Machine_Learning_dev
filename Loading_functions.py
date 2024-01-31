@@ -7,6 +7,42 @@ import tensorflow as tf
 from scipy.interpolate import interp1d
 import re
 
+def counts_df(path):
+    """
+    This function extracts the number counts GALFORM data and saves
+    into a dataframe
+    Args:
+        path: path to the counts file
+        columns: names of the counts columnds
+
+    Returns: drataframe
+
+    """
+
+    data = []
+
+    with open(path, 'r') as fh:
+        for curline in fh:
+            if curline.startswith("#"):
+                header = curline
+            else:
+                row = curline.strip().split()
+                data.append(row)
+
+    header = header[1:].strip().split()
+    data = np.vstack(data)
+
+    df = pd.DataFrame(data=data, columns=header)
+    df = df.apply(pd.to_numeric)
+
+    # Convert Jy to erg s-1 cm-2 for S_nu
+    df["S_nu"] = df["S_nu"] * 1e-23 * 1e16  # Flux[10^-16 erg s-1 cm-2]
+
+    # Transform into log_10 form (ignoring 0's to not create NANs)
+    df['S_nu'] = np.log10(df['S_nu'].mask(df['S_nu'] <= 0)).fillna(0)
+    df['N(>S)'] = np.log10(df['N(>S)'].mask(df['N(>S)'] <= 0)).fillna(0)
+
+    return df
 
 def dndz_df(path, columns):
     """
@@ -210,6 +246,33 @@ def find_number(text, c):
     '''
 
     return [int(s) for s in re.findall(r'%s(\d+)' % c, text)]
+
+
+def counts_generation(galform_filenames, galform_filepath):
+    """
+    Generating the number counts distribution data for a list of
+    GALFORM output files. Outputting the list of counts with bins
+
+    Args:
+        galform_filenames: List of GALFORM output counts file names
+        galform_filepath: Path to GALFORM output N(>S) data files
+
+    Returns: List of generated N(>S) values, list of bins
+
+    """
+
+    # Define empty array for storing N(>S) into
+    list_counts = np.empty((0, 100))
+
+    # Go through each N(>S) file in list
+    for file in galform_filenames:
+
+        # Extract the relevant N(>S) data with custom function
+        df_c = counts_df(galform_filepath + file)
+        list_counts = np.vstack(([list_counts, df_c['N(>S)']]))
+
+    counts_bins = df_c['S_nu'].values
+    return list_counts, counts_bins
 
 
 def dndz_generation_int(galform_filenames, galform_filepath, O_df, column_headers):
