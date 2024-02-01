@@ -34,7 +34,7 @@ bag_headers = ["z", "n", "+", "-"]
 Ha_b = pd.read_csv("Data/Data_for_ML/Observational/Bagley_20/Ha_Bagley_dndz.csv",
                    delimiter=",", names=bag_headers, skiprows=1)
 Ha_b = Ha_b.astype(float)
-sigmaz = (Ha_b["+"].values - Ha_b['-'].values) / 2
+# sigmaz = (Ha_b["+"].values - Ha_b['-'].values) / 2
 
 # Import the Driver et al. 2012 data
 driv_headers = ['Mag', 'LF', 'error', 'Freq']
@@ -43,18 +43,18 @@ df_k = lf_df(drive_path_k, driv_headers, mag_low=-23.75, mag_high=-15.25)
 df_k = df_k[(df_k != 0).all(1)]
 df_k['LF'] = df_k['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
 df_k['error'] = df_k['error'] * 2  # Same reason
-sigmak = df_k['error'].values
+# sigmak = df_k['error'].values
 
 drive_path_r = 'Data/Data_for_ML/Observational/Driver_12/lfr_z0_driver12.data'
 df_r = lf_df(drive_path_r, driv_headers, mag_low=-23.25, mag_high=-13.75)
 df_r = df_r[(df_r != 0).all(1)]
 df_r['LF'] = df_r['LF'] * 2  # Driver plotted in 0.5 magnitude bins so need to convert it to 1 mag.
 df_r['error'] = df_r['error'] * 2  # Same reason
-sigmar = df_r['error'].values
+# sigmar = df_r['error'].values
 
-sigma = np.hstack([sigmaz, sigmak, sigmar])
-obs = np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].values])
-frac_sigma = sigma / obs
+# sigma = np.hstack([sigmaz, sigmak, sigmar])
+# obs = np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].values])
+# frac_sigma = sigma / obs
 
 # Import Cole et al. 2001
 # cole_headers = ['Mag', 'PhiJ', 'errorJ', 'PhiK', 'errorK']
@@ -67,7 +67,7 @@ frac_sigma = sigma / obs
 
 ##################################
 
-# Redshift distribution
+# H-alpha Redshift distribution
 columns_Z = ["z", "d^2N/dln(S_nu)/dz", "dN(>S)/dz"]
 base_path_dndz = "/home/dtsw71/PycharmProjects/ML/Data/Data_for_ML/raw_dndz_HaNIIext_2999/dndz_HaNII_ext/"
 
@@ -83,7 +83,7 @@ model_numbers = [x - 1 for x in model_numbers]
 print('Redshift distribution bins: ', dndzbins)
 print('Example of dn/dz values: ', training_Hadndz[1670])
 
-# The following saves the min and max values from the entire n(z) dataset for scaling.
+# The following saves the min and max values from the entire n(z) dataset for scaling. Currently not used.
 training_Hadndz = np.array(training_Hadndz)
 # nzmin = np.min(training_Hadndz)
 # nzmax = np.max(training_Hadndz)
@@ -102,7 +102,7 @@ training_Hadndz = np.array(training_Hadndz)
 #
 # print("Scaled labels", training_Hadndz[1671])
 
-# LF
+# K and r-band LF
 columns_lf = ['Mag', 'Ur', 'Ur(error)', 'Urdust', 'Urdust(error)',
               'Br', 'Br(error)', 'Brdust', 'Brdust(error)',
               'Vr', 'Vr(error)', 'Vrdust', 'Vrdust(error)',
@@ -136,7 +136,7 @@ print('LF distribution bins: ', lfbins)
 print('Example of k-band LF values: ', training_lf[1670][0:25])
 print('Example of r-band LF values: ', training_lf[1670][25:53])
 
-# The following saves the min and max from the K-band and r-band datasets
+# The following saves the min and max from the K-band and r-band datasets. Not currently used.
 # training_lfk = [i[0:18] for i in training_lf]
 # training_lfr = [i[18:38] for i in training_lf]
 # training_lfk = np.array(training_lfk)
@@ -169,9 +169,11 @@ print('Combo bins: ', combo_bins)
 print('Example of combo labels: ', combo_labels[1670])
 
 # Load and process the input feature data from my parameters file used for generating the GALFORM runs
+# These parameters were generated using a latin hypercube. 
 training_feature_file = 'Data/Data_for_ML/raw_features/updated_parameters_extended_3000v4.csv'
 training_features = genfromtxt(training_feature_file, delimiter=',', skip_header=1, usecols=range(11))
 # Note that due to the extra columns there are duplicates of the parameters that need to be taken care of
+# The file contains columns for redshift snapshot, subvolume and model numbers so we will need to factor these out.
 training_features = training_features[::30]
 
 training_features = np.take(training_features, model_numbers, axis=0)  # As we don't have some models (1471)

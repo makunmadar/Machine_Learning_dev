@@ -20,6 +20,7 @@ from Loading_functions import masked_mae
 def get_model(input_shape):
     '''
     Building the machine learning architecture for model training
+    Current configuration maps 11 GALFORM parameters to 102 bins equating to three GALFORM statistics
 
     :param input_shape: input shape for the feature data to build the regressor
     :return: tensorflow model
@@ -53,7 +54,8 @@ def get_model(input_shape):
     )
     return model
 
-
+# Define the callbacks during training.
+# Early stopping halts the training once the model no longer an improvement in the validation loss value
 early_stopping = EarlyStopping(
     monitor='val_loss',
     mode='min',
@@ -61,12 +63,18 @@ early_stopping = EarlyStopping(
     restore_best_weights=True,
     verbose=1
 )
+# Checkpoint saves the epoch with the best validation loss
 checkpoint = ModelCheckpoint(
     'best_model',
     monitor='val_accuracy',
     mode='max',
     save_best_only=True
 )
+################################################
+# Here we are splitting our total training data into training and testing data. The testing data should be completely
+# unseen by the network.
+# Before running the network, please run the code in this section first to save the training and testing data split,
+# including the exit() statement.
 
 # Import the training datasets: Uncomment everything below including the exit statement for safety.
 # Load in the relevant data to be split up into training and testing data.
@@ -90,17 +98,18 @@ checkpoint = ModelCheckpoint(
 # np.save('Data/Data_for_ML/testing_data/X_test_100_full.npy', X_test)
 # np.save('Data/Data_for_ML/training_data/y_train_2899_full.npy', y_train)
 # np.save('Data/Data_for_ML/testing_data/y_test_100_full.npy', y_test)
-# # np.save('Data/Data_for_ML/training_data/X_train_2899_dndzup_int_scaled.npy', X_train)
-# # np.save('Data/Data_for_ML/testing_data/X_test_100_dndzup_int_scaled.npy', X_test)
-# # np.save('Data/Data_for_ML/training_data/y_train_2899_dndzup_int_scaled.npy', y_train)
-# # np.save('Data/Data_for_ML/testing_data/y_test_100_dndzup_int_scaled.npy', y_test)
+
 # exit()
+
+# Once the training and testing data has been saved, this section can be commented out again.
+################################################
 X_train = np.load('Data/Data_for_ML/training_data/X_train_2899_full.npy')
 y_train = np.load('Data/Data_for_ML/training_data/y_train_2899_full.npy')
 
-idx = np.random.choice(np.arange(len(X_train)), 900, replace=False)
-X_train = X_train[idx]
-y_train = y_train[idx]
+# If you want to subsample the training set further use the following code
+# idx = np.random.choice(np.arange(len(X_train)), 900, replace=False)
+# X_train = X_train[idx]
+# y_train = y_train[idx]
 
 # Normalize the data to reduce the dynamical range.
 normalizer = preprocessing.Normalization()
@@ -111,6 +120,8 @@ print('Label data shape: ', y_train.shape)
 
 input_shape = X_train.shape
 
+# We train 5 identical networks. Later on we average over their outputs. This is our ensemble network.
+
 # Fit and save models
 n_members = 5
 for i in range(n_members):
@@ -119,12 +130,13 @@ for i in range(n_members):
     model = get_model(input_shape)
 
     # Log for tensorboard analysis
+    # Save the model as something relevant.
     model_name = "Ensemble_model_" + str(i + 1) + "_6x5_mask_900_LRELU"
     log_dir = "logs/fit/" + model_name
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     # Fit the model on all data
-    start = time.perf_counter()
+    start = time.perf_counter()  # Monitoring the time taken to train the network
     history = model.fit(X_train, y_train,
                         verbose=0,
                         validation_split=0.2,
@@ -133,6 +145,7 @@ for i in range(n_members):
 
     model.trainable = True
 
+    # Begin the fine-tuning phase
     model.compile(
         optimizer=RMSprop(learning_rate=0.00001),
         loss=masked_mae,
@@ -151,5 +164,6 @@ for i in range(n_members):
     elapsed = time.perf_counter() - start
     print('Elapsed %.3f seconds' % elapsed, ' for model ' + str(i + 1))
 
+    # Save the model
     model.save('Models/' + model_name)
     print('>Saved %s' % model_name)

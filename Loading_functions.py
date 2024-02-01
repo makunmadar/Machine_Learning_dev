@@ -55,6 +55,8 @@ def dndz_df(path, columns):
     """
 
     # Extract only the data that has a flux limit of 2E7 Jy (or as close as possible)
+    # This is equivalent to 2E-16 erg/s/cm^2, the Euclid flux limit
+
     data = []
     flist = open(path).readlines()
     parsing = False
@@ -112,7 +114,7 @@ def lf_df(path, columns, mag_low, mag_high):
     df = df.apply(pd.to_numeric)
     df.columns = columns
 
-    # Only account for the data within the magnitude ranges given
+    # Only account for the data within the magnitude ranges defined
     df = df[(df['Mag'] <= mag_high)]
     df = df[(df['Mag'] >= mag_low)]
     return df
@@ -211,7 +213,7 @@ def load_all_models(n_models):
 
 def predict_all_models(n_models, X_test, variant):
     """
-    Load all the models from file and create predictions.
+    Load all the models from file and create a list of predictions. These can be manually averaged over.
 
     Args:
         n_models: number of models in the ensemble
@@ -319,7 +321,7 @@ def dndz_generation_int(galform_filenames, galform_filepath, O_df, column_header
 
 def dndz_generation(galform_filenames, galform_filepath, column_headers):
     """
-    Generating the redhisft distribution data for emulator training.
+    Generating the redhisft distribution data for emulator training. No interpolation.
     Reading the GALFORM output files.
     Output the associated model numbers for sanity check.
 
@@ -376,6 +378,7 @@ def LF_generation_int(galform_filenames, galform_filepath, O_dfk, O_dfr, column_
     """
 
     # Define empty array for storing training LF data
+    # Modify this length based on the chosen magnitude range
     list_lf = np.empty((0, 38))
 
     # Go through each gal.lf file in list
@@ -424,7 +427,7 @@ def LF_generation_int(galform_filenames, galform_filepath, O_dfk, O_dfr, column_
 
 def LF_generation(galform_filenames, galform_filepath, column_headers):
     """
-    Generating the luminosity function data for emulator training.
+    Generating the luminosity function data for emulator training. No interpolation.
     Reading the Galform output files.
     This is repeated for the K-band and r-band.
 
@@ -438,6 +441,7 @@ def LF_generation(galform_filenames, galform_filepath, column_headers):
     """
 
     # Define empty array for storing training LF data
+    # Modify this length based on the chosen magnitude range
     list_lf = np.empty((0, 53))
 
     # Go through each gal.lf file in list
