@@ -50,13 +50,12 @@ plt.rc('ytick', labelsize=15)
 # figc = corner.corner(combo_samples, show_titles=True, labels=labels, color='green',
 #                      plot_datapoints=False, levels=[0.25, 0.50, 0.75],
 #                      smooth=1, bins=50, range=p_range, fill_contours=True)
-# figc = corner.corner(combo_samples, bins=50, range=p_range, color='green', smooth=1,
+# figc = corner.corner(combo_samples, bins=50, range=p_range, color='green', smooth=3,
 #                      labels=labels, show_titles=False, levels=[0.25, 0.50, 0.75],
 #                      plot_datapoints=False, fill_contours=True, hist_kwargs={"density": True})
-#
 # figc.show()
-# figc.savefig(f"corner_combo_MAE{ratio}.png")
-
+# figc.savefig(f"corner_combo_MAE{ratio}_smooth2.png")
+# exit()
 #
 # redshift_likelihoods = np.load("Likelihoods_redshiftdist.npy")
 # KLF_likelihoods = np.load("Likelihoods_KLF.npy")
@@ -358,11 +357,18 @@ plt.show()
 # minMAE_df_new.to_csv('minMAE_100MCMC_v1.csv', sep=',', index=False)
 
 # Add luminosity limit
-iz_list = [194, 182, 169, 152, 146, 142]
-lum_lim = [20.589, 38.762, 70.908, 163.088, 227.179, 280.745]
+# z = 1.00678 -> 176
+# z = 2.00203 -> 142
+
+iz_list = [194, 182, 169, 152, 146, 142]  # Euclid
+# iz_list = [176, 169, 152, 146, 142]  # WFIRST
+# lum_lim = [20.589, 38.762, 70.908, 163.088, 227.179, 280.745]  # Euclid
+mag_lim = [-18.34, -19.02, -19.68, -20.58, -20.94, -21.17]
+# lum_lim = [25.84, 35.45, 81.54, 113.59, 140.37]  # WFIRST
+
 nvol_list = [1, 2, 3, 4, 5]
 
-extra_columns = ['redshift', 'subvolume', 'modelno', 'lum_lim']
+extra_columns = ['redshift', 'subvolume', 'modelno', 'mag_lim']
 columns.extend(extra_columns)
 data = []
 model_num = 0
@@ -376,11 +382,11 @@ for i in range(len(minMAE_df)):
             row.append(iz_list[j])
             row.append(nvol_list[k])
             row.append(model_num)
-            row.append(lum_lim[j])
+            row.append(mag_lim[j])
             data.append(row)
 
 minMAE_df_new = pd.DataFrame(columns=columns, data=data)
-minMAE_df_new.to_csv('minMAE_100MCMC_LUMLIM.csv', sep=',', index=False)
+minMAE_df_new.to_csv('minMAE_100MCMC_MAGLIM_EUCLID.csv', sep=',', index=False)
 
 exit()
 # Corner plot

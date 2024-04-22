@@ -13,11 +13,11 @@ plt.rc('xtick', labelsize=13)
 plt.rc('ytick', labelsize=13)
 
 
-z = [0.692, 0.896, 1.144, 1.604, 1.836, 2.002]
-iz_mapping = {194: 0.692, 182: 0.896, 169: 1.144, 152: 1.604, 146: 1.836, 142: 2.002}
+z = [0.692, 0.896, 1.007, 1.144, 1.604, 1.836, 2.002]
+iz_mapping = {194: 0.692, 182: 0.896, 176: 1.007, 169: 1.144, 152: 1.604, 146: 1.836, 142: 2.002}
 
 # Import the GALFORM data
-MCMCbias_path = 'Data/Data_for_ML/MCMC/halobias_100/'
+MCMCbias_path = 'Data/Data_for_ML/MCMC/halobias_100_WFIRST/'
 MCMCbias_filenames = os.listdir(MCMCbias_path)
 MCMCbias_filenames.sort(key=lambda f: int(re.sub('\D', '', f)))
 
@@ -29,7 +29,7 @@ for filename in MCMCbias_filenames:
     mhalo_df['bias'] = bias.haloBias(mhalo_df['mhhalo'], model='tinker10', z=mhalo_df['z'], mdef='vir')
     avgbias_df = mhalo_df.groupby('z')['bias'].mean().reset_index()
     plt.plot(avgbias_df['z'], avgbias_df['bias'], '-', c='tab:blue', alpha=0.3)
-plt.xlim([0.69, 2.004])
+plt.xlim([1.007, 2.004])
 plt.ylabel('<bias>')
 plt.xlabel('Redshift, z')
 plt.tight_layout()
@@ -62,11 +62,11 @@ plt.axline((merwispx[0], merwispy[0]), (merwispx[1], merwispy[1]), linestyle='da
 plt.axline((merhizx[0], merhizy[0]), (merhizx[1], merhizy[1]), linestyle='dotted', c='tab:gray',
            label='Merson et al. 2019 HiZELS calibrated')
 plt.legend()
-plt.xlim([0.69, 2.004])
+plt.xlim([0.7, 2.004])  # 1.007
 plt.ylabel(r'<bias$_{eff}$>')
 plt.xlabel('Redshift, z')
 plt.tight_layout()
-plt.savefig("Plots/50bestMCMC_bias.pdf")
+plt.savefig("Plots/50bestMCMC_bias_WFIRST.pdf")
 plt.show()
 
 print("\nRange of z=2.002 bias: ", min(list_bias), "-", max(list_bias))
