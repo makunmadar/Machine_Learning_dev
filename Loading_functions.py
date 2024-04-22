@@ -1,5 +1,5 @@
 """
-Useful custom functions
+Useful custom functions that I use throughout development and evaluation
 """
 import numpy as np
 import pandas as pd
@@ -141,51 +141,6 @@ def masked_mae(y_true, y_pred):
     # Calculate the MAE loss
     loss = tf.reduce_mean(tf.abs(masked_y_true - masked_y_pred))
 
-    # # Split the data into n(z), LFk and LFr
-    # y_truez = y_true[:7]
-    # y_truek = y_true[7:25]
-    # y_truer = y_true[25:]
-    # y_predz = y_pred[:7]
-    # y_predk = y_pred[7:25]
-    # y_predr = y_pred[25:]
-    #
-    # # Create a mask where non-zero values of n(z) are True
-    # maskz = tf.not_equal(y_truez, 0)
-    # y_truez = tf.boolean_mask(y_truez, maskz)
-    # y_predz = tf.boolean_mask(y_predz, maskz)
-    # # Scale y_truez to [0, 1] using Min-Max scaling
-    # y_truez_min = tf.keras.backend.min(y_truez)
-    # y_truez_max = tf.keras.backend.max(y_truez)
-    # y_truez_scaled = (y_truez - y_truez_min) / (y_truez_max - y_truez_min)
-    # y_predz_scaled = (y_predz - y_truez_min) / (y_truez_max - y_truez_min)
-    # z_loss = tf.reduce_mean(tf.abs(y_truez_scaled - y_predz_scaled))
-    #
-    # # Create a mask where non-zero values of LFk are True
-    # maskk = tf.not_equal(y_truek, 0)
-    # y_truek = tf.boolean_mask(y_truek, maskk)
-    # y_predk = tf.boolean_mask(y_predk, maskk)
-    # # Scale y_truek to [0, 1] using Min-Max scaling
-    # y_truek_min = tf.keras.backend.min(y_truek)
-    # y_truek_max = tf.keras.backend.max(y_truek)
-    # y_truek_scaled = (y_truek - y_truek_min) / (y_truek_max - y_truek_min)
-    # y_predk_scaled = (y_predk - y_truek_min) / (y_truek_max - y_truek_min)
-    # k_loss = tf.reduce_mean(tf.abs(y_truek_scaled - y_predk_scaled))
-    #
-    # # Create a mask where non-zero values of LFr are True
-    # maskr = tf.not_equal(y_truer, 0)
-    # y_truer = tf.boolean_mask(y_truer, maskr)
-    # y_predr = tf.boolean_mask(y_predr, maskr)
-    # # Scale y_truer to [0, 1] using Min-Max scaling
-    # y_truer_min = tf.keras.backend.min(y_truer)
-    # y_truer_max = tf.keras.backend.max(y_truer)
-    # y_truer_scaled = (y_truer - y_truer_min) / (y_truer_max - y_truer_min)
-    # y_predr_scaled = (y_predr - y_truer_min) / (y_truer_max - y_truer_min)
-    # r_loss = tf.reduce_mean(tf.abs(y_truer_scaled - y_predr_scaled))
-    #
-    # y_true_scaled = tf.concat([y_truez_scaled, y_truek_scaled, y_truer_scaled], axis=0)
-    # y_pred_scaled = tf.concat([y_predz_scaled, y_predk_scaled, y_predr_scaled], axis=0)
-    #
-    # loss = tf.reduce_mean(tf.abs(y_true_scaled - y_pred_scaled))
     return loss
 
 

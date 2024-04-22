@@ -122,7 +122,7 @@ print("\n")
 #     yhatr_mae[i] = yhatr_mae[i] * (rmax - rmin) + rmin
 
 # Create a plot that shows the histogram of MAE for each statistics
-hist_bins = np.linspace(0, 0.1, 50)
+hist_bins = np.linspace(0, 0.2, 50)
 plt.hist(MAEz, bins=hist_bins, label='Redshift distribution')
 plt.hist(MAEk, bins=hist_bins, histtype='step', label='K-band LF')
 plt.hist(MAEr, bins=hist_bins, histtype='step', label='R-band LF')

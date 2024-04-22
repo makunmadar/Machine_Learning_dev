@@ -1,3 +1,6 @@
+'''
+Main MCMC script for calibration to observables
+'''
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -185,45 +188,6 @@ def likelihood(params, models, obs_x, obs_y, pred_bins, mae_weighting):
 
     # Combine the interpolated y values
     pred = np.hstack([interp_yz, interp_yk, interp_yr])
-    # pred = 10**predictions
-    # obs_y = 10**obs_y
-    # Remove empty bins from Lacey et al. 2016
-    # predz = predictions[0:49]
-    # predk = predictions[51:67]
-    # pred = np.hstack([predz, predk])
-    # pred = 10**pred
-
-    # Working out the MAE values
-    # In the future I want to update this to work with the errors from the observables
-    # if len(obs_y) != len(predictions):
-    #     raise ValueError("Observation length and predictions length must be identical")
-
-    # Need to apply scaling:
-    # obs_yz = obs_y[0:49]
-    # obs_yk = obs_y[49:74]
-    # obs_yr = obs_y[74:102]
-    # pred_yz = predictions[0:49]
-    # pred_yk = predictions[49:74]
-    # pred_yr = predictions[74:102]
-
-    # # n(z)
-    # obs_yz_min = min(obs_yz)
-    # obs_yz_max = max(obs_yz)
-    # obs_yz_scaled = (obs_yz - obs_yz_min) / (obs_yz_max - obs_yz_min)
-    # pred_yz_scaled = (pred_yz - obs_yz_min) / (obs_yz_max - obs_yz_min)
-    # # LFk
-    # obs_yk_min = min(obs_yk)
-    # obs_yk_max = max(obs_yk)
-    # obs_yk_scaled = (obs_yk - obs_yk_min) / (obs_yk_max - obs_yk_min)
-    # pred_yk_scaled = (pred_yk - obs_yk_min) / (obs_yk_max - obs_yk_min)
-    # # LFr
-    # obs_yr_min = min(obs_yr)
-    # obs_yr_max = max(obs_yr)
-    # obs_yr_scaled = (obs_yr - obs_yr_min) / (obs_yr_max - obs_yr_min)
-    # pred_yr_scaled = (pred_yr - obs_yr_min) / (obs_yr_max - obs_yr_min)
-    #
-    # obs_y_scaled = np.concatenate([obs_yz_scaled, obs_yk_scaled, obs_yr_scaled], axis=0)
-    # pred_y_scaled = np.concatenate([pred_yz_scaled, pred_yk_scaled, pred_yr_scaled], axis=0)
 
     # Manually calculate the weighted MAE
     abs_diff = np.abs(obs_y - pred)  # / sigma # L1 norm
@@ -311,7 +275,7 @@ obs_y = np.log10(np.hstack([Ha_b['n'].values, df_k['LF'].values, df_r['LF'].valu
 # W = [8.0] * 49 + [1.0] * 16
 W = [6.0] * 7 + [1.0] * 18 + [1.0] * 20
 param_range = [2.8, 790.0, 790.0, 3.0, 4.0, 3.0, 0.7, 0.3, 0.29, 0.049, 0.19]
-b = [i/20 for i in param_range]
+b_step = [i/20 for i in param_range]
 
 # Load the Galform bins
 bin_file = 'Data/Data_for_ML/bin_data/bin_full'
@@ -324,8 +288,8 @@ print('Loaded %d models' % len(members))
 # np.random.seed(42)
 
 num_samples = int(15000)
-burnin = 0.5  # For now testing with zero burn in
-n_walkers = 3
+burnin = 0.5
+n_walkers = 10
 
 n_samples = []
 n_predictions = []
@@ -365,7 +329,7 @@ for n in range(n_walkers):
         proposal_distribution=proposal_distribution,
         initial_state=initial_state,
         num_samples=num_samples,
-        stepsize=b,
+        stepsize=b_step,
         burnin=burnin
     )
     n_samples.append(samples)

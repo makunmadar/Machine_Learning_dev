@@ -71,13 +71,17 @@ checkpoint = ModelCheckpoint(
     save_best_only=True
 )
 ################################################
-# Here we are splitting our total training data into training and testing data. The testing data should be completely
-# unseen by the network.
-# Before running the network, please run the code in this section first to save the training and testing data split,
-# including the exit() statement.
+'''
+Here we are splitting our total training data into training and testing data. The testing data should be completely
+unseen by the network.
+Before running the network, please run the code in this section first to save the training and testing data split,
+including the exit() statement.
 
-# Import the training datasets: Uncomment everything below including the exit statement for safety.
-# Load in the relevant data to be split up into training and testing data.
+This could probably go in the data_generation script
+
+Import the training datasets: Uncomment everything below including the exit statement for safety.
+Load in the relevant data to be split up into training and testing data.
+'''
 
 # feature_file = 'Data/Data_for_ML/training_data/feature_2999'
 # label_file = 'Data/Data_for_ML/training_data/label_full2999'
