@@ -17,6 +17,8 @@ This should also install Keras within TensorFlow. You will see how Tensorflow an
 This repository contains many project-specific scripts that are not required for the emulation. 
 I suggest the main Python scripts to focus on are: 
 
+- Loading_functions
+  - a list of functions that I have created that are relevant for data generation, model training, optimisation and evaluation for my project
 - Data Generation
   - Formating the training data for the emulator training and calibration
 - MultiOut_ML
@@ -25,3 +27,6 @@ I suggest the main Python scripts to focus on are:
   - Testing the emulator performance using the testing data set
 - Optimization
   - Running the MCMC to fit the emulator to the observation data
+- CornerPlots
+  - A script for creating the corner plots to interpret the MCMC outputs
+  - TODO: script needs cleaning up - very messy
